@@ -1,0 +1,13 @@
+﻿global using AutoMapper;
+global using System.Text;
+global using Domain.Enums;
+global using Domain.Entities;
+global using Application.DTOs;
+global using FluentValidation;
+global using Domain.IRepositories;
+global using Application.Interfaces;
+global using System.Security.Claims;
+global using Application.Configuration;
+global using Microsoft.Extensions.Options;
+global using Microsoft.IdentityModel.Tokens;
+global using System.IdentityModel.Tokens.Jwt;
