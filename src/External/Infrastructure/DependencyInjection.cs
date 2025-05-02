@@ -1,4 +1,6 @@
-﻿namespace Infrastructure;
+﻿using Microsoft.Extensions.Configuration;
+
+namespace Infrastructure;
 public static class DependencyInjection
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
@@ -13,8 +15,24 @@ public static class DependencyInjection
         //builder.Host.UseSerilog();
 
         // Database Context - Scoped (shared per request)
+        //services.AddDbContext<AppDbContext>(options =>
+        //    options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Scoped);
+
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+
         services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Scoped);
+        {
+            options.UseSqlServer(connectionString,
+                sqlServerOptionsAction: sqlOptions =>
+                {
+                    sqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 3,
+                        maxRetryDelay: TimeSpan.FromMilliseconds(10),
+                        errorNumbersToAdd: null);
+                });
+            options.EnableThreadSafetyChecks(true);
+            options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+        });
 
         // Redis Distributed Cache - Singleton (shared across app lifetime)
         services.AddStackExchangeRedisCache(options =>

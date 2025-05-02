@@ -1,4 +1,5 @@
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Infrastructure\bin\Debug\net8.0\Infrastructure.deps.json
+C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Infrastructure\bin\Debug\net8.0\Infrastructure.runtimeconfig.json
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Infrastructure\bin\Debug\net8.0\Infrastructure.dll
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Infrastructure\bin\Debug\net8.0\Infrastructure.pdb
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Infrastructure\bin\Debug\net8.0\Application.dll
@@ -10,8 +11,10 @@ C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Infrastructure\obj\Deb
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Infrastructure\obj\Debug\net8.0\Infrastructure.AssemblyInfoInputs.cache
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Infrastructure\obj\Debug\net8.0\Infrastructure.AssemblyInfo.cs
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Infrastructure\obj\Debug\net8.0\Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Infrastructure\obj\Debug\net8.0\Infrastructure.sourcelink.json
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Infrastructure\obj\Debug\net8.0\Infrastr.15EFFBFE.Up2Date
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Infrastructure\obj\Debug\net8.0\Infrastructure.dll
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Infrastructure\obj\Debug\net8.0\refint\Infrastructure.dll
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Infrastructure\obj\Debug\net8.0\Infrastructure.pdb
+C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Infrastructure\obj\Debug\net8.0\Infrastructure.genruntimeconfig.cache
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Infrastructure\obj\Debug\net8.0\ref\Infrastructure.dll

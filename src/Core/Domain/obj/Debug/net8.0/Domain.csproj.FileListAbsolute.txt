@@ -5,6 +5,7 @@ C:\Users\sAlAr\source\repos\Retail Ecommerce\src\Core\Domain\obj\Debug\net8.0\Do
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\Core\Domain\obj\Debug\net8.0\Domain.AssemblyInfoInputs.cache
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\Core\Domain\obj\Debug\net8.0\Domain.AssemblyInfo.cs
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\Core\Domain\obj\Debug\net8.0\Domain.csproj.CoreCompileInputs.cache
+C:\Users\sAlAr\source\repos\Retail Ecommerce\src\Core\Domain\obj\Debug\net8.0\Domain.sourcelink.json
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\Core\Domain\obj\Debug\net8.0\Domain.dll
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\Core\Domain\obj\Debug\net8.0\refint\Domain.dll
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\Core\Domain\obj\Debug\net8.0\Domain.pdb

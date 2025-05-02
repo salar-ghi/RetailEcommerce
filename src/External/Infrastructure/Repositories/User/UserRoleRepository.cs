@@ -4,7 +4,7 @@ public class UserRoleRepository : Repository<UserRole, int> , IUserRoleRepositor
 {
     public UserRoleRepository(AppDbContext context) : base(context) { }
 
-    public async Task<IEnumerable<UserRole>> GetByUserIdAsync(int userId)
+    public async Task<IEnumerable<UserRole>> GetByUserIdAsync(string userId)
     {
         return await _context.UserRoles
             .Where(ur => ur.UserId == userId)
@@ -20,7 +20,7 @@ public class UserRoleRepository : Repository<UserRole, int> , IUserRoleRepositor
             .ToListAsync();
     }
 
-    public async Task DeleteAsync(int userId, int roleId)
+    public async Task DeleteAsync(string userId, int roleId)
     {
         var entity = await _context.UserRoles
             .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId);

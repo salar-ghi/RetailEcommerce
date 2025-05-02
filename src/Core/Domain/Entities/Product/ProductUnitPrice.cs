@@ -8,6 +8,6 @@ public class ProductUnitPrice : BaseModel<long>
     public string PricingTier { get; set; }  // e.g., "Retail", "Wholesale"
     public DateTime EffectiveDate { get; set; }
 
-    public int ProductId { get; set; }
+    public long ProductId { get; set; }
     public Product Product { get; set; }
 }

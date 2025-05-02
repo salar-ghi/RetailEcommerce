@@ -8,6 +8,6 @@ public class UserAddress : BaseModel<int>
     public string ZipCode { get; set; }
     public string Country { get; set; }
     public bool IsPrimary { get; set; }
-    public int UserId { get; set; }
+    public string UserId { get; set; }
     public User User { get; set; }
 }

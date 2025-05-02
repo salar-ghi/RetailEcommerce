@@ -51,7 +51,7 @@ public class UserAddressService
         }
     }
 
-    public async Task<IEnumerable<UserAddressDto>> SearchAddressesByUserIdAsync(int userId)
+    public async Task<IEnumerable<UserAddressDto>> SearchAddressesByUserIdAsync(string userId)
     {
         var addresses = await _unitOfWork.UserAddresses.GetByUserIdAsync(userId);
         return _mapper.Map<IEnumerable<UserAddressDto>>(addresses);

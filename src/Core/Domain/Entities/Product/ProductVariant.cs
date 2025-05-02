@@ -13,6 +13,6 @@ public class ProductVariant : BaseModel<long>
     //public ProductStock Stocks { get; set; }
     //public int PriceId { get; set; }
     //public ProductUnitPrice Prices { get; set; }
-    public int ProductId { get; set; }
+    public long ProductId { get; set; }
     public Product Product { get; set; }
 }

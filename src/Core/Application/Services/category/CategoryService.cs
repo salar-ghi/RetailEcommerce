@@ -25,9 +25,16 @@ public class CategoryService
 
     public async Task AddCategoryAsync(CategoryDto categoryDto)
     {
-        var category = _mapper.Map<Category>(categoryDto);
-        await _unitOfWork.Categories.AddAsync(category);
-        await _unitOfWork.SaveChangesAsync();
+        try
+        {
+            var category = _mapper.Map<Category>(categoryDto);
+            await _unitOfWork.Categories.AddAsync(category);
+            await _unitOfWork.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
     }
 
     public async Task UpdateCategoryAsync(CategoryDto categoryDto)

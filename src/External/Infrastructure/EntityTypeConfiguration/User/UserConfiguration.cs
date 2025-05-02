@@ -10,14 +10,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Email).IsRequired().HasMaxLength(100);
         builder.Property(u => u.PasswordHash).IsRequired();
 
-        builder.HasOne(u => u.Basket)
+        builder.HasMany(u => u.Basket)
               .WithOne(b => b.User)
-              .HasForeignKey<Basket>(b => b.UserId)
-              .IsRequired(false); // Optional relationship
+              .HasForeignKey(b => b.UserId).IsRequired(false);
 
         builder.HasOne(u => u.Supplier)
-               .WithOne()
-               .HasForeignKey<Supplier>(s => s.Id); // Assuming Supplier has a one-to-one with User
+               .WithOne(b => b.User)
+               .HasForeignKey<Supplier>(s => s.UserId); // Assuming Supplier has a one-to-one with User
 
         builder.HasMany(u => u.UserRoles)
                .WithOne(r => r.User)

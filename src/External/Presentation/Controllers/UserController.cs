@@ -125,7 +125,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("user-roles/{userId}/{roleId}")]
-    public async Task<IActionResult> GetUserRoleById(int userId, int roleId)
+    public async Task<IActionResult> GetUserRoleById(string userId, int roleId)
     {
         var userRole = await _userRoleService.GetUserRoleByIdAsync(userId, roleId);
         return Ok(userRole);
@@ -139,7 +139,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("user-roles/{userId}/{roleId}")]
-    public async Task<IActionResult> UpdateUserRole(int userId, int roleId, UserRoleDto userRoleDto)
+    public async Task<IActionResult> UpdateUserRole(string userId, int roleId, UserRoleDto userRoleDto)
     {
         if (userId != userRoleDto.UserId || roleId != userRoleDto.RoleId) return BadRequest();
         await _userRoleService.UpdateUserRoleAsync(userRoleDto);
@@ -147,14 +147,14 @@ public class UserController : ControllerBase
     }
 
     [HttpDelete("user-roles/{userId}/{roleId}")]
-    public async Task<IActionResult> DeleteUserRole(int userId, int roleId)
+    public async Task<IActionResult> DeleteUserRole(string userId, int roleId)
     {
         await _userRoleService.DeleteUserRoleAsync(userId, roleId);
         return NoContent();
     }
 
     [HttpGet("user-roles/search/user")]
-    public async Task<IActionResult> SearchUserRolesByUserId(int userId)
+    public async Task<IActionResult> SearchUserRolesByUserId(string userId)
     {
         var userRoles = await _userRoleService.SearchUserRolesByUserIdAsync(userId);
         return Ok(userRoles);
@@ -205,7 +205,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("addresses/search/user")]
-    public async Task<IActionResult> SearchAddressesByUserId(int userId)
+    public async Task<IActionResult> SearchAddressesByUserId(string userId)
     {
         var addresses = await _addressService.SearchAddressesByUserIdAsync(userId);
         return Ok(addresses);

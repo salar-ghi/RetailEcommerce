@@ -9,9 +9,7 @@ public class Order : BaseModel<string>
     public decimal DiscountAmount { get; set; } = 0m;
     public decimal TotalAmount => Items.Sum(item => item.Quantity * item.UnitPrice) - DiscountAmount;
     public int TotalItems => Items.Sum(item => item.Quantity);
-
-    //public string ShippingAddress { get; set; }
-    public ShippingAddress ShippingAddress { get; set; }
+    public ShippingAddress ShippingAddress { get; set; } = new ShippingAddress();
 
     [Timestamp]
     public byte[] RowVersion { get; set; }

@@ -1,7 +1,4 @@
-﻿
-using Microsoft.EntityFrameworkCore;
-
-namespace Infrastructure.EntityTypeConfiguration;
+﻿namespace Infrastructure.EntityTypeConfiguration;
 
 public class OrderConfiguration : IEntityTypeConfiguration<Order>
 {
@@ -14,7 +11,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.UserId).IsRequired();
         builder.Property(o => o.Status).IsRequired();
         builder.Property(o => o.DiscountAmount).HasPrecision(18, 2).HasDefaultValue(0m);
-        builder.Property(o => o.ShippingAddress).IsRequired().HasMaxLength(500);
+        //builder.Property(o => o.ShippingAddress).IsRequired().HasMaxLength(500);
         //builder.Property(o => o.PaymentMethod).IsRequired();
         builder.Property(o => o.RowVersion).IsConcurrencyToken();
 

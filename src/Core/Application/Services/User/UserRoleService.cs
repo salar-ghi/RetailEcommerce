@@ -17,7 +17,7 @@ public class UserRoleService
         return _mapper.Map<IEnumerable<UserRoleDto>>(userRoles);
     }
 
-    public async Task<UserRoleDto> GetUserRoleByIdAsync(int userId, int roleId)
+    public async Task<UserRoleDto> GetUserRoleByIdAsync(string userId, int roleId)
     {
         var userRoles = await _unitOfWork.UserRoles.GetAllAsync();
         var userRole = userRoles.FirstOrDefault(ur => ur.UserId == userId && ur.RoleId == roleId);
@@ -42,13 +42,13 @@ public class UserRoleService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task DeleteUserRoleAsync(int userId, int roleId)
+    public async Task DeleteUserRoleAsync(string userId, int roleId)
     {
         await _unitOfWork.UserRoles.DeleteAsync(userId, roleId);
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<UserRoleDto>> SearchUserRolesByUserIdAsync(int userId)
+    public async Task<IEnumerable<UserRoleDto>> SearchUserRolesByUserIdAsync(string userId)
     {
         var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(userId);
         return _mapper.Map<IEnumerable<UserRoleDto>>(userRoles);

@@ -5,7 +5,7 @@ public class UserAddressRepository : Repository<UserAddress, int>, IUserAddressR
 {
     public UserAddressRepository(AppDbContext context) : base(context) { }
 
-    public async Task<IEnumerable<UserAddress>> GetByUserIdAsync(int userId)
+    public async Task<IEnumerable<UserAddress>> GetByUserIdAsync(string userId)
     {
         return await _context.UserAddresses
             .Where(ua => ua.UserId == userId)

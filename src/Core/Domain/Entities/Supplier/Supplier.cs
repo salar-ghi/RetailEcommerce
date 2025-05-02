@@ -11,7 +11,7 @@ public class Supplier : BaseModel<int>
     public string ContactPhone { get; set; }
     public string Address { get; set; }
 
-    public int UserId { get; set; }
-    public User User { get; set; }
+    public string UserId { get; set; }
+    public User User { get; set; } = new User();
     public ICollection<ProductSupplier> ProductSuppliers { get; set; } = new List<ProductSupplier>();
 }
