@@ -1,13 +1,17 @@
-﻿namespace Application.Services;
+﻿using Microsoft.AspNetCore.Http;
+
+namespace Application.Services;
 public class CategoryService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    //private readonly IHttpContextAccessor _httpContextAccessor;
 
     public CategoryService(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        //_httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()
@@ -28,11 +32,18 @@ public class CategoryService
         try
         {
             var category = _mapper.Map<Category>(categoryDto);
+            //var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier);
+            //category.CreatedBy = userIdClaim?.Value ?? string.Empty;
+            category.CreatedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
+            category.ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
+
             await _unitOfWork.Categories.AddAsync(category);
             await _unitOfWork.SaveChangesAsync();
         }
         catch (Exception ex)
         {
+            Console.Clear();
+            Console.WriteLine(ex.ToString());
             throw ex;
         }
     }

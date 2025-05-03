@@ -1,4 +1,6 @@
-﻿namespace Application.Services;
+﻿using Domain.Entities;
+
+namespace Application.Services;
 
 // Application/Services/BrandService.cs
 public class BrandService
@@ -28,6 +30,8 @@ public class BrandService
     public async Task AddBrandAsync(BrandDto brandDto)
     {
         var brand = _mapper.Map<Brand>(brandDto);
+        brand.CreatedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
+        brand.ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
         await _unitOfWork.Brands.AddAsync(brand);
         await _unitOfWork.SaveChangesAsync();
     }

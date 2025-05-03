@@ -1,6 +1,6 @@
 ﻿namespace Application.Services;
 using BCrypt.Net;
-public class UserService : IUserService
+public class UserService //: IUserService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
