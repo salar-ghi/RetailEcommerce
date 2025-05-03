@@ -1,1 +1,82 @@
-.vs
+# Build output directories and files
+bin/
+obj/
+*.csproj.user
+*.user
+*.suo
+*.dll
+*.pdb
+*.AssemblyInfo
+*.AssemblyInputs
+
+# Visual Studio / VS Code specific
+.vscode/
+*.code-workspace
+*.sln
+*.sln.DotSettings.user
+*.vs/
+*.cache
+*.bak
+
+# Dependency directories
+wwwroot/lib/
+node_modules/
+
+# Environment-specific and configuration files
+appsettings.Development.json
+appsettings.*.json
+*.config
+*.secrets.json
+
+# Logs and temporary files
+*.log
+logs/
+*.tmp
+*.temp
+
+# Runtime data and caches
+*.pidb
+*.db
+*.sqlite
+*.db3
+*.bak
+*.cache
+*.nupkg
+*.snupkg
+
+# IDE-specific files
+.idea/
+*.iml
+
+# Sensitive files
+*.key
+*.pem
+*.pfx
+*.cert
+*.keystore
+*.jks
+
+# Dependency lock files (if not needed in version control)
+*.lock.json
+
+# Coverage and test results
+test-results/
+*.trx
+*.coverage
+*.coveragexml
+
+# Published output
+publish/
+*.pubxml
+*.pubxml.user
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# macOS-specific
+.DS_Store
+
+# Windows-specific
+Thumbs.db
