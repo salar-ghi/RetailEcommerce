@@ -1,14 +1,20 @@
 ﻿namespace Application.Services;
-using BCrypt.Net;
-public class UserService //: IUserService
+
+public class UserService : IUserService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IPasswordHasher _passwordHasher;
+    private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly IMapper _mapper;
 
-    public UserService(IUnitOfWork unitOfWork, IMapper mapper)
+    public UserService(IUnitOfWork unitOfWork, IMapper mapper,
+        IPasswordHasher passwordHasher,
+        IJwtTokenGenerator jwtTokenGenerator)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _passwordHasher = passwordHasher;
+        _jwtTokenGenerator = jwtTokenGenerator;
     }
 
     public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
@@ -24,11 +30,41 @@ public class UserService //: IUserService
         return _mapper.Map<UserDto>(user);
     }
 
-    public async Task AddUserAsync(UserDto userDto)
+    //public async Task AddUserAsync(UserDto userDto)
+    //{
+    //    var user = _mapper.Map<User>(userDto);
+    //    await _unitOfWork.Users.AddAsync(user);
+    //    await _unitOfWork.SaveChangesAsync();
+    //}
+
+    public async Task<User> AddUserAsync(AddUserDto dto)
     {
-        var user = _mapper.Map<User>(userDto);
+        var existingUser = await _unitOfWork.Users.GetByAsync(u => u.PhoneNumber == dto.PhoneNumber);
+        if (existingUser != null)
+        {
+            throw new Exception("User already exists");
+        }
+
+        var password = GenerateRandomPassword();
+        Console.Clear();
+        Console.WriteLine($"password ==> {password}");
+        var passwordHash = _passwordHasher.HashPassword(password);
+
+        var user = new User
+        {
+            Id = Guid.NewGuid().ToString(),
+            PhoneNumber = dto.PhoneNumber,
+            PasswordHash = passwordHash,
+            IsActive = true,
+            IsEmailConfirmed = false,
+            TwoFactorEnabled = false
+        };
         await _unitOfWork.Users.AddAsync(user);
         await _unitOfWork.SaveChangesAsync();
+
+        var userId = user.Id;
+        Console.WriteLine($"Generated Password for {dto.PhoneNumber}: {password}"); // Placeholder
+        return user;
     }
 
     public async Task UpdateUserAsync(UserDto userDto)
@@ -68,19 +104,28 @@ public class UserService //: IUserService
     //    if (basket == null) throw new NotFoundException("Basket not found");
     //    return _mapper.Map<BasketDto>(basket);
     //}
-    public async Task<User> RegisterAsync(string username, string password, string role)
+    public async Task<User> RegisterAsync(SignupDto dto)
     {
-        var existingUser = await _unitOfWork.Users.GetByUsernameAsync(username);
+        //var existingUser = await _unitOfWork.Users.GetByUsernameAsync(username);
+        var existingUser = await _unitOfWork.Users.GetByAsync(u => u.PhoneNumber == dto.PhoneNumber);
+
         if (existingUser != null)
         {
-            throw new Exception("Username already exists");
+            throw new Exception("User already exists");
         }
 
-        string passwordHash = BCrypt.HashPassword(password);
+        //string passwordHash = BCrypt.HashPassword(password);
+        var passwordHash = _passwordHasher.HashPassword(dto.Password);
+
         var user = new User
         {
-            Username = username,
+            Id = Guid.NewGuid().ToString(),
+            PhoneNumber = dto.PhoneNumber,
             PasswordHash = passwordHash,
+            IsActive = true,
+            IsEmailConfirmed = false,
+            TwoFactorEnabled = false,
+            Username = dto.PhoneNumber,
             //Role = role
         };
 
@@ -89,14 +134,23 @@ public class UserService //: IUserService
         return user;
     }
 
-    public async Task<User> AuthenticateAsync(string username, string password)
+    public async Task<(string jwtToken, string refreshToken)> AuthenticateAsync(LoginDto dto)
     {
-        var user = await _unitOfWork.Users.GetByUsernameAsync(username);
-        if (user == null || !BCrypt.Verify(password, user.PasswordHash))
+        var user = await _unitOfWork.Users.GetByAsync(u => u.PhoneNumber == dto.PhoneNumber);
+        if (user == null || !_passwordHasher.VerifyPassword(dto.Password, user.PasswordHash))
         {
-            return null;
+            throw new Exception("Invalid credentials");
         }
-        return user;
+        var jwtToken = _jwtTokenGenerator.GenerateJwtToken(user);
+        //var refreshToken = Guid.NewGuid().ToString();
+        var refreshToken = GenerateRandomRefreshToken();
+
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+        user.LastLoginTime = DateTime.UtcNow;
+
+        await _unitOfWork.Users.UpdateAsync(user);
+        return (jwtToken, refreshToken);
     }
 
     public async Task<User> ValidateRefreshTokenAsync(string refreshToken)
@@ -126,4 +180,11 @@ public class UserService //: IUserService
         }
     }
 
+    private string GenerateRandomPassword()
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+        var random = new Random();
+        return new string(Enumerable.Repeat(chars, 8)
+            .Select(s => s[random.Next(s.Length)]).ToArray());
+    }
 }

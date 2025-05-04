@@ -1,15 +1,18 @@
-﻿namespace Presentation.Controllers;
+﻿using Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
+
+namespace Presentation.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
 public class UserController : ControllerBase
 {
-    private readonly UserService _userService;
+    private readonly IUserService _userService;
     private readonly RoleService _roleService;
     private readonly UserRoleService _userRoleService;
     private readonly UserAddressService _addressService;
 
-    public UserController(UserService userService,
+    public UserController(IUserService userService,
         RoleService roleService,
         UserRoleService userRoleService,
         UserAddressService addressService)
@@ -46,10 +49,19 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("users")]
-    public async Task<IActionResult> AddUser(UserDto userDto)
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AddUser(AddUserDto userDto)
     {
-        await _userService.AddUserAsync(userDto);
-        return CreatedAtAction(nameof(GetUserById), new { id = userDto.Id }, userDto);
+        try
+        {
+            var user = await _userService.AddUserAsync(userDto);
+            //return CreatedAtAction(nameof(GetUserById), new { id = userDto.Id }, userDto);
+            return Ok(new { Message = "User added successfully", UserId = user.Id });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPut("users/{id}")]

@@ -20,4 +20,8 @@ public class Repository<T, TId> : IRepository<T, TId> where T : BaseModel<TId>
     public async Task DeleteAsync(T entity) => _context.Set<T>().Remove(entity);
 
     public async Task<T> GetSingleAsync(Expression<Func<T, bool>> predicate) => await _context.Set<T>().FirstOrDefaultAsync(predicate);
+    public async Task<T> GetByAsync(Func<T, bool> predicate) => await Task.FromResult(_context.Set<T>().FirstOrDefault(predicate));
+    //{
+    //    return await Task.FromResult(_context.Set<T>().FirstOrDefault(predicate));
+    //}
 }

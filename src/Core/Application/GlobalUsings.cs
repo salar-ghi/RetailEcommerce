@@ -4,6 +4,7 @@ global using Domain.Enums;
 global using Domain.Entities;
 global using Application.DTOs;
 global using FluentValidation;
+global using Application.Helper;
 global using Domain.IRepositories;
 global using Application.Interfaces;
 global using System.Security.Claims;

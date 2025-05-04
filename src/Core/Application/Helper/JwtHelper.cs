@@ -1,13 +1,6 @@
 ﻿namespace Application.Helper;
 
 
-public class JwtSettings
-{
-    public string Secret { get; set; }
-    public int ExpirationInMinutes { get; set; }
-}
-
-
 public class JwtHelper
 {
     private readonly JwtSettings _jwtSettings;
@@ -19,7 +12,7 @@ public class JwtHelper
     public string GenerateToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
+        var key = Encoding.ASCII.GetBytes(_jwtSettings.Key);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
@@ -27,7 +20,7 @@ public class JwtHelper
                 new Claim(ClaimTypes.Name, user.Username),
                 //new Claim(ClaimTypes.Role, user.Role)
             }),
-            Expires = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationInMinutes),
+            Expires = DateTime.UtcNow.AddMinutes(60),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);

@@ -8,22 +8,20 @@ public class AuthController : ControllerBase
 {
 
     private readonly IUserService _userService;
-    private readonly JwtHelper _jwtHelper;
 
-    public AuthController(IUserService userService, IOptions<JwtSettings> jwtSettings)
+    public AuthController(IUserService userService)
     {
         _userService = userService;
-        _jwtHelper = new JwtHelper(jwtSettings);
     }
 
 
     [HttpPost("signup")]
-    public async Task<IActionResult> Signup([FromBody] SignupModel model)
+    public async Task<IActionResult> Signup([FromBody] SignupDto model)
     {
         try
         {
-            var user = await _userService.RegisterAsync(model.Username, model.Password, model.Role);
-            return Ok(new { Message = "User registered successfully" });
+            var user = await _userService.RegisterAsync(model);
+            return Ok(new { Message = "User registered successfully", UserId = user.Id });
         }
         catch (Exception ex)
         {
@@ -32,40 +30,30 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginModel model)
+    public async Task<IActionResult> Login([FromBody] LoginDto model)
     {
-        var user = await _userService.AuthenticateAsync(model.Username, model.Password);
-        if (user == null)
+        try
         {
-            return Unauthorized(new { Message = "Invalid username or password" });
+            var (jwtToken, refreshToken) = await _userService.AuthenticateAsync(model);
+            return Ok(new { JwtToken = jwtToken, RefreshToken = refreshToken });
         }
-
-        var token = _jwtHelper.GenerateToken(user);
-        var refreshToken = await _userService.GenerateRefreshTokenAsync(user);
-        return Ok(new { Token = token, RefreshToken = refreshToken });
+        catch (Exception ex)
+        {
+            return Unauthorized(ex.Message);
+        }
     }
 
-    [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh([FromBody] RefreshModel model)
-    {
-        var user = await _userService.ValidateRefreshTokenAsync(model.RefreshToken);
-        if (user == null)
-        {
-            return Unauthorized(new { Message = "Invalid refresh token" });
-        }
-
-        var newToken = _jwtHelper.GenerateToken(user);
-        var newRefreshToken = await _userService.GenerateRefreshTokenAsync(user);
-        return Ok(new { Token = newToken, RefreshToken = newRefreshToken });
-    }
-
-
-    //[HttpPost("login")]
-    //public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    //[HttpPost("refresh")]
+    //public async Task<IActionResult> Refresh([FromBody] RefreshModel model)
     //{
-    //    var token = await _authService.Authenticate(request.UsernameOrPhone, request.Password);
-    //    if (string.IsNullOrEmpty(token)) return Unauthorized();
+    //    var user = await _userService.ValidateRefreshTokenAsync(model.RefreshToken);
+    //    if (user == null)
+    //    {
+    //        return Unauthorized(new { Message = "Invalid refresh token" });
+    //    }
 
-    //    return Ok(new { token });
+    //    var newToken = _jwtHelper.GenerateToken(user);
+    //    var newRefreshToken = await _userService.GenerateRefreshTokenAsync(user);
+    //    return Ok(new { Token = newToken, RefreshToken = newRefreshToken });
     //}
 }
