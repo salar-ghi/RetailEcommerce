@@ -7,8 +7,15 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasKey(u => u.Id);
         builder.Property(u => u.Id).ValueGeneratedOnAdd();
         builder.Property(u => u.Username).IsRequired().HasMaxLength(50);
-        builder.Property(u => u.Email).IsRequired().HasMaxLength(100);
+        builder.Property(u => u.PhoneNumber).IsRequired().HasMaxLength(50);
+        builder.Property(u => u.Email).IsRequired(false).HasMaxLength(100);
         builder.Property(u => u.PasswordHash).IsRequired();
+
+        builder.Property(u => u.FirstName).IsRequired(false).HasMaxLength(50);
+        builder.Property(u => u.LastName).IsRequired(false).HasMaxLength(50);
+        builder.Property(u => u.RefreshToken).IsRequired(false).HasMaxLength(500);
+        builder.Property(u => u.RefreshTokenExpiryTime).IsRequired(false);
+        builder.Property(u => u.ProfilePictureUrl).IsRequired(false).HasMaxLength(5000);
 
         builder.HasMany(u => u.Basket)
               .WithOne(b => b.User)

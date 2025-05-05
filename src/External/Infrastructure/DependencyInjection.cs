@@ -99,8 +99,7 @@ public static class DependencyInjection
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IPromotionService, PromotionService>();
         services.AddScoped<IPaymentService, PaymentService>();
-        //services.AddScoped<IUserService, UserService>();
-        services.AddScoped<UserService>();
+        services.AddScoped<IUserService, UserService>();
 
         services.AddScoped<ProductService>();
         services.AddScoped<ProductAttributeService>();

@@ -10,7 +10,7 @@ public class User : BaseModel<string>
     public string PhoneNumber { get; set; }
 
     public string RefreshToken { get; set; }
-    public DateTime RefreshTokenExpiryTime { get; set; }
+    public DateTime? RefreshTokenExpiryTime { get; set; }
 
 
     public DateTime? DateOfBirth { get; set; }
@@ -21,7 +21,7 @@ public class User : BaseModel<string>
     public bool IsEmailConfirmed { get; set; }
 
     //public int SupplierId { get; set; }
-    public Supplier Supplier { get; set; } = new Supplier();
+    public Supplier Supplier { get; set; }
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     public ICollection<UserAddress> Addresses { get; set; } = new List<UserAddress>();
     public ICollection<ProductReview> Reviewer { get; set; } = new List<ProductReview>();

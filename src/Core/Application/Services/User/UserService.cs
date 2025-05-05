@@ -1,4 +1,6 @@
-﻿namespace Application.Services;
+﻿using Domain.Entities;
+
+namespace Application.Services;
 
 public class UserService : IUserService
 {
@@ -106,32 +108,41 @@ public class UserService : IUserService
     //}
     public async Task<User> RegisterAsync(SignupDto dto)
     {
-        //var existingUser = await _unitOfWork.Users.GetByUsernameAsync(username);
-        var existingUser = await _unitOfWork.Users.GetByAsync(u => u.PhoneNumber == dto.PhoneNumber);
-
-        if (existingUser != null)
+        try
         {
-            throw new Exception("User already exists");
+            var existingUser = await _unitOfWork.Users.GetByAsync(u => u.PhoneNumber == dto.PhoneNumber);
+
+            if (existingUser != null)
+            {
+                throw new Exception("User already exists");
+            }
+
+            //string passwordHash = BCrypt.HashPassword(password);
+            var passwordHash = _passwordHasher.HashPassword(dto.Password);
+
+            var user = new User
+            {
+                Id = Guid.NewGuid().ToString(),
+                PhoneNumber = dto.PhoneNumber,
+                PasswordHash = passwordHash,
+                IsActive = true,
+                IsEmailConfirmed = false,
+                TwoFactorEnabled = false,
+                Username = dto.PhoneNumber,
+                CreatedBy = "bdfb65f1-9024-4736-846d-df7de909f571",
+                ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571",
+            };
+
+            await _unitOfWork.Users.AddAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+            return user;
         }
-
-        //string passwordHash = BCrypt.HashPassword(password);
-        var passwordHash = _passwordHasher.HashPassword(dto.Password);
-
-        var user = new User
+        catch (Exception ex)
         {
-            Id = Guid.NewGuid().ToString(),
-            PhoneNumber = dto.PhoneNumber,
-            PasswordHash = passwordHash,
-            IsActive = true,
-            IsEmailConfirmed = false,
-            TwoFactorEnabled = false,
-            Username = dto.PhoneNumber,
-            //Role = role
-        };
-
-        await _unitOfWork.Users.AddAsync(user);
-        await _unitOfWork.SaveChangesAsync();
-        return user;
+            Console.Clear();
+            Console.WriteLine(ex.Message);
+            throw;
+        }
     }
 
     public async Task<(string jwtToken, string refreshToken)> AuthenticateAsync(LoginDto dto)
@@ -150,6 +161,8 @@ public class UserService : IUserService
         user.LastLoginTime = DateTime.UtcNow;
 
         await _unitOfWork.Users.UpdateAsync(user);
+        await _unitOfWork.SaveChangesAsync();
+
         return (jwtToken, refreshToken);
     }
 
