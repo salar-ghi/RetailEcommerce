@@ -1,7 +1,4 @@
-﻿using System.Net;
-using System.Text.Json;
-
-namespace Presentation.Middleware;
+﻿namespace Presentation.Middleware;
 
 // Presentation/Middleware/GlobalExceptionMiddleware.cs
 public class ExceptionMiddleware

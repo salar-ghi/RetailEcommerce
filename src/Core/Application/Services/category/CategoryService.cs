@@ -20,6 +20,27 @@ public class CategoryService
         return _mapper.Map<IEnumerable<CategoryDto>>(categories);
     }
 
+    public async Task<List<CategoryDto>> GetCategoriesWithProductCount()
+    {
+        List<CategoryDto> categoryDto = new List<CategoryDto>();
+        var categories = await _unitOfWork.Categories.GetAllAsync();
+        foreach (var category in categories) 
+        {
+            CategoryDto dto = new CategoryDto();
+            var products = await _unitOfWork.Products.GetProductsByCategoryAsync(category.Id);
+
+            dto.Id = category.Id;
+            dto.Name = category.Name;
+            dto.Description = category.Description;
+            dto.ParentCategoryId = category.ParentCategoryId;
+            dto.productCount = products.Count();
+            dto.CreatedAt = category.CreatedTime;
+
+            categoryDto.Add(dto);
+        }
+        return categoryDto;
+    }
+
     public async Task<CategoryDto> GetCategoryByIdAsync(int id)
     {
         var category = await _unitOfWork.Categories.GetByIdAsync(id);

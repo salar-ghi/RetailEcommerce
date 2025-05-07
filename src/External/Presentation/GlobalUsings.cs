@@ -1,11 +1,12 @@
 ﻿global using System.Text;
 global using Infrastructure;
+global using System.Net;
+global using System.Text.Json;
 global using Application.DTOs;
 global using Application.Helper;
 global using Application.Services;
 global using Application.Interfaces;
 global using Presentation.Middleware;
 global using Microsoft.AspNetCore.Mvc;
-global using Microsoft.Extensions.Options;
 global using Microsoft.IdentityModel.Tokens;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
