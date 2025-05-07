@@ -31,7 +31,8 @@ public class BrandController : ControllerBase
     public async Task<IActionResult> AddBrand(BrandDto brandDto)
     {
         await _brandService.AddBrandAsync(brandDto);
-        return CreatedAtAction(nameof(GetBrandById), new { id = brandDto.Id }, brandDto);
+        //return CreatedAtAction(nameof(GetBrandById), new { id = brandDto.Id }, brandDto);
+        return Ok("brand created successflly");
     }
 
     [HttpPut("brands/{id}")]
