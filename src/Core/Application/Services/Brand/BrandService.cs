@@ -32,6 +32,8 @@ public class BrandService
         var brand = _mapper.Map<Brand>(brandDto);
         brand.CreatedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
         brand.ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
+        brand.CreatedTime = DateTime.Now;
+        brand.ModifiedTime = DateTime.Now;
         await _unitOfWork.Brands.AddAsync(brand);
         await _unitOfWork.SaveChangesAsync();
     }
