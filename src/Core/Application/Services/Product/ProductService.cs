@@ -1,4 +1,6 @@
-﻿namespace Application.Services;
+﻿using Domain.Entities;
+
+namespace Application.Services;
 
 public class ProductService
 {
@@ -26,6 +28,8 @@ public class ProductService
     public async Task AddProductAsync(ProductDto productDto)
     {
         var product = _mapper.Map<Product>(productDto);
+        product.CreatedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
+        product.ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
         await _unitOfWork.Products.AddAsync(product);
         await _unitOfWork.SaveChangesAsync();
     }
