@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Domain.Entities;
+using Microsoft.AspNetCore.Http;
 
 namespace Application.Services;
 public class CategoryService
@@ -74,6 +75,10 @@ public class CategoryService
         var category = await _unitOfWork.Categories.GetByIdAsync(categoryDto.Id);
         if (category == null) throw new KeyNotFoundException($"Category with ID {categoryDto.Id} not found.");
         _mapper.Map(categoryDto, category);
+        
+        category.ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
+        category.ModifiedTime = DateTime.Now;
+
         await _unitOfWork.Categories.UpdateAsync(category);
         await _unitOfWork.SaveChangesAsync();
     }

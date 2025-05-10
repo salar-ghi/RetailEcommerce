@@ -36,9 +36,10 @@ public class CategoryController : ControllerBase
     }
 
     [HttpPut("categories/{id}")]
-    public async Task<IActionResult> UpdateCategory(int id, CategoryDto categoryDto)
+    public async Task<IActionResult> UpdateCategory(int? id, CategoryDto categoryDto)
     {
-        if (id != categoryDto.Id) return BadRequest();
+        if (id == null || id is 0) return BadRequest();
+        categoryDto.Id = id.Value;
         await _categoryService.UpdateCategoryAsync(categoryDto);
         return NoContent();
     }
