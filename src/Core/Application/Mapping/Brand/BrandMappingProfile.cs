@@ -5,7 +5,7 @@ public class BrandMappingProfile : Profile
     public BrandMappingProfile()
     {
         CreateMap<Brand, BrandDto>()
-            .ForMember(dest => dest.createdAt, opt => opt.MapFrom(src => src.CreatedTime))
+            .ForMember(dest => dest.CreatedTime, opt => opt.MapFrom(src => src.CreatedTime))
             .ReverseMap();
     }
 }

@@ -36,9 +36,10 @@ public class BrandController : ControllerBase
     }
 
     [HttpPut("brands/{id}")]
-    public async Task<IActionResult> UpdateBrand(int id, BrandDto brandDto)
+    public async Task<IActionResult> UpdateBrand(int? id, BrandDto brandDto)
     {
-        if (id != brandDto.Id) return BadRequest();
+        if (id ==  null || id is 0) return BadRequest();
+        brandDto.Id = id.Value;
         await _brandService.UpdateBrandAsync(brandDto);
         return NoContent();
     }
