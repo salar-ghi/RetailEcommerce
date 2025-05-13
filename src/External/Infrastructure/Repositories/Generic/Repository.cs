@@ -10,8 +10,10 @@ public class Repository<T, TId> : IRepository<T, TId> where T : BaseModel<TId>
     }
 
     public async Task<T> GetByIdAsync(TId id) => await _context.Set<T>().FindAsync(id);
-    
+
     public async Task<IEnumerable<T>> GetAllAsync() => await _context.Set<T>().AsNoTracking().ToListAsync();
+    public IQueryable<T> GetAll() => _context.Set<T>().AsNoTracking();
+
 
     public async Task AddAsync(T entity) => await _context.Set<T>().AddAsync(entity);
 

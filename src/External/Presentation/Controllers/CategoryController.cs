@@ -16,8 +16,7 @@ public class CategoryController : ControllerBase
     [HttpGet("categories")]
     public async Task<IActionResult> GetAllCategories()
     {
-        //var categories = await _categoryService.GetAllCategoriesAsync();
-        var categories = await _categoryService.GetCategoriesWithProductCount();
+        var categories = await _categoryService.GetAllCategoriesWithDetailsAsync();
         return Ok(categories);
     }
 
@@ -32,6 +31,7 @@ public class CategoryController : ControllerBase
     public async Task<IActionResult> AddCategory(CategoryDto categoryDto)
     {
         await _categoryService.AddCategoryAsync(categoryDto);
+
         return CreatedAtAction(nameof(GetCategoryById), new { id = categoryDto.Id }, categoryDto);
     }
 

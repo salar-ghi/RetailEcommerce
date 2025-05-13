@@ -49,7 +49,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("users")]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddUser(AddUserDto userDto)
     {
         try
@@ -112,6 +112,7 @@ public class UserController : ControllerBase
     public async Task<IActionResult> AddRole(RoleDto roleDto)
     {
         await _roleService.AddRoleAsync(roleDto);
+        //return Ok("role added successfully");
         return CreatedAtAction(nameof(GetRoleById), new { id = roleDto.Id }, roleDto);
     }
 

@@ -164,7 +164,6 @@ C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug\net8.0\Presentation.AssemblyInfoInputs.cache
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug\net8.0\Presentation.AssemblyInfo.cs
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug\net8.0\Presentation.csproj.CoreCompileInputs.cache
-C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug\net8.0\Presentation.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug\net8.0\Presentation.MvcApplicationPartsAssemblyInfo.cache
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug\net8.0\Presentation.sourcelink.json
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug\net8.0\staticwebassets.build.json
@@ -181,3 +180,4 @@ C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug\net8.0\Presentation.pdb
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug\net8.0\Presentation.genruntimeconfig.cache
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug\net8.0\ref\Presentation.dll
+C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug\net8.0\Presentation.MvcApplicationPartsAssemblyInfo.cs

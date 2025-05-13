@@ -1,4 +1,6 @@
-﻿namespace Application.Services;
+﻿using Domain.Entities;
+
+namespace Application.Services;
 public class RoleService
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -26,6 +28,11 @@ public class RoleService
     public async Task AddRoleAsync(RoleDto roleDto)
     {
         var role = _mapper.Map<Role>(roleDto);
+        
+        role.CreatedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
+        role.ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
+        role.ModifiedTime = DateTime.Now;
+
         await _unitOfWork.Roles.AddAsync(role);
         await _unitOfWork.SaveChangesAsync();
     }

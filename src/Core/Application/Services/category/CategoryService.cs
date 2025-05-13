@@ -1,5 +1,5 @@
-﻿using Domain.Entities;
-using Microsoft.AspNetCore.Http;
+﻿using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 public class CategoryService
@@ -21,6 +21,15 @@ public class CategoryService
         return _mapper.Map<IEnumerable<CategoryDto>>(categories);
     }
 
+    public async Task<List<CategoryDetailsDto>> GetAllCategoriesWithDetailsAsync()
+    {
+        var categories = _unitOfWork.Categories.GetAll();
+        return await categories
+            .ProjectTo<CategoryDetailsDto>(_mapper.ConfigurationProvider)
+            .OrderBy(z => z.Name)
+            .ToListAsync();
+    }
+
     public async Task<List<CategoryDto>> GetCategoriesWithProductCount()
     {
         List<CategoryDto> categoryDto = new List<CategoryDto>();
@@ -34,7 +43,7 @@ public class CategoryService
             dto.Name = category.Name;
             dto.Description = category.Description;
             dto.ParentCategoryId = category.ParentCategoryId;
-            dto.productCount = products.Count();
+            dto.ProductCount = products.Count();
             dto.CreatedAt = category.CreatedTime;
 
             categoryDto.Add(dto);
