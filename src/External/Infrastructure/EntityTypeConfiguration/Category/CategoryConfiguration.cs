@@ -7,6 +7,7 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
         builder.HasKey(c => c.Id);
         builder.Property(c => c.Id).ValueGeneratedOnAdd();
         builder.Property(c => c.Name).IsRequired().HasMaxLength(100);
+        builder.Property(c => c.ImageUrl).HasMaxLength(500);
         builder.HasMany(c => c.Attributes)
                .WithOne(a => a.Category)
                .HasForeignKey(a => a.CategoryId)

@@ -1,4 +1,6 @@
-﻿namespace Application.Services;
+﻿using Domain.Entities;
+
+namespace Application.Services;
 
 public class TagService
 {
@@ -27,6 +29,8 @@ public class TagService
     public async Task AddTagAsync(TagDto tagDto)
     {
         var tag = _mapper.Map<Tag>(tagDto);
+        tag.CreatedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
+        tag.ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
         await _unitOfWork.Tags.AddAsync(tag);
         await _unitOfWork.SaveChangesAsync();
     }

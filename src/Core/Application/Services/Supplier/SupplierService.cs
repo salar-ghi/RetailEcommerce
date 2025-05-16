@@ -3,11 +3,16 @@ public class SupplierService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ICurrentUserService _currentUserService;
 
-    public SupplierService(IUnitOfWork unitOfWork, IMapper mapper)
+    public SupplierService(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ICurrentUserService currentUserService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
     }
 
     public async Task<IEnumerable<SupplierDto>> GetAllSuppliersAsync()
@@ -25,9 +30,24 @@ public class SupplierService
 
     public async Task AddSupplierAsync(SupplierDto supplierDto)
     {
-        var supplier = _mapper.Map<Supplier>(supplierDto);
-        await _unitOfWork.Suppliers.AddAsync(supplier);
-        await _unitOfWork.SaveChangesAsync();
+        try
+        {
+            var userId = _currentUserService.UserId;
+
+            var supplier = _mapper.Map<Supplier>(supplierDto);
+            supplier.CreatedTime = DateTime.Now;
+            supplier.ModifiedTime = DateTime.Now;
+            supplier.UserId = userId;
+            supplier.CreatedBy = userId;
+            supplier.ModifiedBy = userId;
+
+            await _unitOfWork.Suppliers.AddAsync(supplier);
+            await _unitOfWork.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
     }
 
     public async Task UpdateSupplierAsync(SupplierDto supplierDto)

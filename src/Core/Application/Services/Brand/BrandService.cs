@@ -38,14 +38,13 @@ public class BrandService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task UpdateBrandAsync(BrandDto brandDto)
+    public async Task UpdateBrandAsync(BrandUpdateDto brandDto)
     {
         var brand = await _unitOfWork.Brands.GetByIdAsync(brandDto.Id);
         if (brand == null) throw new KeyNotFoundException($"Brand with ID {brandDto.Id} not found.");
 
         _mapper.Map(brandDto, brand);
         brand.ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
-        brand.ModifiedTime = DateTime.Now;
         await _unitOfWork.Brands.UpdateAsync(brand);
         await _unitOfWork.SaveChangesAsync();
     }

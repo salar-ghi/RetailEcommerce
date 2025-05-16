@@ -31,8 +31,8 @@ public class CategoryController : ControllerBase
     public async Task<IActionResult> AddCategory(CategoryDto categoryDto)
     {
         await _categoryService.AddCategoryAsync(categoryDto);
-
-        return CreatedAtAction(nameof(GetCategoryById), new { id = categoryDto.Id }, categoryDto);
+        //return CreatedAtAction(nameof(GetCategoryById), new { id = categoryDto.Id }, categoryDto);
+        return Ok("category created successflly");
     }
 
     [HttpPut("categories/{id}")]

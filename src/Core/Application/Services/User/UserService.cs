@@ -41,32 +41,64 @@ public class UserService : IUserService
 
     public async Task<User> AddUserAsync(AddUserDto dto)
     {
-        var existingUser = await _unitOfWork.Users.GetByAsync(u => u.PhoneNumber == dto.PhoneNumber);
-        if (existingUser != null)
+        try
         {
-            throw new Exception("User already exists");
+            var existingUser = await _unitOfWork.Users.GetByAsync(u => u.PhoneNumber == dto.PhoneNumber);
+            if (existingUser != null)
+            {
+                throw new Exception("User already exists");
+            }
+
+            var password = GenerateRandomPassword();
+            Console.Clear();
+            Console.WriteLine($"password ==> {password}");
+            var passwordHash = _passwordHasher.HashPassword(password);
+
+            var user = new User
+            {
+                Id = Guid.NewGuid().ToString(),
+                PhoneNumber = dto.PhoneNumber,
+                Username = dto.PhoneNumber,
+                PasswordHash = passwordHash,
+                IsActive = true,
+                IsEmailConfirmed = false,
+                TwoFactorEnabled = false,
+                CreatedBy = "b963eba7-f9ec-495f-8366-ff67d84bc960",
+                //CreatedTime = DateTime.Now,
+                ModifiedBy = "b963eba7-f9ec-495f-8366-ff67d84bc960",
+                //ModifiedTime = DateTime.Now,
+            };
+
+            var roles = await _unitOfWork.Roles.GetAllAsync(r => dto.Roles.Contains(r.Name));
+            if (roles != null)
+            {
+                foreach (var role in roles)
+                {
+                    user.UserRoles.Add(new UserRole
+                    {
+                        //Id = 1,
+                        UserId = user.Id,
+                        RoleId = role.Id,
+                        CreatedBy = "b963eba7-f9ec-495f-8366-ff67d84bc960",
+                        ModifiedBy = "b963eba7-f9ec-495f-8366-ff67d84bc960",
+                        CreatedTime = DateTime.Now,
+                    });
+                    //await _unitOfWork.UserRoles.AddAsync(userRole);
+                    //await _unitOfWork.SaveChangesAsync();
+                }
+            }
+            await _unitOfWork.Users.AddAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+
+
+            var userId = user.Id;
+            Console.WriteLine($"Generated Password for {dto.PhoneNumber}: {password}"); // Placeholder
+            return user;
         }
-
-        var password = GenerateRandomPassword();
-        Console.Clear();
-        Console.WriteLine($"password ==> {password}");
-        var passwordHash = _passwordHasher.HashPassword(password);
-
-        var user = new User
+        catch (Exception ex)
         {
-            Id = Guid.NewGuid().ToString(),
-            PhoneNumber = dto.PhoneNumber,
-            PasswordHash = passwordHash,
-            IsActive = true,
-            IsEmailConfirmed = false,
-            TwoFactorEnabled = false
-        };
-        await _unitOfWork.Users.AddAsync(user);
-        await _unitOfWork.SaveChangesAsync();
-
-        var userId = user.Id;
-        Console.WriteLine($"Generated Password for {dto.PhoneNumber}: {password}"); // Placeholder
-        return user;
+            throw ex;
+        }
     }
 
     public async Task UpdateUserAsync(UserDto userDto)

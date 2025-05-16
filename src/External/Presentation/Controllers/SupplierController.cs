@@ -1,4 +1,6 @@
-﻿namespace Presentation.Controllers;
+﻿using System.Security.Claims;
+
+namespace Presentation.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -25,11 +27,26 @@ public class SupplierController : ControllerBase
         return Ok(supplier);
     }
 
+    [Authorize]
     [HttpPost("suppliers")]
     public async Task<IActionResult> AddSupplier(SupplierDto supplierDto)
     {
-        await _supplierService.AddSupplierAsync(supplierDto);
-        return CreatedAtAction(nameof(GetSupplierById), new { id = supplierDto.Id }, supplierDto);
+        try
+        {
+            //var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            //if (string.IsNullOrEmpty(userId))
+            //{
+            //    return Unauthorized();
+            //}
+            //var claims = User.Claims.Select(c => new { c.Type, c.Value });
+
+            await _supplierService.AddSupplierAsync(supplierDto);
+            return CreatedAtAction(nameof(GetSupplierById), new { id = supplierDto.Id }, supplierDto);
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
     }
 
     [HttpPut("suppliers/{id}")]

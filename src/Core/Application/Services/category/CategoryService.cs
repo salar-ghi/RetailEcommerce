@@ -42,7 +42,7 @@ public class CategoryService
             dto.Id = category.Id;
             dto.Name = category.Name;
             dto.Description = category.Description;
-            dto.ParentCategoryId = category.ParentCategoryId;
+            dto.ParentId = category.ParentId;
             dto.ProductCount = products.Count();
             dto.CreatedAt = category.CreatedTime;
 

@@ -21,5 +21,5 @@ public class LoginDto
 public class AddUserDto
 {
     public string PhoneNumber { get; set; }
-    public RoleDto Roles { get; set; } // Comma-separated roles
+    public List<string> Roles { get; set; }
 }   
