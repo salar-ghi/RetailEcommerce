@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Domain.Entities;
+﻿namespace Domain.Entities;
 
 public class Supplier : BaseModel<int>
 {
@@ -12,6 +10,6 @@ public class Supplier : BaseModel<int>
     public string Address { get; set; }
 
     public string UserId { get; set; }
-    public User User { get; set; } = new User();
+    public User User { get; set; }
     public ICollection<ProductSupplier> ProductSuppliers { get; set; } = new List<ProductSupplier>();
 }
