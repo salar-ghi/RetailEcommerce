@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using Domain.Entities;
+using System.Security.Claims;
 
 namespace Presentation.Controllers;
 
@@ -41,7 +42,7 @@ public class SupplierController : ControllerBase
             //var claims = User.Claims.Select(c => new { c.Type, c.Value });
 
             await _supplierService.AddSupplierAsync(supplierDto);
-            return CreatedAtAction(nameof(GetSupplierById), new { id = supplierDto.Id }, supplierDto);
+            return Ok(new { Message = "User added successfully", id = supplierDto.Id });
         }
         catch (Exception ex)
         {

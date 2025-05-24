@@ -181,3 +181,7 @@ C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug\net8.0\Presentation.genruntimeconfig.cache
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug\net8.0\ref\Presentation.dll
 C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug\net8.0\Presentation.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\bin\Debug\net8.0\Presentation.staticwebassets.endpoints.json
+C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug\net8.0\staticwebassets.build.endpoints.json
+C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug\net8.0\staticwebassets\msbuild.Presentation.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
+C:\Users\sAlAr\source\repos\Retail Ecommerce\src\External\Presentation\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
