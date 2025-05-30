@@ -15,7 +15,7 @@ public class User : BaseModel<string>
 
     public DateTime? DateOfBirth { get; set; }
     public string ProfilePictureUrl { get; set; }
-    public bool IsActive { get; set; }
+    public bool IsActive { get; set; } = true;
     public bool TwoFactorEnabled { get; set; }
     public DateTime? LastLoginTime { get; set; }
     public bool IsEmailConfirmed { get; set; }

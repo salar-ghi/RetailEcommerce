@@ -29,7 +29,7 @@ public class OrderService : IOrderService
         var order = new Order
         {
             Id = Guid.NewGuid().ToString(),
-            UserId = userId,
+            CustomerId = userId,
             CreatedTime = DateTime.UtcNow,
             Status = OrderStatus.Pending,
             ShippingAddress = _mapper.Map<ShippingAddress>(shippingAddress),
@@ -54,7 +54,7 @@ public class OrderService : IOrderService
     public async Task<OrderDto> GetOrderAsync(string userId, string orderId)
     {
         var cachedOrder = await _cacheService.GetCachedDataAsync<Order>(orderId);
-        if (cachedOrder != null && cachedOrder.UserId == userId)
+        if (cachedOrder != null && cachedOrder.CustomerId == userId)
         {
             return _mapper.Map<OrderDto>(cachedOrder);
         }

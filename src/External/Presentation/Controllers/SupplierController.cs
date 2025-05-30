@@ -30,7 +30,7 @@ public class SupplierController : ControllerBase
 
     [Authorize]
     [HttpPost("suppliers")]
-    public async Task<IActionResult> AddSupplier(SupplierDto supplierDto)
+    public async Task<IActionResult> AddSupplier(SupplierRegistrationDto supplierDto)
     {
         try
         {
@@ -42,7 +42,7 @@ public class SupplierController : ControllerBase
             //var claims = User.Claims.Select(c => new { c.Type, c.Value });
 
             await _supplierService.AddSupplierAsync(supplierDto);
-            return Ok(new { Message = "User added successfully", id = supplierDto.Id });
+            return Ok(new { Message = "User added successfully", Name = supplierDto.Name });
         }
         catch (Exception ex)
         {

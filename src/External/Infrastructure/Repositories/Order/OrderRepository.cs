@@ -10,14 +10,14 @@ public class OrderRepository: Repository<Order, string>, IOrderRepository
             .AsNoTracking()
             .Include(o => o.Items)
             .ThenInclude(i => i.Product)
-            .FirstOrDefaultAsync(o => o.UserId == userId && o.Id == orderId);
+            .FirstOrDefaultAsync(o => o.CustomerId == userId && o.Id == orderId);
     }
 
     public async Task<IEnumerable<Order>> GetByUserIdAsync(string userId)
     {
         return await _context.Orders
             .AsNoTracking()
-            .Where(o => o.UserId == userId)
+            .Where(o => o.CustomerId == userId)
             .Include(o => o.Items)
             .ThenInclude(i => i.Product)
             .ToListAsync();

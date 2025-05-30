@@ -28,7 +28,7 @@ public class SupplierService
         return _mapper.Map<SupplierDto>(supplier);
     }
 
-    public async Task AddSupplierAsync(SupplierDto supplierDto)
+    public async Task AddSupplierAsync(SupplierRegistrationDto supplierDto)
     {
         try
         {
