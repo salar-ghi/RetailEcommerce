@@ -22,6 +22,6 @@ public class SupplierRegistrationDto
     public string Address { get; set; }
 
     // User details (for new users)
-    public string UserEmail { get; set; }
+    public string UserPhone { get; set; }
     public string UserPassword { get; set; }
 }

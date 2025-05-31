@@ -25,6 +25,14 @@ public class UserRepository : Repository<User, string>, IUserRepository
         return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Username == username);
     }
 
+    public async Task<User> GetByPhonenumberAsync(string phonenum)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .Where(z => z.PhoneNumber == phonenum)
+            .FirstOrDefaultAsync();
+    }
+
     public async Task<User> GetByRefreshTokenAsync(string refreshToken)
     {
         return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);

@@ -1,4 +1,6 @@
-﻿namespace Application.Services;
+﻿using System.Runtime.InteropServices;
+
+namespace Application.Services;
 public class SupplierService
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -32,7 +34,18 @@ public class SupplierService
     {
         try
         {
+            User user = null;
             var userId = _currentUserService.UserId;
+            if (userId != null)
+            {
+                user = await _unitOfWork.Users.GetByIdAsync(userId);
+                if (user == null)
+                    throw new Exception("User not found");
+            }
+            else
+            {
+                var existingUser = ( await _unitOfWork.Users.GetByPhonenumberAsync(supplierDto.UserPhone))
+            }
 
             var supplier = _mapper.Map<Supplier>(supplierDto);
             supplier.CreatedTime = DateTime.Now;
