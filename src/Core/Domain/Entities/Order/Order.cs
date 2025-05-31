@@ -2,10 +2,10 @@
 
 public class Order : BaseModel<string>
 {
-    public string UserId { get; set; }
-    public User User { get; set; }
-    
-    public OrderStatus Status { get; set; }
+    public string CustomerId { get; set; }
+    public User Customer { get; set; }
+
+    public OrderStatus Status { get; set; } = OrderStatus.Pending;
     public decimal DiscountAmount { get; set; } = 0m;
     public decimal TotalAmount => Items.Sum(item => item.Quantity * item.UnitPrice) - DiscountAmount;
     public int TotalItems => Items.Sum(item => item.Quantity);

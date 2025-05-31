@@ -225,7 +225,7 @@ public class UserService : IUserService
         }
     }
 
-    private string GenerateRandomPassword()
+    public string GenerateRandomPassword()
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
         var random = new Random();

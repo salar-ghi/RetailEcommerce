@@ -8,7 +8,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(p => p.Id).ValueGeneratedOnAdd();
         builder.Property(o => o.RowVersion).IsRowVersion();
 
-        builder.Property(o => o.UserId).IsRequired();
+        builder.Property(o => o.CustomerId).IsRequired();
         builder.Property(o => o.Status).IsRequired();
         builder.Property(o => o.DiscountAmount).HasPrecision(18, 2).HasDefaultValue(0m);
         //builder.Property(o => o.ShippingAddress).IsRequired().HasMaxLength(500);
@@ -21,9 +21,9 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.OwnsOne(o => o.ShippingAddress);
 
         // Relationships
-        builder.HasOne(o => o.User)
+        builder.HasOne(o => o.Customer)
                .WithMany()
-               .HasForeignKey(o => o.UserId)
+               .HasForeignKey(o => o.CustomerId)
                .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(o => o.Items)
@@ -35,7 +35,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasForeignKey(p => p.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(o => o.UserId);
+        builder.HasIndex(o => o.CustomerId);
     }
 }
 

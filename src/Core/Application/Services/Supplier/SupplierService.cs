@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+﻿using Application.Helper;
 
 namespace Application.Services;
 public class SupplierService
@@ -6,14 +6,16 @@ public class SupplierService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IPasswordHasher _passwordHasher;
 
     public SupplierService(
         IUnitOfWork unitOfWork,
-        IMapper mapper,
+        IMapper mapper, IPasswordHasher passwordHasher,
         ICurrentUserService currentUserService)
     {
-        _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _unitOfWork = unitOfWork;
+        _passwordHasher = passwordHasher;
         _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
     }
 
@@ -30,7 +32,7 @@ public class SupplierService
         return _mapper.Map<SupplierDto>(supplier);
     }
 
-    public async Task AddSupplierAsync(SupplierDto supplierDto)
+    public async Task AddSupplierAsync(SupplierRegistrationDto supplierDto)
     {
         try
         {
@@ -44,7 +46,24 @@ public class SupplierService
             }
             else
             {
-                var existingUser = ( await _unitOfWork.Users.GetByPhonenumberAsync(supplierDto.UserPhone))
+                var existingUser = (await _unitOfWork.Users.GetByPhonenumberAsync(supplierDto.PhoneNumber));
+                if (existingUser != null)
+                    throw new Exception("User with this phone number or email already exists.");
+
+                var password = GenerateRandomPassword();
+                Console.Clear();
+                Console.WriteLine($"password ==> {password}");
+                var passwordHash = _passwordHasher.HashPassword(password);
+                user = new User
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    PhoneNumber = supplierDto.PhoneNumber,
+                    PasswordHash = passwordHash,
+                    IsActive = true,
+                    IsEmailConfirmed = false,
+                    TwoFactorEnabled = false,
+                    Username = supplierDto.PhoneNumber,
+                };
             }
 
             var supplier = _mapper.Map<Supplier>(supplierDto);

@@ -27,9 +27,10 @@ public class Product : BaseModel<long>
     public ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
     public virtual ICollection<BasketItem> BasketItems { get; set; } = new List<BasketItem>();
     // many to many relation
-    public ICollection<ProductSupplier> Suppliers { get; set; } = new List<ProductSupplier>();
     public ICollection<ProductTag> Tags { get; set; } = new List<ProductTag>();
 
-
+//**************
+    public ICollection<ProductSupplier> Suppliers { get; set; } = new List<ProductSupplier>();
+    public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 
 }

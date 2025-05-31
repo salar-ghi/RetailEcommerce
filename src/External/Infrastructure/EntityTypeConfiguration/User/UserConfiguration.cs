@@ -40,8 +40,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .HasForeignKey(a => a.UserId);
 
         builder.HasMany(u => u.Orders)
-            .WithOne(a => a.User)
-            .HasForeignKey(a => a.UserId);
+            .WithOne(a => a.Customer)
+            .HasForeignKey(a => a.CustomerId);
 
         builder.HasIndex(u => u.Username).IsUnique();
         builder.HasIndex(u => u.Email).IsUnique();
