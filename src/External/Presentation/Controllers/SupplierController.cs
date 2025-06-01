@@ -1,7 +1,4 @@
-﻿using Domain.Entities;
-using System.Security.Claims;
-
-namespace Presentation.Controllers;
+﻿namespace Presentation.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
