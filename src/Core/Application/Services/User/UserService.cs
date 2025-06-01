@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+﻿using Application.Interfaces;
 
 namespace Application.Services;
 
@@ -7,16 +7,18 @@ public class UserService : IUserService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
+    private readonly ICurrentUserService _currentUserService;
     private readonly IMapper _mapper;
 
     public UserService(IUnitOfWork unitOfWork, IMapper mapper,
-        IPasswordHasher passwordHasher,
+        IPasswordHasher passwordHasher, ICurrentUserService currentUserService,
         IJwtTokenGenerator jwtTokenGenerator)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _passwordHasher = passwordHasher;
         _jwtTokenGenerator = jwtTokenGenerator;
+        _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
     }
 
     public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
@@ -49,7 +51,7 @@ public class UserService : IUserService
                 throw new Exception("User already exists");
             }
 
-            var password = GenerateRandomPassword();
+            var password = _currentUserService.GenerateRandomPassword();
             Console.Clear();
             Console.WriteLine($"password ==> {password}");
             var passwordHash = _passwordHasher.HashPassword(password);
@@ -223,13 +225,5 @@ public class UserService : IUserService
             rng.GetBytes(randomNumber);
             return Convert.ToBase64String(randomNumber);
         }
-    }
-
-    private string GenerateRandomPassword()
-    {
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-        var random = new Random();
-        return new string(Enumerable.Repeat(chars, 8)
-            .Select(s => s[random.Next(s.Length)]).ToArray());
     }
 }

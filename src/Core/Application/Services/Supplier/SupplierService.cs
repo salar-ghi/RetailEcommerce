@@ -4,14 +4,16 @@ public class SupplierService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IPasswordHasher _passwordHasher;
 
     public SupplierService(
         IUnitOfWork unitOfWork,
-        IMapper mapper,
+        IMapper mapper, IPasswordHasher passwordHasher,
         ICurrentUserService currentUserService)
     {
-        _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _unitOfWork = unitOfWork;
+        _passwordHasher = passwordHasher;
         _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
     }
 
@@ -32,7 +34,35 @@ public class SupplierService
     {
         try
         {
+            User user = null;
             var userId = _currentUserService.UserId;
+            if (userId != null)
+            {
+                user = await _unitOfWork.Users.GetByIdAsync(userId);
+                if (user == null)
+                    throw new Exception("User not found");
+            }
+            else
+            {
+                var existingUser = (await _unitOfWork.Users.GetByPhonenumberAsync(supplierDto.PhoneNumber));
+                if (existingUser != null)
+                    throw new Exception("User with this phone number or email already exists.");
+
+                var password = _currentUserService.GenerateRandomPassword();
+                Console.Clear();
+                Console.WriteLine($"password ==> {password}");
+                var passwordHash = _passwordHasher.HashPassword(password);
+                user = new User
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    PhoneNumber = supplierDto.PhoneNumber,
+                    PasswordHash = passwordHash,
+                    IsActive = true,
+                    IsEmailConfirmed = false,
+                    TwoFactorEnabled = false,
+                    Username = supplierDto.PhoneNumber,
+                };
+            }
 
             var supplier = _mapper.Map<Supplier>(supplierDto);
             supplier.CreatedTime = DateTime.Now;
