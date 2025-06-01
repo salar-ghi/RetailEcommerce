@@ -62,14 +62,14 @@ public class SupplierController : ControllerBase
     }
 
     [HttpPost("register-new")]
-    public async Task<ActionResult<SupplierDto>> RegisterNewSupplier([FromBody] CreateSupplierRequestDto request)
+    public async Task<ActionResult<SupplierDto>> RegisterNewSupplier([FromBody] SupplierRegistrationDto request)
     {
-        var supplier = await _supplierService.RegisterSupplierAsync(request);
-        return Ok(supplier);
+        await _supplierService.AddSupplierAsync(request);
+        return Ok();
     }
 
     [HttpPut("suppliers/{id}")]
-    public async Task<IActionResult> UpdateSupplier(int id, SupplierDto supplierDto)
+    public async Task<IActionResult> UpdateSupplier(int id, UpdateSupplierStatusDto supplierDto)
     {
         if (id != supplierDto.Id) return BadRequest();
         await _supplierService.UpdateSupplierAsync(supplierDto);
