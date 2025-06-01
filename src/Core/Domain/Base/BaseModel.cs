@@ -7,5 +7,7 @@ public abstract class BaseModel<TId>
     public DateTime CreatedTime { get; set; } = DateTime.Now;
     public string ModifiedBy { get; set; } = string.Empty;
     public DateTime ModifiedTime { get; set; } = DateTime.Now;
+    public bool IsDeleted { get; set; }
+
 }
 

@@ -32,7 +32,13 @@ public class SupplierRegistrationDto
 
 public class ApproveSupplierDto
 {
-    public int SupplierId { get; set; }
+    public int Id { get; set; }
     public string ApprovedByUserId { get; set; }
     public bool IsApproved { get; set; }
+}
+
+public class UpdateSupplierStatusDto
+{
+    public int Id { get; set; }
+    public SupplierStatus Status { get; set; }
 }

@@ -11,11 +11,25 @@ public class SupplierController : ControllerBase
     }
 
 
+    //[HttpGet("suppliers")]
+    //public async Task<IActionResult> GetAllSuppliers()
+    //{
+    //    var suppliers = await _supplierService.GetAllSuppliersAsync();
+    //    return Ok(suppliers);
+    //}
+
     [HttpGet("suppliers")]
-    public async Task<IActionResult> GetAllSuppliers()
+    public async Task<ActionResult<IEnumerable<SupplierDto>>> GetAllSuppliers()
     {
         var suppliers = await _supplierService.GetAllSuppliersAsync();
         return Ok(suppliers);
+    }
+
+    [HttpPost("approve")]
+    public async Task<ActionResult<SupplierDto>> ApproveSupplier([FromBody] ApproveSupplierDto request)
+    {
+        var supplier = await _supplierService.ApproveSupplierAsync(request);
+        return Ok(supplier);
     }
 
     [HttpGet("suppliers/{id}")]
@@ -37,7 +51,7 @@ public class SupplierController : ControllerBase
             //    return Unauthorized();
             //}
             //var claims = User.Claims.Select(c => new { c.Type, c.Value });
-
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             await _supplierService.AddSupplierAsync(supplierDto);
             return Ok(new { Message = "User added successfully", Name = supplierDto.Name });
         }
@@ -45,6 +59,13 @@ public class SupplierController : ControllerBase
         {
             throw;
         }
+    }
+
+    [HttpPost("register-new")]
+    public async Task<ActionResult<SupplierDto>> RegisterNewSupplier([FromBody] CreateSupplierRequestDto request)
+    {
+        var supplier = await _supplierService.RegisterSupplierAsync(request);
+        return Ok(supplier);
     }
 
     [HttpPut("suppliers/{id}")]

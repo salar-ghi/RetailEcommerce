@@ -8,7 +8,7 @@ public class Supplier : BaseModel<int>
     public string ContactEmail { get; set; }
     public string ContactPhone { get; set; }
     public string Address { get; set; }
-    public SupplierStatus status { get; set; } = SupplierStatus.Pending;
+    public SupplierStatus Status { get; set; } = SupplierStatus.Pending;
     public DateTime? ApprovalDate { get; set; }
     public string ApprovedByUserId { get; set; }
     public string UserId { get; set; }
