@@ -4804,23 +4804,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\$AlAR\\.nuget\\packages\\": {},
+    "C:\\Users\\sAlAr\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\$AlAR\\source\\repos\\RetailEcommerce\\src\\External\\Infrastructure\\Infrastructure.csproj",
+      "projectUniqueName": "C:\\Users\\sAlAr\\source\\repos\\Retail Ecommerce\\src\\External\\Infrastructure\\Infrastructure.csproj",
       "projectName": "Infrastructure",
-      "projectPath": "C:\\Users\\$AlAR\\source\\repos\\RetailEcommerce\\src\\External\\Infrastructure\\Infrastructure.csproj",
-      "packagesPath": "C:\\Users\\$AlAR\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\$AlAR\\source\\repos\\RetailEcommerce\\src\\External\\Infrastructure\\obj\\",
+      "projectPath": "C:\\Users\\sAlAr\\source\\repos\\Retail Ecommerce\\src\\External\\Infrastructure\\Infrastructure.csproj",
+      "packagesPath": "C:\\Users\\sAlAr\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\sAlAr\\source\\repos\\Retail Ecommerce\\src\\External\\Infrastructure\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\$AlAR\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\sAlAr\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -4836,11 +4836,11 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "C:\\Users\\$AlAR\\source\\repos\\RetailEcommerce\\src\\Core\\Application\\Application.csproj": {
-              "projectPath": "C:\\Users\\$AlAR\\source\\repos\\RetailEcommerce\\src\\Core\\Application\\Application.csproj"
+            "C:\\Users\\sAlAr\\source\\repos\\Retail Ecommerce\\src\\Core\\Application\\Application.csproj": {
+              "projectPath": "C:\\Users\\sAlAr\\source\\repos\\Retail Ecommerce\\src\\Core\\Application\\Application.csproj"
             },
-            "C:\\Users\\$AlAR\\source\\repos\\RetailEcommerce\\src\\Core\\Domain\\Domain.csproj": {
-              "projectPath": "C:\\Users\\$AlAR\\source\\repos\\RetailEcommerce\\src\\Core\\Domain\\Domain.csproj"
+            "C:\\Users\\sAlAr\\source\\repos\\Retail Ecommerce\\src\\Core\\Domain\\Domain.csproj": {
+              "projectPath": "C:\\Users\\sAlAr\\source\\repos\\Retail Ecommerce\\src\\Core\\Domain\\Domain.csproj"
             }
           }
         }
@@ -4855,7 +4855,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.300"
+      "SdkAnalysisLevel": "9.0.200"
     },
     "frameworks": {
       "net8.0": {
@@ -4902,7 +4902,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.204/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
