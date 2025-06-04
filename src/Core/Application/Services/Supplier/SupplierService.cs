@@ -65,7 +65,7 @@ public class SupplierService
             {
                 var existingUser = (await _unitOfWork.Users.GetByPhonenumberAsync(supplierDto.PhoneNumber));
                 if (existingUser != null)
-                    throw new Exception("User with this phone number or email already exists.");
+                    goto ContinueLogic;
 
                 var password = _currentUserService.GenerateRandomPassword();
                 Console.Clear();
@@ -93,6 +93,7 @@ public class SupplierService
                 }
                 await _unitOfWork.UserRoles.AddAsync(new UserRole { UserId = user.Id, RoleId = customerRole.Id });
             }
+            ContinueLogic:
             var exisitingSupplier = await _unitOfWork.Suppliers.GetSingleAsync(s => s.UserId == user.Id && !s.IsDeleted);
             if (exisitingSupplier != null)
                 throw new Exception("USer is already registered as a supplier");

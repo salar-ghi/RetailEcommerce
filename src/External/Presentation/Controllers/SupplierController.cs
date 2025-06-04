@@ -39,7 +39,6 @@ public class SupplierController : ControllerBase
         return Ok(supplier);
     }
 
-    [Authorize]
     [HttpPost("suppliers")]
     public async Task<IActionResult> AddSupplier(SupplierRegistrationDto supplierDto)
     {
