@@ -3,11 +3,10 @@
 public class SupplierDto
 {
     public int Id { get; set; }
-    public string Name { get; set; }
-    public string ContactName { get; set; }
-    public string ContactInfo { get; set; }
-    public string ContactEmail { get; set; }
-    public string ContactPhone { get; set; }
+    public string SupplierName { get; set; }
+    public string SupplierInfo { get; set; }
+    public string SupplierEmail { get; set; }
+    public string SupplierPhone { get; set; }
     public string Address { get; set; }
     public string Status { get; set; }
     public DateTime? ApprovalDate { get; set; }
@@ -17,17 +16,11 @@ public class SupplierDto
 
 public class SupplierRegistrationDto
 {
-    public string Name { get; set; }
-    public string ContactInfo { get; set; }
-    public string ContactName { get; set; }
-    public string ContactEmail { get; set; }
-    public string ContactPhone { get; set; }
+    public string SupplierName { get; set; }
+    public string SupplierEmail { get; set; }
+    public string SupplierInfo { get; set; }
+    public string SupplierPhone { get; set; }
     public string Address { get; set; }
-    // User details (for new users)
-    public string PhoneNumber { get; set; } // For user registration
-    public string Email { get; set; }
-    public string Username { get; set; }
-    public string Password { get; set; }
 }
 
 public class ApproveSupplierDto
@@ -40,5 +33,9 @@ public class ApproveSupplierDto
 public class UpdateSupplierStatusDto
 {
     public int Id { get; set; }
-    public SupplierStatus Status { get; set; }
+    public SupplierStatus? Status { get; set; }
+    public string? SupplierPhone { get; set; }
+    public string? SupplierName { get; set; }
+    public string? SupplierInfo { get; set; }
+    public string? SupplierEmail { get; set; }
 }

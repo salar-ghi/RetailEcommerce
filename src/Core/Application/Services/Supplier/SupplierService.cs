@@ -36,7 +36,7 @@ public class SupplierService
         supplier.ApprovalDate = DateTime.Now;
         supplier.ModifiedTime = DateTime.Now;
         supplier.ModifiedBy = _currentUserService.UserId;
-        supplier.ApprovedByUserId = request.ApprovedByUserId;
+        supplier.ApprovedByUserId = _currentUserService.UserId;
         await _unitOfWork.Suppliers.UpdateAsync(supplier);
         await _unitOfWork.SaveChangesAsync();
         return _mapper.Map<SupplierDto>(supplier);
@@ -63,7 +63,7 @@ public class SupplierService
             }
             else
             {
-                var existingUser = (await _unitOfWork.Users.GetByPhonenumberAsync(supplierDto.PhoneNumber));
+                var existingUser = (await _unitOfWork.Users.GetByPhonenumberAsync(supplierDto.SupplierPhone));
                 if (existingUser != null)
                     goto ContinueLogic;
 
@@ -74,14 +74,15 @@ public class SupplierService
                 user = new User
                 {
                     Id = Guid.NewGuid().ToString(),
-                    PhoneNumber = supplierDto.PhoneNumber,
+                    PhoneNumber = supplierDto.SupplierPhone,
                     PasswordHash = passwordHash,
                     IsActive = true,
                     IsEmailConfirmed = false,
                     TwoFactorEnabled = false,
-                    Username = supplierDto.PhoneNumber,
+                    Username = supplierDto.SupplierPhone,
                 };
                 await _unitOfWork.Users.AddAsync(user);
+                userId = user.Id;
 
                 // Assign Customer role
                 var customerRole = (await _unitOfWork.Roles.GetSingleAsync(r => r.Name == "Customer"));
@@ -91,7 +92,7 @@ public class SupplierService
                     await _unitOfWork.Roles.AddAsync(customerRole);
                     await _unitOfWork.SaveChangesAsync();
                 }
-                await _unitOfWork.UserRoles.AddAsync(new UserRole { UserId = user.Id, RoleId = customerRole.Id });
+                await _unitOfWork.UserRoles.AddAsync(new UserRole { UserId = userId, RoleId = customerRole.Id });
             }
             ContinueLogic:
             var exisitingSupplier = await _unitOfWork.Suppliers.GetSingleAsync(s => s.UserId == user.Id && !s.IsDeleted);
@@ -101,6 +102,7 @@ public class SupplierService
             var supplier = _mapper.Map<Supplier>(supplierDto);
             supplier.CreatedTime = DateTime.Now;
             supplier.ModifiedTime = DateTime.Now;
+            Console.WriteLine(userId);
             supplier.UserId = userId;
             supplier.CreatedBy = userId;
             supplier.ModifiedBy = userId;
@@ -129,7 +131,7 @@ public class SupplierService
         var supplier = await _unitOfWork.Suppliers.GetByIdAsync(supplierDto.Id);
         if (supplier == null) throw new KeyNotFoundException($"Supplier with ID {supplierDto.Id} not found.");
         _mapper.Map(supplierDto, supplier);
-        supplier.Status = supplierDto.Status;
+        //supplier.Status = supplierDto.Status;
         supplier.ModifiedTime = DateTime.UtcNow;
 
         await _unitOfWork.Suppliers.UpdateAsync(supplier);

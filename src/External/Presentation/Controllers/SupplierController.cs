@@ -44,15 +44,9 @@ public class SupplierController : ControllerBase
     {
         try
         {
-            //var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            //if (string.IsNullOrEmpty(userId))
-            //{
-            //    return Unauthorized();
-            //}
-            //var claims = User.Claims.Select(c => new { c.Type, c.Value });
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             await _supplierService.AddSupplierAsync(supplierDto);
-            return Ok(new { Message = "User added successfully", Name = supplierDto.Name });
+            return Ok(new { Message = "User added successfully", Name = supplierDto.SupplierName });
         }
         catch (Exception ex)
         {

@@ -14,7 +14,7 @@ public class SupplierRepository : Repository<Supplier, int>, ISupplierRepository
     public async Task<IEnumerable<Supplier>> SearchByContactInfoAsync(string contactInfo)
     {
         return await _context.Suppliers
-            .Where(s => s.ContactInfo.Contains(contactInfo))
+            .Where(s => s.Info.Contains(contactInfo))
             .AsNoTracking()
             .ToListAsync();
     }
