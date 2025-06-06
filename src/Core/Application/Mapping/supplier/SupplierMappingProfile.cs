@@ -22,7 +22,7 @@ public class SupplierMappingProfile : Profile
             .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.SupplierEmail))
             .ForMember(dest => dest.Info, opt => opt.MapFrom(src => src.SupplierInfo))
             .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.SupplierPhone))
-            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+            .ForMember(dest => dest.Status, opt => opt.Condition(src => src.Status.HasValue))
             .ReverseMap();
 
 

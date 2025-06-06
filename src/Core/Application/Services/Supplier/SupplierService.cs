@@ -1,5 +1,6 @@
 ﻿using AutoMapper.Configuration.Annotations;
 using System.Collections.Immutable;
+using System.Text.Json;
 
 namespace Application.Services;
 public class SupplierService
@@ -131,7 +132,19 @@ public class SupplierService
         var supplier = await _unitOfWork.Suppliers.GetByIdAsync(supplierDto.Id);
         if (supplier == null) throw new KeyNotFoundException($"Supplier with ID {supplierDto.Id} not found.");
         _mapper.Map(supplierDto, supplier);
-        //supplier.Status = supplierDto.Status;
+
+        if (supplierDto.Status.HasValue)
+            supplier.Status = supplierDto.Status.Value;
+
+        if (!string.IsNullOrEmpty(supplierDto.SupplierPhone))
+            supplier.Phone = supplierDto.SupplierPhone;
+        if (!string.IsNullOrEmpty(supplierDto.SupplierInfo))
+            supplier.Info = supplierDto.SupplierInfo;
+        if (supplierDto.SupplierEmail is not null)
+            supplier.Email = supplierDto.SupplierEmail;
+        if (supplierDto.SupplierName is not null)
+            supplier.Name = supplierDto.SupplierName;
+
         supplier.ModifiedTime = DateTime.UtcNow;
 
         await _unitOfWork.Suppliers.UpdateAsync(supplier);
