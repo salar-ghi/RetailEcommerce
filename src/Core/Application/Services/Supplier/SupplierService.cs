@@ -1,8 +1,4 @@
-﻿using AutoMapper.Configuration.Annotations;
-using System.Collections.Immutable;
-using System.Text.Json;
-
-namespace Application.Services;
+﻿namespace Application.Services;
 public class SupplierService
 {
     private readonly IUnitOfWork _unitOfWork;
