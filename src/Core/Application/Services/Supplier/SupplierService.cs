@@ -60,7 +60,7 @@ public class SupplierService
             }
             else
             {
-                var existingUser = (await _unitOfWork.Users.GetByPhonenumberAsync(supplierDto.SupplierPhone));
+                var existingUser = (await _unitOfWork.Users.GetByPhonenumberAsync(supplierDto.Phone));
                 if (existingUser != null)
                     goto ContinueLogic;
 
@@ -71,12 +71,12 @@ public class SupplierService
                 user = new User
                 {
                     Id = Guid.NewGuid().ToString(),
-                    PhoneNumber = supplierDto.SupplierPhone,
+                    PhoneNumber = supplierDto.Phone,
                     PasswordHash = passwordHash,
                     IsActive = true,
                     IsEmailConfirmed = false,
                     TwoFactorEnabled = false,
-                    Username = supplierDto.SupplierPhone,
+                    Username = supplierDto.ContactInfo,
                 };
                 await _unitOfWork.Users.AddAsync(user);
                 userId = user.Id;

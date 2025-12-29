@@ -46,7 +46,7 @@ public class SupplierController : ControllerBase
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             await _supplierService.AddSupplierAsync(supplierDto);
-            return Ok(new { Message = "User added successfully", Name = supplierDto.SupplierName });
+            return Ok(new { Message = "User added successfully", Name = supplierDto.Name });
         }
         catch (Exception ex)
         {

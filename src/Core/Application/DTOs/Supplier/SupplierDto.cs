@@ -16,11 +16,14 @@ public class SupplierDto
 
 public class SupplierRegistrationDto
 {
-    public string SupplierName { get; set; }
-    public string SupplierEmail { get; set; }
-    public string SupplierInfo { get; set; }
-    public string SupplierPhone { get; set; }
+    
+    public string Name { get; set; }
+    public string Email { get; set; }
+    public string ContactInfo { get; set; }
+    public string Phone { get; set; }
     public string Address { get; set; }
+    public string Website { get; set; }
+    public string Description { get; set; }
 }
 
 public class ApproveSupplierDto
