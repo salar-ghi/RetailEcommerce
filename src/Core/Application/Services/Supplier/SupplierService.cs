@@ -29,11 +29,14 @@ public class SupplierService
         var supplier = await _unitOfWork.Suppliers.GetByIdAsync(request.Id);
         if (supplier == null || supplier.IsDeleted) throw new KeyNotFoundException($"Supplier with ID {request.Id} not found.");
 
-        supplier.Status = request.IsApproved ? SupplierStatus.Approved : SupplierStatus.Rejected;
+        //supplier.Status = request.IsApproved ? SupplierStatus.Approved : SupplierStatus.Rejected;
+        supplier.Status = SupplierStatus.Approved;
         supplier.ApprovalDate = DateTime.Now;
         supplier.ModifiedTime = DateTime.Now;
-        supplier.ModifiedBy = _currentUserService.UserId;
-        supplier.ApprovedByUserId = _currentUserService.UserId;
+        //supplier.ModifiedBy = _currentUserService.UserId;
+        //supplier.ApprovedByUserId = _currentUserService.UserId;
+        supplier.ApprovedByUserId = "576b27d5-11b8-4c21-b211-6e4882f1a80e";
+        supplier.ModifiedBy = "576b27d5-11b8-4c21-b211-6e4882f1a80e";
         await _unitOfWork.Suppliers.UpdateAsync(supplier);
         await _unitOfWork.SaveChangesAsync();
         return _mapper.Map<SupplierDto>(supplier);
@@ -132,14 +135,14 @@ public class SupplierService
         if (supplierDto.Status.HasValue)
             supplier.Status = supplierDto.Status.Value;
 
-        if (!string.IsNullOrEmpty(supplierDto.SupplierPhone))
-            supplier.Phone = supplierDto.SupplierPhone;
-        if (!string.IsNullOrEmpty(supplierDto.SupplierInfo))
-            supplier.Info = supplierDto.SupplierInfo;
-        if (supplierDto.SupplierEmail is not null)
-            supplier.Email = supplierDto.SupplierEmail;
-        if (supplierDto.SupplierName is not null)
-            supplier.Name = supplierDto.SupplierName;
+        if (!string.IsNullOrEmpty(supplierDto.Phone))
+            supplier.Phone = supplierDto.Phone;
+        if (!string.IsNullOrEmpty(supplierDto.ContactInfo))
+            supplier.Info = supplierDto.ContactInfo;
+        if (supplierDto.Email is not null)
+            supplier.Email = supplierDto.Email;
+        if (supplierDto.Name is not null)
+            supplier.Name = supplierDto.Name;
 
         supplier.ModifiedTime = DateTime.UtcNow;
 

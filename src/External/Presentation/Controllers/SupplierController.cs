@@ -25,9 +25,15 @@ public class SupplierController : ControllerBase
         return Ok(suppliers);
     }
 
-    [HttpPost("approve")]
-    public async Task<ActionResult<SupplierDto>> ApproveSupplier([FromBody] ApproveSupplierDto request)
+    //[HttpPost("approve")]
+    [HttpPut("suppliers/{id}/approve")]
+    public async Task<ActionResult<SupplierDto>> ApproveSupplier([FromRoute] int id)
     {
+        var request = new ApproveSupplierDto 
+        {
+            Id = id,
+        };
+        
         var supplier = await _supplierService.ApproveSupplierAsync(request);
         return Ok(supplier);
     }
