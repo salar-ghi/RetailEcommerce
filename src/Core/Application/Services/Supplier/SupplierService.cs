@@ -117,7 +117,6 @@ public class SupplierService
                 await _unitOfWork.SaveChangesAsync();
             }
             await _unitOfWork.UserRoles.AddAsync(new UserRole { UserId = user.Id, RoleId = supplierRole.Id });
-
             await _unitOfWork.SaveChangesAsync();
         }
         catch (Exception ex)

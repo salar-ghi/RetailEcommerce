@@ -53,6 +53,8 @@ public class DatabaseSeeder
                 LastName = "ghahremani",
                 PasswordHash = passwordHash,
                 IsActive = true,
+                IsEmailConfirmed = true,
+                Email = "salar.ghi1993@gmail.com"
                 // Set other properties to defaults or null as needed (e.g., Email, etc.)
             };
             _context.Users.Add(user);

@@ -5,9 +5,11 @@
 public class SupplierController : ControllerBase
 {
     private readonly SupplierService _supplierService;
-    public SupplierController(SupplierService supplierService)
+    private readonly ICurrentUserService _currentUserService;
+    public SupplierController(SupplierService supplierService, ICurrentUserService currentUserService)
     {
         _supplierService = supplierService;
+        _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
     }
 
 
@@ -51,6 +53,7 @@ public class SupplierController : ControllerBase
         try
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var user = _currentUserService.UserId;
             await _supplierService.AddSupplierAsync(supplierDto);
             return Ok(new { Message = "User added successfully", Name = supplierDto.Name });
         }

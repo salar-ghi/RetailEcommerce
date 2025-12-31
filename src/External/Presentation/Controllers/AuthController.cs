@@ -35,7 +35,8 @@ public class AuthController : ControllerBase
             return Unauthorized(result.ErrorMessage); // Returns 401 with message (omit message in prod for security if desired)
         }
 
-        return Ok(new { JwtToken = result.JwtToken, RefreshToken = result.RefreshToken });
+        //return Ok(new { Token = result.JwtToken, RefreshToken = result.RefreshToken });
+        return Ok(new { Token = result.JwtToken });
     }
 
     //[HttpPost("refresh")]
