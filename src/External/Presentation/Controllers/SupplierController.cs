@@ -1,4 +1,7 @@
-﻿namespace Presentation.Controllers;
+﻿using Application.Common;
+using Application.DTOs;
+
+namespace Presentation.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -50,24 +53,23 @@ public class SupplierController : ControllerBase
     [HttpPost("suppliers")]
     public async Task<IActionResult> AddSupplier(SupplierRegistrationDto supplierDto)
     {
-        try
+        var result = await _supplierService.CreateSupplierAsync(supplierDto);
+        if (!result.IsSuccess)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            var user = _currentUserService.UserId;
-            await _supplierService.AddSupplierAsync(supplierDto);
-            return Ok(new { Message = "User added successfully", Name = supplierDto.Name });
+            return BadRequest(result.Error);
         }
-        catch (Exception ex)
-        {
-            throw;
-        }
+        return Ok(new { result.Value });
     }
 
     [HttpPost("register-new")]
-    public async Task<ActionResult<SupplierDto>> RegisterNewSupplier([FromBody] SupplierRegistrationDto request)
+    public async Task<ActionResult<SupplierDto>> RegisterNewSupplier(SupplierRegistrationDto supplierDto)
     {
-        await _supplierService.AddSupplierAsync(request);
-        return Ok();
+        var result = await _supplierService.RegisterSupplierAsync(supplierDto);
+        if (!result.IsSuccess)
+        {
+            return BadRequest(result.Error);
+        }
+        return Ok(new { result.Value });
     }
 
     [HttpPut("suppliers/{id}")]

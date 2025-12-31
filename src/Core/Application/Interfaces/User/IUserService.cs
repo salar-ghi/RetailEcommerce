@@ -9,7 +9,7 @@ public interface IUserService
 
     Task<Result<string>> RegisterAsync(SignupDto dto);
     Task<AuthResult> AuthenticateAsync(LoginDto dto);
-    Task<User> AddUserAsync(AddUserDto dto);
+    Task<Result<string>> AddUserAsync(AddUserDto dto);
 
 
     //***********

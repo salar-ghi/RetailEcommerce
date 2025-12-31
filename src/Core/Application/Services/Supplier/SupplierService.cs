@@ -1,4 +1,7 @@
-﻿namespace Application.Services;
+﻿using Application.Common;
+
+namespace Application.Services;
+
 public class SupplierService
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -21,7 +24,7 @@ public class SupplierService
     {
         var suppliers = await _unitOfWork.Suppliers.GetAllAsync(z => !z.IsDeleted);
         return _mapper.Map<IEnumerable<SupplierDto>>(suppliers);
-    
+
     }
 
     public async Task<SupplierDto> ApproveSupplierAsync(ApproveSupplierDto request)
@@ -49,80 +52,87 @@ public class SupplierService
         return _mapper.Map<SupplierDto>(supplier);
     }
 
-    public async Task AddSupplierAsync(SupplierRegistrationDto supplierDto)
+    public async Task<Result<string>> CreateSupplierAsync(SupplierRegistrationDto supplierDto)
     {
-        try
+        var sessionId = _currentUserService.UserId;
+        var existedSupplier = await _unitOfWork.Suppliers.GetSingleAsync(s => s.Info == supplierDto.ContactInfo && !s.IsDeleted);
+        if (existedSupplier != null)
+            return Result<string>.Failure("تامین کننده با شماره تلفن مشابه موجود میباشد");
+
+        //User user = null;
+        var user = (await _unitOfWork.Users.GetByPhonenumberAsync(supplierDto.ContactInfo));
+        if (user != null)
+            goto CreateSuplier;
+        else
         {
-            User user = null;
-            var userId = _currentUserService.UserId;
-            if (userId != null)
+            //var password = _currentUserService.GenerateRandomPassword();
+            var password = "12345678*";
+            var passwordHash = _passwordHasher.HashPassword(password);
+            user = new User
             {
-                user = await _unitOfWork.Users.GetByIdAsync(userId);
-                if (user == null)
-                    throw new Exception("User not found");
-            }
-            else
-            {
-                var existingUser = (await _unitOfWork.Users.GetByPhonenumberAsync(supplierDto.Phone));
-                if (existingUser != null)
-                    goto ContinueLogic;
+                Id = Guid.NewGuid().ToString(),
+                PhoneNumber = supplierDto.ContactInfo,
+                PasswordHash = passwordHash,
+                IsActive = true,
+                IsEmailConfirmed = false,
+                TwoFactorEnabled = false,
+                Username = supplierDto.ContactInfo,
+                Email = supplierDto.Email,
+                CreatedBy = sessionId,
+                CreatedTime = DateTime.Now,
+                ModifiedBy = sessionId,
+                ModifiedTime = DateTime.Now,
+            };
+            await _unitOfWork.Users.AddAsync(user);
 
-                var password = _currentUserService.GenerateRandomPassword();
-                Console.Clear();
-                Console.WriteLine($"password ==> {password}");
-                var passwordHash = _passwordHasher.HashPassword(password);
-                user = new User
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    PhoneNumber = supplierDto.Phone,
-                    PasswordHash = passwordHash,
-                    IsActive = true,
-                    IsEmailConfirmed = false,
-                    TwoFactorEnabled = false,
-                    Username = supplierDto.ContactInfo,
-                };
-                await _unitOfWork.Users.AddAsync(user);
-                userId = user.Id;
-
-                // Assign Customer role
-                var customerRole = (await _unitOfWork.Roles.GetSingleAsync(r => r.Name == "Customer"));
-                if (customerRole == null)
-                {
-                    customerRole = new Role { Name = "Customer" };
-                    await _unitOfWork.Roles.AddAsync(customerRole);
-                    await _unitOfWork.SaveChangesAsync();
-                }
-                await _unitOfWork.UserRoles.AddAsync(new UserRole { UserId = userId, RoleId = customerRole.Id });
-            }
-            ContinueLogic:
-            var exisitingSupplier = await _unitOfWork.Suppliers.GetSingleAsync(s => s.UserId == user.Id && !s.IsDeleted);
-            if (exisitingSupplier != null)
-                throw new Exception("USer is already registered as a supplier");
-
-            var supplier = _mapper.Map<Supplier>(supplierDto);
-            supplier.CreatedTime = DateTime.Now;
-            supplier.ModifiedTime = DateTime.Now;
-            Console.WriteLine(userId);
-            supplier.UserId = userId;
-            supplier.CreatedBy = userId;
-            supplier.ModifiedBy = userId;
-
-            await _unitOfWork.Suppliers.AddAsync(supplier);
-
-            var supplierRole = (await _unitOfWork.Roles.GetSingleAsync(r => r.Name == "Supplier"));
-            if (supplierRole == null)
-            {
-                supplierRole = new Role { Name = "Supplier" };
-                await _unitOfWork.Roles.AddAsync(supplierRole);
-                await _unitOfWork.SaveChangesAsync();
-            }
-            await _unitOfWork.UserRoles.AddAsync(new UserRole { UserId = user.Id, RoleId = supplierRole.Id });
-            await _unitOfWork.SaveChangesAsync();
+            var customerRole = (await _unitOfWork.Roles.GetSingleAsync(r => r.Name == "Customer"));
+            await _unitOfWork.UserRoles.AddAsync(new UserRole { UserId = user.Id, RoleId = customerRole.Id });
         }
-        catch (Exception ex)
-        {
-            throw ex;
-        }
+
+        CreateSuplier:
+        var supplier = _mapper.Map<Supplier>(supplierDto);
+        supplier.CreatedTime = DateTime.Now;
+        supplier.ModifiedTime = DateTime.Now;
+        supplier.UserId = user.Id;
+        supplier.CreatedBy = sessionId;
+        supplier.ModifiedBy = sessionId;
+
+        await _unitOfWork.Suppliers.AddAsync(supplier);
+
+        var supplierRole = (await _unitOfWork.Roles.GetSingleAsync(r => r.Name == "Supplier"));
+        await _unitOfWork.UserRoles.AddAsync(new UserRole { UserId = user.Id, RoleId = supplierRole.Id });
+        await _unitOfWork.SaveChangesAsync();
+
+        return Result<string>.Success("تامین کننده مورد نظر با موفقیت ثبت گردید");
+    }
+
+    public async Task<Result<string>> RegisterSupplierAsync(SupplierRegistrationDto supplierDto)
+    {
+        var sessionId = _currentUserService.UserId;
+        if (sessionId == null)
+            return Result<string>.Failure("ابتدا وارد برنامه شوید");
+
+        var user = await _unitOfWork.Users.GetByIdAsync(sessionId);
+        if (user.PhoneNumber == supplierDto.ContactInfo)
+            return Result<string>.Failure("شماره همراه تامین کننده با شماره همراه کاربری یکسان نمیباشد");
+
+        var existedSupplier = await _unitOfWork.Suppliers.GetSingleAsync(s => s.Info == supplierDto.ContactInfo && !s.IsDeleted);
+        if (existedSupplier != null)
+            return Result<string>.Failure("تامین کننده با شماره تلفن مشابه موجود میباشد");
+        
+        var supplier = _mapper.Map<Supplier>(supplierDto);        
+        supplier.CreatedTime = DateTime.Now;
+        supplier.ModifiedTime = DateTime.Now;
+        supplier.UserId = user.Id;
+        supplier.CreatedBy = sessionId;
+        supplier.ModifiedBy = sessionId;
+        await _unitOfWork.Suppliers.AddAsync(supplier);
+
+        var supplierRole = (await _unitOfWork.Roles.GetSingleAsync(r => r.Name == "Supplier"));
+        await _unitOfWork.UserRoles.AddAsync(new UserRole { UserId = user.Id, RoleId = supplierRole.Id });
+        await _unitOfWork.SaveChangesAsync();
+
+        return Result<string>.Success("تامین کننده مورد نظر با موفقیت ثبت گردید");
     }
 
     public async Task UpdateSupplierAsync(UpdateSupplierStatusDto supplierDto)
