@@ -1,4 +1,4 @@
-﻿using Application.Interfaces;
+﻿using Application.Common;
 
 namespace Application.Services;
 
@@ -140,54 +140,40 @@ public class UserService : IUserService
     //    if (basket == null) throw new NotFoundException("Basket not found");
     //    return _mapper.Map<BasketDto>(basket);
     //}
-    public async Task<User> RegisterAsync(SignupDto dto)
+    public async Task<Result<string>> RegisterAsync(SignupDto dto)
     {
-        try
+        var existingUser = await _unitOfWork.Users.GetByAsync(u => u.PhoneNumber == dto.PhoneNumber);
+        if (existingUser != null)
         {
-            var existingUser = await _unitOfWork.Users.GetByAsync(u => u.PhoneNumber == dto.PhoneNumber);
-
-            if (existingUser != null)
-            {
-                throw new Exception("User already exists");
-            }
-
-            //string passwordHash = BCrypt.HashPassword(password);
-            var passwordHash = _passwordHasher.HashPassword(dto.Password);
-
-            var user = new User
-            {
-                Id = Guid.NewGuid().ToString(),
-                PhoneNumber = dto.PhoneNumber,
-                PasswordHash = passwordHash,
-                IsActive = true,
-                IsEmailConfirmed = false,
-                TwoFactorEnabled = false,
-                Username = dto.PhoneNumber,
-                CreatedBy = "bdfb65f1-9024-4736-846d-df7de909f571",
-                ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571",
-            };
-
-            await _unitOfWork.Users.AddAsync(user);
-            await _unitOfWork.SaveChangesAsync();
-            return user;
+            return Result<string>.Failure("شماره همراه تکراری می باشد");
         }
-        catch (Exception ex)
+        var passwordHash = _passwordHasher.HashPassword(dto.Password);
+        var user = new User
         {
-            Console.Clear();
-            Console.WriteLine(ex.Message);
-            throw;
-        }
+            Id = Guid.NewGuid().ToString(),
+            PhoneNumber = dto.PhoneNumber,
+            PasswordHash = passwordHash,
+            IsActive = true,
+            IsEmailConfirmed = false,
+            TwoFactorEnabled = false,
+            Username = dto.PhoneNumber,
+            CreatedBy = "bdfb65f1-9024-4736-846d-df7de909f571",
+            ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571",
+        };
+
+        await _unitOfWork.Users.AddAsync(user);
+        await _unitOfWork.SaveChangesAsync();
+        return Result<string>.Success("ثبت نام با موفقیت انجام شد");
     }
 
-    public async Task<(string jwtToken, string refreshToken)> AuthenticateAsync(LoginDto dto)
+    public async Task<AuthResult> AuthenticateAsync(LoginDto dto)
     {
-        var user = await _unitOfWork.Users.GetByAsync(u => u.PhoneNumber == dto.PhoneNumber);
+        var user = await _unitOfWork.Users.GetByAsync(u => u.Username == dto.Username);
         if (user == null || !_passwordHasher.VerifyPassword(dto.Password, user.PasswordHash))
         {
-            throw new Exception("Invalid credentials");
+            return AuthResult.Failure("Invalid credentials");
         }
         var jwtToken = _jwtTokenGenerator.GenerateJwtToken(user);
-        //var refreshToken = Guid.NewGuid().ToString();
         var refreshToken = GenerateRandomRefreshToken();
 
         user.RefreshToken = refreshToken;
@@ -197,7 +183,7 @@ public class UserService : IUserService
         await _unitOfWork.Users.UpdateAsync(user);
         await _unitOfWork.SaveChangesAsync();
 
-        return (jwtToken, refreshToken);
+        return AuthResult.Success(jwtToken, refreshToken);
     }
 
     public async Task<User> ValidateRefreshTokenAsync(string refreshToken)

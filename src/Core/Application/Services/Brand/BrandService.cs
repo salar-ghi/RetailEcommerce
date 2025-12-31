@@ -1,6 +1,4 @@
-﻿using Domain.Entities;
-
-namespace Application.Services;
+﻿namespace Application.Services;
 
 // Application/Services/BrandService.cs
 public class BrandService

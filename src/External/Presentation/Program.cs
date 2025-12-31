@@ -1,8 +1,4 @@
-
-
 using Microsoft.OpenApi;
-using System.Reflection.Metadata;
-using System.Security.Cryptography.Xml;
 
 var builder = WebApplication.CreateBuilder(args);
 

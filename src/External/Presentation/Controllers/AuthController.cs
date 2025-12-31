@@ -16,31 +16,26 @@ public class AuthController : ControllerBase
 
 
     [HttpPost("signup")]
-    public async Task<IActionResult> Signup([FromBody] SignupDto model)
+    public async Task<IActionResult> Signup(SignupDto model)
     {
-        try
+        var result = await _userService.RegisterAsync(model);
+        if (!result.IsSuccess)
         {
-            var user = await _userService.RegisterAsync(model);
-            return Ok(new { Message = "User registered successfully", UserId = user.Id });
+            return BadRequest(result.Error);
         }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        return Ok(new { result.Value });
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginDto model)
+    public async Task<IActionResult> Login(LoginDto model)
     {
-        try
+        var result = await _userService.AuthenticateAsync(model);
+        if (!result.IsSuccess)
         {
-            var (jwtToken, refreshToken) = await _userService.AuthenticateAsync(model);
-            return Ok(new { JwtToken = jwtToken, RefreshToken = refreshToken });
+            return Unauthorized(result.ErrorMessage); // Returns 401 with message (omit message in prod for security if desired)
         }
-        catch (Exception ex)
-        {
-            return Unauthorized(ex.Message);
-        }
+
+        return Ok(new { JwtToken = result.JwtToken, RefreshToken = result.RefreshToken });
     }
 
     //[HttpPost("refresh")]

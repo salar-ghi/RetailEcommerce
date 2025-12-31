@@ -1,26 +1,12 @@
 ﻿using Application.Helper;
-using Microsoft.Extensions.Configuration;
+using Infrastructure.Persistence;
 
 namespace Infrastructure;
 public static class DependencyInjection
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // Configure Logging with Elasticsearch
-        //Log.Logger = new LoggerConfiguration()
-        //    .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("http://localhost:9200"))
-        //    {
-        //        AutoRegisterTemplate = true,
-        //    })
-        //    .CreateLogger();
-        //builder.Host.UseSerilog();
-
-        // Database Context - Scoped (shared per request)
-        //services.AddDbContext<AppDbContext>(options =>
-        //    options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Scoped);
-
         var connectionString = configuration.GetConnectionString("DefaultConnection");
-
         services.AddDbContext<AppDbContext>(options =>
         {
             options.UseSqlServer(connectionString,
@@ -123,15 +109,15 @@ public static class DependencyInjection
         // Add other services as needed: services.AddScoped<CategoryService>();
 
         // Register Caching Service
-
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
-        
-
+        services.AddScoped<DatabaseSeeder>();
 
         services.AddScoped<RedisCacheService>();
 
+
+        services.AddHostedService<DatabaseSeederHostedService>();
         return services;
     }
 }

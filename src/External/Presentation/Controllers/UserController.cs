@@ -1,7 +1,4 @@
-﻿using Domain.Entities;
-using Microsoft.AspNetCore.Authorization;
-
-namespace Presentation.Controllers;
+﻿namespace Presentation.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]

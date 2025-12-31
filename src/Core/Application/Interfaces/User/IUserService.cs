@@ -1,12 +1,14 @@
-﻿namespace Application.Interfaces;
+﻿using Application.Common;
+
+namespace Application.Interfaces;
 
 public interface IUserService
 {
     Task<string> GenerateRefreshTokenAsync(User user);
     Task<User> ValidateRefreshTokenAsync(string refreshToken);
 
-    Task<User> RegisterAsync(SignupDto dto);
-    Task<(string jwtToken, string refreshToken)> AuthenticateAsync(LoginDto dto);
+    Task<Result<string>> RegisterAsync(SignupDto dto);
+    Task<AuthResult> AuthenticateAsync(LoginDto dto);
     Task<User> AddUserAsync(AddUserDto dto);
 
 

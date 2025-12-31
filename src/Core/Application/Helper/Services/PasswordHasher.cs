@@ -2,10 +2,7 @@
 
 public class PasswordHasher : IPasswordHasher
 {
-    public PasswordHasher()
-    {
-        
-    }
+    public PasswordHasher() { }
 
     public string HashPassword(string password)
     {

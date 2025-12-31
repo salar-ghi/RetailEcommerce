@@ -2,7 +2,7 @@
 
 public class Role : BaseModel<int>
 {
-    public string Name { get; set; } // Role name (e.g., "Customer", "Admin")
+    public string Name { get; set; }
 
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

@@ -11,6 +11,7 @@ global using Infrastructure.Caching;
 global using System.Linq.Expressions;
 global using Application.Configuration;
 global using Infrastructure.Repositories;
+global using Microsoft.Extensions.Hosting;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.Configuration;
 global using Infrastructure.EntityTypeConfiguration;
