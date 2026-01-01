@@ -52,7 +52,6 @@ public class UserController : ControllerBase
         try
         {
             var user = await _userService.AddUserAsync(userDto);
-            //return CreatedAtAction(nameof(GetUserById), new { id = userDto.Id }, userDto);
             return Ok(new { Message = "User added successfully", UserId = user.Value });
         }
         catch (Exception ex)

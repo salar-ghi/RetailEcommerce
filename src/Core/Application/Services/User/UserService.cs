@@ -59,13 +59,16 @@ public class UserService : IUserService
             PhoneNumber = dto.PhoneNumber,
             Username = dto.PhoneNumber,
             PasswordHash = passwordHash,
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            Email = dto.Email,
             IsActive = true,
             IsEmailConfirmed = false,
             TwoFactorEnabled = false,
             CreatedBy = _currentUserService.UserId,
-            //CreatedTime = DateTime.Now,
+            CreatedTime = DateTime.Now,
             ModifiedBy = _currentUserService.UserId,
-            //ModifiedTime = DateTime.Now,
+            ModifiedTime = DateTime.Now,
         };
 
         var roles = await _unitOfWork.Roles.GetAllAsync(r => dto.Roles.Contains(r.Name));
