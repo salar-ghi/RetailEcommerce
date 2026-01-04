@@ -1,7 +1,4 @@
-﻿using Application.Common;
-using Application.DTOs;
-
-namespace Presentation.Controllers;
+﻿namespace Presentation.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]

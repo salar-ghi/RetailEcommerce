@@ -4,16 +4,20 @@
 [ApiController]
 public class UserController : ControllerBase
 {
+    private readonly ICurrentUserService _currentUserService;
     private readonly IUserService _userService;
     private readonly RoleService _roleService;
     private readonly UserRoleService _userRoleService;
     private readonly UserAddressService _addressService;
 
-    public UserController(IUserService userService,
+
+    public UserController(ICurrentUserService currentUserService,
+        IUserService userService,
         RoleService roleService,
         UserRoleService userRoleService,
         UserAddressService addressService)
     {
+        _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
         _userService = userService;
         _roleService = roleService;
         _userRoleService = userRoleService;
@@ -46,9 +50,21 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("users")]
-    //[Authorize(Roles = "Admin")]
-    public async Task<IActionResult> AddUser(AddUserDto userDto)
+    public async Task<IActionResult> AddUser([FromBody] AddUserDto userDto)
     {
+        if (!ModelState.IsValid)
+        {
+            // Log all model errors
+            var errors = ModelState
+                .Where(kvp => kvp.Value?.Errors.Count > 0)
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                );
+            Console.Clear();
+            Console.WriteLine("Model validation failed: {@Errors}", errors);
+            return ValidationProblem(ModelState); // same format as automatic 400
+        }
         try
         {
             var user = await _userService.AddUserAsync(userDto);

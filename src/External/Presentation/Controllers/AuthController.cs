@@ -1,6 +1,4 @@
-﻿using Presentation.Models;
-
-namespace Presentation.Controllers;
+﻿namespace Presentation.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
