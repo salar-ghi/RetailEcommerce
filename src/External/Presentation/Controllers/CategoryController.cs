@@ -1,4 +1,7 @@
-﻿namespace Presentation.Controllers;
+﻿using Presentation.Services;
+
+
+namespace Presentation.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -6,11 +9,13 @@ public class CategoryController : ControllerBase
 {
     private readonly CategoryService _categoryService;
     private readonly CategoryAttributeService _categoryAttributeService;
+    private readonly ImageService _imageService;
     public CategoryController(CategoryService categoryService,
-        CategoryAttributeService categoryAttributeService)
+        CategoryAttributeService categoryAttributeService , ImageService imageService)
     {
         _categoryService = categoryService;
         _categoryAttributeService = categoryAttributeService;
+        _imageService = imageService;
     }
 
     [HttpGet("categories")]
@@ -38,9 +43,22 @@ public class CategoryController : ControllerBase
     [HttpPut("categories/{id}")]
     public async Task<IActionResult> UpdateCategory(int? id, CategoryDto categoryDto)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
         if (id == null || id is 0) return BadRequest();
+
+        
+        string imagePath = null;
+        const string subFolder = "images/categories";
+        if (!string.IsNullOrWhiteSpace(categoryDto.Image))
+        {
+            imagePath = await _imageService.SaveBase64Image(categoryDto.Image, subFolder);
+        }
+
         categoryDto.Id = id.Value;
+        categoryDto.Image = imagePath;
         await _categoryService.UpdateCategoryAsync(categoryDto);
+        
         return NoContent();
     }
 

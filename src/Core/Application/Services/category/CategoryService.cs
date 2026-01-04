@@ -1,17 +1,16 @@
-﻿using AutoMapper.QueryableExtensions;
-using Microsoft.EntityFrameworkCore;
-
-namespace Application.Services;
+﻿namespace Application.Services;
 public class CategoryService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ICurrentUserService _currentUserService;
     //private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public CategoryService(IUnitOfWork unitOfWork, IMapper mapper)
+    public CategoryService(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
         //_httpContextAccessor = httpContextAccessor;
     }
 
@@ -85,7 +84,7 @@ public class CategoryService
         if (category == null) throw new KeyNotFoundException($"Category with ID {categoryDto.Id} not found.");
         _mapper.Map(categoryDto, category);
         
-        category.ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
+        category.ModifiedBy = _currentUserService.UserId;
         category.ModifiedTime = DateTime.Now;
 
         await _unitOfWork.Categories.UpdateAsync(category);

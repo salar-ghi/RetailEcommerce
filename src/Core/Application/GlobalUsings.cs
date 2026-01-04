@@ -12,5 +12,7 @@ global using System.Security.Claims;
 global using Application.Configuration;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.Extensions.Options;
+global using Microsoft.EntityFrameworkCore;
+global using AutoMapper.QueryableExtensions;
 global using Microsoft.IdentityModel.Tokens;
 global using System.IdentityModel.Tokens.Jwt;

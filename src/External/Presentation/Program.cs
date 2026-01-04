@@ -1,4 +1,5 @@
 using Microsoft.OpenApi;
+using Presentation.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,7 +42,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-
+builder.Services.AddScoped<ImageService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -71,6 +72,13 @@ app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
     c.RoutePrefix = string.Empty; // Serve Swagger UI at the root (optional)
+});
+
+app.UseStaticFiles();
+app.Use(async (context, next) =>
+{
+    context.Request.EnableBuffering();
+    await next();
 });
 
 //app.UseHttpsRedirection();
