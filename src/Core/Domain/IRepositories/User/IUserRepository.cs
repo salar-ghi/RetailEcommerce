@@ -7,4 +7,6 @@ public interface IUserRepository : IRepository<User, string>
     Task<User> GetByUsernameAsync(string username);
     Task<User> GetByPhonenumberAsync(string phonenum);
     Task<IEnumerable<User>> SearchByEmailAsync(string email);
+
+    Task<IEnumerable<User>> GetAllWithRolesAsync();
 }

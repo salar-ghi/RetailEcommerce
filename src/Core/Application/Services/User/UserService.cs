@@ -23,7 +23,8 @@ public class UserService : IUserService
 
     public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
     {
-        var users = await _unitOfWork.Users.GetAllAsync();
+        //var users = await _unitOfWork.Users.GetAllAsync();
+        var users = await _unitOfWork.Users.GetAllWithRolesAsync();
         return _mapper.Map<IEnumerable<UserDto>>(users);
     }
 

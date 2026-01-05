@@ -37,4 +37,13 @@ public class UserRepository : Repository<User, string>, IUserRepository
     {
         return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
     }
+
+    public async Task<IEnumerable<User>> GetAllWithRolesAsync()
+    {
+        return await _context.Users
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .AsNoTracking()
+            .ToListAsync();
+    }
 }

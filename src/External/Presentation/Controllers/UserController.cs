@@ -36,8 +36,6 @@ public class UserController : ControllerBase
         }
         catch (Exception ex)
         {
-            Console.Clear();
-            Console.WriteLine(ex.Message);
             throw ex;
         }
     }
