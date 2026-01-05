@@ -73,4 +73,35 @@ public class ImageService
             throw ex;
         }
     }
+
+
+
+    public async Task<string> GetImageBase64(string imageUrl)
+    {
+        string relativePath = imageUrl.TrimStart('/');
+        string filePath = Path.Combine(_env.ContentRootPath, relativePath);
+
+        if (!File.Exists(filePath))
+            return null;
+
+        var bytes = await File.ReadAllBytesAsync(filePath);
+        var base64 = Convert.ToBase64String(bytes);
+
+        // choose correct mime based on extension
+        var ext = Path.GetExtension(filePath).ToLowerInvariant();
+        var mime = ext switch
+        {
+            ".webp" => "webp",
+            ".jpg"  => "jpeg",
+            ".jpeg" => "jpeg",
+            ".png"  => "png",
+            ".gif"  => "gif",
+            _ => "octet-stream"
+        };
+
+        return $"data:{mime};base64,{base64}";
+    }
+
+
+
 }

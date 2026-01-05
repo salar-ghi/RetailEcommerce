@@ -16,7 +16,9 @@ public class CategoryMappingProfile : Profile
             .ForMember(dest => dest.ParentId, opt => opt.MapFrom(src => src.ParentId))
             .ForMember(dest => dest.Image, opt => opt.MapFrom(src => src.ImageUrl))
             .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products.Count()))
-            .ForMember(dest => dest.Brands, opt => opt.MapFrom(src => src.Products.Select(p => p.Brand).Distinct()));
+            .ForMember(dest => dest.Brands, opt => opt.MapFrom(src => src.Products.Select(p => p.Brand).Distinct()))
+            .ReverseMap();
+
         CreateMap<CategoryAttribute, CategoryAttributeDto>().ReverseMap();
     }
 }

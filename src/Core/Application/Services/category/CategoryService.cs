@@ -4,14 +4,16 @@ public class CategoryService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly ICurrentUserService _currentUserService;
-    //private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IImageHelper _imageHelper;
 
-    public CategoryService(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IMapper mapper)
+    public CategoryService(IUnitOfWork unitOfWork, 
+        ICurrentUserService currentUserService, 
+        IMapper mapper, IImageHelper imageHelper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
-        //_httpContextAccessor = httpContextAccessor;
+        _imageHelper = imageHelper;
     }
 
     public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()
@@ -22,11 +24,20 @@ public class CategoryService
 
     public async Task<List<CategoryDetailsDto>> GetAllCategoriesWithDetailsAsync()
     {
-        var categories = _unitOfWork.Categories.GetAll();
-        return await categories
+        var query = _unitOfWork.Categories.GetAll();
+        var categories = await query
             .ProjectTo<CategoryDetailsDto>(_mapper.ConfigurationProvider)
             .OrderBy(z => z.Name)
             .ToListAsync();
+
+        foreach (var dto in categories)
+        {
+            if (string.IsNullOrEmpty(dto.Image))
+                continue;
+            dto.Image = await _imageHelper.GetImageBase64(dto.Image);
+        }
+        
+        return categories;
     }
 
     public async Task<List<CategoryDto>> GetCategoriesWithProductCount()
@@ -82,6 +93,14 @@ public class CategoryService
     {
         var category = await _unitOfWork.Categories.GetByIdAsync(categoryDto.Id);
         if (category == null) throw new KeyNotFoundException($"Category with ID {categoryDto.Id} not found.");
+
+        string imagePath = null;
+        const string subFolder = "images/categories";
+        if (!string.IsNullOrWhiteSpace(categoryDto.Image))
+        {
+            imagePath = await _imageHelper.SaveBase64Image(categoryDto.Image, subFolder);
+        }
+        categoryDto.Image = imagePath;
         _mapper.Map(categoryDto, category);
         
         category.ModifiedBy = _currentUserService.UserId;

@@ -1,5 +1,6 @@
 ﻿using Application.Helper;
 using Infrastructure.Persistence;
+using Infrastructure.Services;
 
 namespace Infrastructure;
 public static class DependencyInjection
@@ -116,7 +117,7 @@ public static class DependencyInjection
 
         services.AddScoped<RedisCacheService>();
 
-
+        services.AddScoped<IImageHelper, ImageHelper>();
         services.AddHostedService<DatabaseSeederHostedService>();
         return services;
     }

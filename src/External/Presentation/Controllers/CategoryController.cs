@@ -9,13 +9,13 @@ public class CategoryController : ControllerBase
 {
     private readonly CategoryService _categoryService;
     private readonly CategoryAttributeService _categoryAttributeService;
-    private readonly ImageService _imageService;
+    //private readonly ImageService _imageService;
     public CategoryController(CategoryService categoryService,
-        CategoryAttributeService categoryAttributeService , ImageService imageService)
+        CategoryAttributeService categoryAttributeService)
     {
         _categoryService = categoryService;
         _categoryAttributeService = categoryAttributeService;
-        _imageService = imageService;
+        //_imageService = imageService;
     }
 
     [HttpGet("categories")]
@@ -48,15 +48,15 @@ public class CategoryController : ControllerBase
         if (id == null || id is 0) return BadRequest();
 
         
-        string imagePath = null;
-        const string subFolder = "images/categories";
-        if (!string.IsNullOrWhiteSpace(categoryDto.Image))
-        {
-            imagePath = await _imageService.SaveBase64Image(categoryDto.Image, subFolder);
-        }
+        //string imagePath = null;
+        //const string subFolder = "images/categories";
+        //if (!string.IsNullOrWhiteSpace(categoryDto.Image))
+        //{
+        //    imagePath = await _imageService.SaveBase64Image(categoryDto.Image, subFolder);
+        //}
 
         categoryDto.Id = id.Value;
-        categoryDto.Image = imagePath;
+        //categoryDto.Image = imagePath;
         await _categoryService.UpdateCategoryAsync(categoryDto);
         
         return NoContent();
