@@ -4,13 +4,17 @@ namespace Application.Services;
 
 public class ProductService
 {
-    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ICurrentUserService _currentUserService;
 
-    public ProductService(IUnitOfWork unitOfWork, IMapper mapper)
+    public ProductService(IUnitOfWork unitOfWork, 
+        IMapper mapper, 
+        ICurrentUserService currentUserService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
     }
 
     public async Task<IEnumerable<ProductDto>> GetAllProductsAsync()
@@ -28,8 +32,8 @@ public class ProductService
     public async Task AddProductAsync(ProductDto productDto)
     {
         var product = _mapper.Map<Product>(productDto);
-        product.CreatedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
-        product.ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
+        product.CreatedBy = _currentUserService.UserId;
+        product.ModifiedBy = _currentUserService.UserId;
         await _unitOfWork.Products.AddAsync(product);
         await _unitOfWork.SaveChangesAsync();
     }
