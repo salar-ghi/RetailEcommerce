@@ -14,7 +14,7 @@ public class BrandService
 
     public async Task<IEnumerable<BrandDto>> GetAllBrandsAsync()
     {
-        var brands = await _unitOfWork.Brands.GetAllAsync();
+        var brands = await _unitOfWork.Brands.GetAllWithCategoryAsync();
         return _mapper.Map<IEnumerable<BrandDto>>(brands);
     }
 

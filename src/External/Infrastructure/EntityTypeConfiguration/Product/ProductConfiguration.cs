@@ -17,7 +17,8 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.HasOne(p => p.Brand)
                .WithMany()
-               .HasForeignKey(p => p.BrandId);
+               .HasForeignKey(p => p.BrandId)
+               .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(p => p.Dimensions)
                .WithOne(d => d.Product)

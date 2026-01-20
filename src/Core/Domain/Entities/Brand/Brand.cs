@@ -7,4 +7,5 @@ public class Brand : BaseModel<int>
     public string? ImageUrl { get; set; }
 
     public ICollection<Product> Products { get; set; } = new List<Product>();
+    public ICollection<BrandCategory> BrandCategories { get; set; } = new List<BrandCategory>();
 }

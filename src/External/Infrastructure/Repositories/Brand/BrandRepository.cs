@@ -19,4 +19,13 @@ public class BrandRepository : Repository<Brand, int>, IBrandRepository
             .AsNoTracking()
             .ToListAsync();
     }
+
+    public async Task<IEnumerable<Brand>> GetAllWithCategoryAsync()
+    {
+        return await _context.Brands
+            .Include(z => z.Products)
+            .ThenInclude(x => x.Category)
+            .AsNoTracking()
+            .ToListAsync();
+    }
 }

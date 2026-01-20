@@ -72,19 +72,26 @@ public class CategoryService
     {
         try
         {
+            //string imagePath = null;
+            if (categoryDto.Image != null)
+            {
+                const string subFolder = "images/categories";
+                if (!string.IsNullOrWhiteSpace(categoryDto.Image))
+                {
+                    categoryDto.Image = await _imageHelper.SaveBase64Image(categoryDto.Image, subFolder);
+                }
+            }
             var category = _mapper.Map<Category>(categoryDto);
-            //var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier);
-            //category.CreatedBy = userIdClaim?.Value ?? string.Empty;
-            category.CreatedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
-            category.ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
+
+            category.CreatedBy = _currentUserService.UserId;
+            category.ModifiedBy = _currentUserService.UserId;
+            category.ModifiedTime = DateTime.Now;
 
             await _unitOfWork.Categories.AddAsync(category);
             await _unitOfWork.SaveChangesAsync();
         }
         catch (Exception ex)
         {
-            Console.Clear();
-            Console.WriteLine(ex.ToString());
             throw ex;
         }
     }

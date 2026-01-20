@@ -17,7 +17,7 @@ public class ImageHelper : IImageHelper
 
 
             // data:[mime];base64,xxx
-            var match = Regex.Match(dataUrl, @"^data:(?<mime>image\/(jpeg|png|gif));base64,(?<data>.+)$");
+            var match = Regex.Match(dataUrl, @"^data:(?<mime>image\/(jpeg|png|gif|jpg|webp));base64,(?<data>.+)$");
             //var match = Regex.Match(dataUrl, @"data:(?<type>.+?);base64,(?<data>.+)");
             if (!match.Success)
                 throw new ArgumentException("Invalid image base64 format");
