@@ -407,10 +407,12 @@ obj/
 # Common node modules locations
 /node_modules
 /wwwroot/node_modules
-*/wwwroot/images
 /wwwroot/images
 /images
-*/images
+**/images/
+/Presentation/images/
+*/Presentation/images/
+/src/External/Presentation/images/
 
 ### VisualStudio ###
 
