@@ -13,9 +13,11 @@ public class BannerMappingProfile : Profile
             .ReverseMap();
 
         CreateMap<CreateBannerDto, Banner>()
+            .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.DisplayOrder))
             .ReverseMap();
 
         CreateMap<UpdateBannerDto, Banner>()
+            .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.DisplayOrder))
             .ReverseMap();
     }
 }

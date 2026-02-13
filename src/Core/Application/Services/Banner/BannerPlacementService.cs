@@ -14,7 +14,7 @@ public class BannerPlacementService : IBannerPlacementService
     public async Task<IEnumerable<BannerPlacementDto>> GetAllAsync()
     {
         var placements = await _unitOfWork.BannerPlacements.GetAllAsync();
-        return placements == null ? null : _mapper.Map<IEnumerable<BannerPlacementDto>>(placements);
+        return _mapper.Map<IEnumerable<BannerPlacementDto>>(placements);
     }
 
     public async Task<BannerPlacementDto?> GetByIdAsync(int id)

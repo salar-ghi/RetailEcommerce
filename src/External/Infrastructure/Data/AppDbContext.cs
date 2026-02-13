@@ -8,11 +8,9 @@ public class AppDbContext : DbContext
     public DbSet<Brand> Brands { get; set; }
     public DbSet<Category> Categories { get; set; }
     public DbSet<BrandCategory> BrandCategories { get; set; }
-    public DbSet<Domain.Entities.CategoryAttribute> CategoryAttributes { get; set; }
-    
+    public DbSet<Domain.Entities.CategoryAttribute> CategoryAttributes { get; set; }    
     public DbSet<Banner> Banners { get; set; }
     public DbSet<BannerPlacement> BannerPlacement { get; set; }
-
 
     public DbSet<Supplier> Suppliers { get; set; }
     public DbSet<User> Users { get; set; }

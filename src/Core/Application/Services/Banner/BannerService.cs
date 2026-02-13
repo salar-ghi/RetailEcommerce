@@ -23,19 +23,21 @@ public class BannerService : IBannerService
 
     public async Task<int> CreateAsync(CreateBannerDto dto)
     {
-        if (dto.PlacementIds is null)
-            throw new ArgumentException("PlacementId is required.");
+        if (dto.PlacementIds is null || dto.PlacementIds.Count == 0)
+            throw new ArgumentException("At least one Placement is required.");
 
         var banner = _mapper.Map<Banner>(dto);
         const string subFolder = "images/banners";
         if (!string.IsNullOrEmpty(dto.ImageUrl))
             banner.ImageUrl = await _imageHelper.SaveBase64Image(dto.ImageUrl, subFolder);
 
-        foreach (var placementId in dto.PlacementIds)
+        foreach (var placementId in dto.PlacementIds.Distinct())
         {
             var placement = await _unitOfWork.BannerPlacements.GetByIdAsync(placementId);
-            if (placement != null)
-                banner.Placements.Add(placement);
+            if (placement == null)
+                throw new KeyNotFoundException($"Placement with id {placementId} was not found.");
+
+            banner.Placements.Add(placement);
         }
 
         banner.CreatedBy = _currentUserService.UserId; // Or username
@@ -55,7 +57,7 @@ public class BannerService : IBannerService
         // Soft delete
         banner.IsDeleted = true;
         banner.ModifiedBy = _currentUserService.UserId;
-        banner.ModifiedTime = DateTime.Now;
+        banner.ModifiedTime = DateTime.UtcNow;
         await _unitOfWork.Banners.UpdateAsync(banner);
         await _unitOfWork.SaveChangesAsync();
     }
@@ -95,21 +97,23 @@ public class BannerService : IBannerService
 
         _mapper.Map(dto, banner);
 
-        // Update image if new
+        const string subFolder = "images/banners";
         if (!string.IsNullOrEmpty(dto.ImageUrl) && dto.ImageUrl != banner.ImageUrl)
-            banner.ImageUrl = await _imageHelper.SaveBase64Image(dto.ImageUrl, "");
+            banner.ImageUrl = await _imageHelper.SaveBase64Image(dto.ImageUrl, subFolder);
 
         // Update placements: Clear and re-add
         banner.Placements.Clear();
-        foreach (var placementId in dto.PlacementIds)
+        foreach (var placementId in dto.PlacementIds.Distinct())
         {
             var placement = await _unitOfWork.BannerPlacements.GetByIdAsync(placementId);
-            if (placement != null)
-                banner.Placements.Add(placement);
+            if (placement == null)
+                throw new KeyNotFoundException($"Placement with id {placementId} was not found.");
+
+            banner.Placements.Add(placement);
         }
 
         banner.ModifiedBy = _currentUserService.UserId;
-        banner.ModifiedTime = DateTime.Now;
+        banner.ModifiedTime = DateTime.UtcNow;
         await _unitOfWork.Banners.UpdateAsync(banner);
         await _unitOfWork.SaveChangesAsync();
     }
