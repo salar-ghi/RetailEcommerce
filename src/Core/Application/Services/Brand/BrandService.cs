@@ -1,15 +1,20 @@
-﻿namespace Application.Services;
+﻿using Application.Interfaces;
+
+namespace Application.Services;
 
 // Application/Services/BrandService.cs
 public class BrandService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ICurrentUserService _currentUserService;
 
-    public BrandService(IUnitOfWork unitOfWork, IMapper mapper)
+    public BrandService(IUnitOfWork unitOfWork, IMapper mapper,
+        ICurrentUserService currentUserService )
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
     }
 
     public async Task<IEnumerable<BrandDto>> GetAllBrandsAsync()
@@ -28,8 +33,8 @@ public class BrandService
     public async Task AddBrandAsync(BrandDto brandDto)
     {
         var brand = _mapper.Map<Brand>(brandDto);
-        brand.CreatedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
-        brand.ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
+        brand.CreatedBy = _currentUserService.UserId;
+        brand.ModifiedBy = _currentUserService.UserId;
         brand.CreatedTime = DateTime.Now;
         brand.ModifiedTime = DateTime.Now;
         await _unitOfWork.Brands.AddAsync(brand);
@@ -42,7 +47,7 @@ public class BrandService
         if (brand == null) throw new KeyNotFoundException($"Brand with ID {brandDto.Id} not found.");
 
         _mapper.Map(brandDto, brand);
-        brand.ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571";
+        brand.ModifiedBy = _currentUserService.UserId;
         await _unitOfWork.Brands.UpdateAsync(brand);
         await _unitOfWork.SaveChangesAsync();
     }
