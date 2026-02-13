@@ -1,0 +1,9 @@
+﻿namespace Domain.IRepositories;
+
+public interface IBannerRepository : IRepository<Banner, int>
+{
+    Task<IEnumerable<Banner>> GetActiveBannersByPlacementAsync(string placementCode);
+    Task<IEnumerable<Banner>> GetAllActiveAsync();
+    Task<IEnumerable<Banner>> SearchAsync(string? name, BannerType? type);
+    Task<Banner?> GetByIdWithPlacesAsync(int id);
+}

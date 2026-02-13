@@ -1,4 +1,7 @@
-﻿namespace Infrastructure.Repositories;
+﻿using Domain.Entities;
+using Domain.IRepositories;
+
+namespace Infrastructure.Repositories;
 
 // Infrastructure Layer
 public class UnitOfWork : IUnitOfWork
@@ -10,6 +13,8 @@ public class UnitOfWork : IUnitOfWork
         _context = context;
         _cache = cache;
         Categories = new CategoryRepository(context);
+        Banners = new BannerRepository(context);
+        BannerPlacements = new BannerPlacementRepository(context);
         CategoryAttributes = new CategoryAttributeRepository(context);
         Brands = new BrandRepository(context);
         Suppliers = new SupplierRepository(context);
@@ -38,6 +43,8 @@ public class UnitOfWork : IUnitOfWork
     }
 
     public ICategoryRepository Categories { get; }
+    public IBannerRepository Banners { get; }
+    public IBannerPlacementRepository BannerPlacements { get; }
     public ICategoryAttributeRepository CategoryAttributes { get; }
     public IBrandRepository Brands { get; }
     public IBasketRepository Baskets { get; }
