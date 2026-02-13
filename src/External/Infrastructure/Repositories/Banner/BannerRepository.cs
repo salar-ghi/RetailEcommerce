@@ -4,27 +4,53 @@ namespace Infrastructure.Repositories;
 
 public class BannerRepository : Repository<Banner, int>, IBannerRepository
 {
-    public BannerRepository(AppDbContext context) : base(context)
+    public BannerRepository(AppDbContext context) : base(context) { }
+
+    public async Task<IEnumerable<Banner>> GetActiveBannersByPlacementAsync(string placementCode)
     {
+        var now = DateTime.UtcNow;
+        return await _context.Banners
+            .Include(b => b.Placements)
+            .Where(b => !b.IsDeleted && b.IsActive &&
+                        b.Placements.Any(p => p.Code == placementCode) &&
+                        (b.StartDate == null || b.StartDate <= now) &&
+                        (b.EndDate == null || b.EndDate >= now))
+            .OrderByDescending(b => b.Priority)
+            .ThenByDescending(b => b.CreatedTime)
+            .ToListAsync();
     }
 
-    public Task<IEnumerable<Banner>> GetActiveBannersByPlacementAsync(string placementCode)
+    public async Task<IEnumerable<Banner>> GetAllActiveAsync()
     {
-        throw new NotImplementedException();
+        var now = DateTime.UtcNow;
+        return await _context.Banners
+            .Include(b => b.Placements)
+            .Where(b => !b.IsDeleted && b.IsActive &&
+                        (b.StartDate == null || b.StartDate <= now) &&
+                        (b.EndDate == null || b.EndDate >= now))
+            .OrderByDescending(b => b.Priority)
+            .ToListAsync();
     }
 
-    public Task<IEnumerable<Banner>> GetAllActiveAsync()
+    public async Task<Banner?> GetByIdWithPlacesAsync(int id)
     {
-        throw new NotImplementedException();
+        return await _context.Banners
+            .Include(b => b.Placements)
+            .FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
     }
 
-    public Task<Banner?> GetByIdWithPlacesAsync(int id)
+    public async Task<IEnumerable<Banner>> SearchAsync(string? name, BannerType? type)
     {
-        throw new NotImplementedException();
-    }
+        var query = _context.Banners
+            .Include(b => b.Placements)
+            .Where(b => !b.IsDeleted);
 
-    public Task<IEnumerable<Banner>> SearchAsync(string? name, BannerType? type)
-    {
-        throw new NotImplementedException();
+        if (!string.IsNullOrEmpty(name))
+            query = query.Where(b => b.Name.Contains(name));
+
+        if (type.HasValue)
+            query = query.Where(b => b.Type == type.Value);
+
+        return await query.ToListAsync();
     }
 }

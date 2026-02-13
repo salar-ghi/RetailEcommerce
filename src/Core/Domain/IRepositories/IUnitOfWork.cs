@@ -5,7 +5,7 @@ public interface IUnitOfWork : IDisposable
 {
     ICategoryRepository Categories { get; }
     IBannerRepository Banners { get; }
-    IBannerPlacementRepository BannerPlacement { get; }
+    IBannerPlacementRepository BannerPlacements { get; }
     ICategoryAttributeRepository CategoryAttributes { get; }
     IBrandRepository Brands { get; }
     IBasketRepository Baskets { get; }

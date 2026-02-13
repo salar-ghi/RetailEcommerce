@@ -35,6 +35,7 @@ public static class DependencyInjection
         services.AddAutoMapper(typeof(CategoryMappingProfile));
         services.AddAutoMapper(typeof(OrderMappingProfile));
         services.AddAutoMapper(typeof(ProductMappingProfile));
+        services.AddAutoMapper(typeof(BannerMappingProfile));
        
         services.AddAutoMapper(typeof(SupplierMappingProfile));
         services.AddAutoMapper(typeof(TagMappingProfile));
@@ -78,6 +79,7 @@ public static class DependencyInjection
         services.AddScoped<IOrderItemRepository, OrderItemRepository>();
         services.AddScoped<IPromotionRepository, PromotionRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
+        services.AddScoped<IBannerRepository, BannerRepository>();
 
         // Register Services from Application Layer
 
@@ -87,6 +89,7 @@ public static class DependencyInjection
         services.AddScoped<IPromotionService, PromotionService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IBannerService, BannerService>();
 
         services.AddScoped<ProductService>();
         services.AddScoped<ProductAttributeService>();

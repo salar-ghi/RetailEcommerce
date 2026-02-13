@@ -5,11 +5,17 @@ public class BannerMappingProfile : Profile
     public BannerMappingProfile()
     {
         CreateMap<BannerPlacement, BannerPlacementDto>().ReverseMap();
+        CreateMap<CreateBannerPlacementDto, BannerPlacement>().ReverseMap();
+
 
         CreateMap<Banner, BannerDto>()
-            .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.ImageUrl)).ReverseMap();
+            .ForMember(dest => dest.PlacementCodes, opt => opt.MapFrom(src => src.Placements.Select(p => p.Code).ToList()))
+            .ReverseMap();
 
         CreateMap<CreateBannerDto, Banner>()
-            .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.ImageUrl)).ReverseMap();
+            .ReverseMap();
+
+        CreateMap<UpdateBannerDto, Banner>()
+            .ReverseMap();
     }
 }

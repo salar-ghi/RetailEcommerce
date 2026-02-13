@@ -11,8 +11,11 @@ public record BannerDto
     public BannerType Type { get; set; }
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
+    public BannerSize Size { get; set; }
     public bool IsActive { get; set; }
-    public int DisplayOrder { get; set; }
+    public int Priority { get; set; }
+    public int ClickCount { get; set; }
+    public int ViewCount { get; set; }
     public List<string> PlacementCodes { get; set; } = new();
 }
 

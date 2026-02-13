@@ -8,21 +8,15 @@ public class Banner : BaseModel<int>
     public string? AltText { get; set; }
     public string? Link { get; set; }
     public string? CallToActionText { get; set; }
-
-    public BannerType Type { get; set; }
+    public BannerType Type { get; set; } = BannerType.Advertisement;
 
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
 
     public BannerSize Size { get; set; }
-    //public int DisplayOrder { get; set; } = 0;
-
     public int Priority { get; set; } = 0;
     public int ClickCount { get; set; } = 0; 
     public int ViewCount { get; set; } = 0;
-
-    public bool IsActive { get; set; }
-
-    public int PlacementId { get; set; }
-    public BannerPlacement Placement { get; set; } = default!;
+    public bool IsActive { get; set; } = true;
+    public ICollection<BannerPlacement> Placements { get; set; } = new List<BannerPlacement>(); // Many-to-many
 }
