@@ -80,6 +80,7 @@ public static class DependencyInjection
         services.AddScoped<IPromotionRepository, PromotionRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddScoped<IBannerRepository, BannerRepository>();
+        services.AddScoped<IBannerPlacementRepository, BannerPlacementRepository>();
 
         // Register Services from Application Layer
 
@@ -90,6 +91,7 @@ public static class DependencyInjection
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IBannerService, BannerService>();
+        services.AddScoped<IBannerPlacementService, BannerPlacementService>();
 
         services.AddScoped<ProductService>();
         services.AddScoped<ProductAttributeService>();
