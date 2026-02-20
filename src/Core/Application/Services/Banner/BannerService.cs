@@ -34,6 +34,7 @@ public class BannerService : IBannerService
         foreach (var placementId in dto.PlacementIds.Distinct())
         {
             var placement = await _unitOfWork.BannerPlacements.GetByIdAsync(placementId);
+
             if (placement == null)
                 throw new KeyNotFoundException($"Placement with id {placementId} was not found.");
 

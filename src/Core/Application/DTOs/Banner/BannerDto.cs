@@ -28,10 +28,11 @@ public class CreateBannerDto
     public string? Link { get; set; }
     public string? CallToActionText { get; set; }
     public BannerType Type { get; set; }
+    public BannerSize Size { get; set; }
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public bool IsActive { get; set; } = true;
-    public int DisplayOrder { get; set; } = 0;
+    public int Priority { get; set; } = 0;
     public List<int> PlacementIds { get; set; } = new();   // required
 }
 

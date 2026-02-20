@@ -9,7 +9,7 @@ public class Repository<T, TId> : IRepository<T, TId> where T : BaseModel<TId>
         _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    public async Task<T> GetByIdAsync(TId id) => await _context.Set<T>().FindAsync(id);
+    public async Task<T> GetByIdAsync(TId id) => await _context.Set<T>().AsNoTracking().FindAsync(id);
     public async Task<IEnumerable<T>> GetAllAsync() => await _context.Set<T>().AsNoTracking().ToListAsync();
     public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> predicate) => await _context.Set<T>().Where(predicate).ToListAsync();
     public IQueryable<T> GetAll() => _context.Set<T>().AsNoTracking();
