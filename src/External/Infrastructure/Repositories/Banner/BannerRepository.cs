@@ -6,13 +6,13 @@ public class BannerRepository : Repository<Banner, int>, IBannerRepository
 {
     public BannerRepository(AppDbContext context) : base(context) { }
 
-    public async Task<IEnumerable<Banner>> GetActiveBannersByPlacementAsync(string placementCode)
+    public async Task<IEnumerable<Banner>> GetActiveBannersByPlacementAsync(BannerPageCode code)
     {
         var now = DateTime.UtcNow;
         return await _context.Banners
             .Include(b => b.Placements)
             .Where(b => !b.IsDeleted && b.IsActive &&
-                        b.Placements.Any(p => p.Code == placementCode) &&
+                        b.Placements.Any(p => p.Code == code) &&
                         (b.StartDate == null || b.StartDate <= now) &&
                         (b.EndDate == null || b.EndDate >= now))
             .OrderByDescending(b => b.Priority)

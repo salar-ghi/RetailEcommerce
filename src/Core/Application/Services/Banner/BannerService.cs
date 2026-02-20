@@ -82,7 +82,7 @@ public class BannerService : IBannerService
         return _mapper.Map<IEnumerable<BannerDto>>(banners);
     }
 
-    public async Task<IEnumerable<BannerDto>> GetByPlacementAsync(string placementKey)
+    public async Task<IEnumerable<BannerDto>> GetByPlacementAsync(BannerPageCode placementKey)
     {
         var banners = await _unitOfWork.Banners
             .GetActiveBannersByPlacementAsync(placementKey);

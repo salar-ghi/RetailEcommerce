@@ -40,7 +40,10 @@ public class BannerPlacementConfiguration : IEntityTypeConfiguration<BannerPlace
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.Name).IsRequired().HasMaxLength(100);
-        builder.Property(x => x.Code).IsRequired().HasMaxLength(50);
+        builder.Property(x => x.Code)
+            .HasConversion<string>()
+            .HasMaxLength(50)
+            .IsRequired();
         builder.Property(x => x.RecommendedSize).IsRequired(false).HasMaxLength(50);
     }
 }

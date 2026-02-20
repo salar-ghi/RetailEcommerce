@@ -80,6 +80,15 @@ app.Use(async (context, next) =>
     await next();
 });
 
+using (var scope = app.Services.CreateScope())
+{
+    var placementService = scope.ServiceProvider
+        .GetRequiredService<IBannerPlacementService>();
+
+    await placementService.SyncPlacementsWithEnumAsync();
+}
+
+
 //app.UseHttpsRedirection();
 
 //app.UseAuthorization();

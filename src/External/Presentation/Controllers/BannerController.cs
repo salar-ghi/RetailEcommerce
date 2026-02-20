@@ -1,4 +1,6 @@
-﻿namespace Presentation.Controllers;
+﻿using Domain.Enums;
+
+namespace Presentation.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -64,7 +66,15 @@ public class BannerController : ControllerBase
     [HttpGet("placement/{placementKey}")]
     public async Task<ActionResult<IEnumerable<BannerDto>>> GetByPlacement(string placementKey)
     {
-        return Ok(await _bannerService.GetByPlacementAsync(placementKey));
+        if (!Enum.TryParse<BannerPageCode>(
+            placementKey,
+            ignoreCase: true,
+            out var placementCode))
+        {
+            return BadRequest($"Invalid placement key: {placementKey}");
+        }
+
+        return Ok(await _bannerService.GetByPlacementAsync(placementCode));
     }
 
     [HttpPost("banner")]

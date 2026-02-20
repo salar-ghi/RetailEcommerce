@@ -7,6 +7,6 @@ public class BannerPlacementRepository : Repository<BannerPlacement, int>, IBann
     public async Task<BannerPlacement?> GetByCodeAsync(string code)
     {
         return await _context.Set<BannerPlacement>()
-            .FirstOrDefaultAsync(p => p.Code == code && !p.IsDeleted);
+            .FirstOrDefaultAsync(p => !p.IsDeleted);
     }
 }
