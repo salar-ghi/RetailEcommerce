@@ -31,20 +31,29 @@ public class BannerService : IBannerService
         if (!string.IsNullOrEmpty(dto.ImageUrl))
             banner.ImageUrl = await _imageHelper.SaveBase64Image(dto.ImageUrl, subFolder);
 
-        foreach (var placementId in dto.PlacementIds.Distinct())
-        {
-            var placement = await _unitOfWork.BannerPlacements.GetByIdAsync(placementId);
-
-            if (placement == null)
-                throw new KeyNotFoundException($"Placement with id {placementId} was not found.");
-
-            banner.Placements.Add(placement);
-        }
-
-        banner.CreatedBy = _currentUserService.UserId; // Or username
+        banner.CreatedBy = _currentUserService.UserId;
         banner.CreatedTime = DateTime.UtcNow;
 
         await _unitOfWork.Banners.AddAsync(banner);
+        await _unitOfWork.SaveChangesAsync();
+
+        var placements = await _unitOfWork.BannerPlacements.GetAllByIdsAsync(dto.PlacementIds);
+
+        if (placements.Count != dto.PlacementIds.Count)
+            throw new Exception("Some placements not found.");
+
+        foreach (var placement in placements)
+        {
+            var map = new BannerPlacementMap
+            {
+                BannerId = banner.Id,
+                PlacementId = placement.Id,
+                CreatedTime = DateTime.UtcNow,
+                CreatedBy = _currentUserService.UserId
+            };
+
+            await _unitOfWork.BannerPlacementMaps.AddAsync(map);
+        }
         await _unitOfWork.SaveChangesAsync();
         return banner.Id;
     }
@@ -103,15 +112,15 @@ public class BannerService : IBannerService
             banner.ImageUrl = await _imageHelper.SaveBase64Image(dto.ImageUrl, subFolder);
 
         // Update placements: Clear and re-add
-        banner.Placements.Clear();
-        foreach (var placementId in dto.PlacementIds.Distinct())
-        {
-            var placement = await _unitOfWork.BannerPlacements.GetByIdAsync(placementId);
-            if (placement == null)
-                throw new KeyNotFoundException($"Placement with id {placementId} was not found.");
+        //banner.Placements.Clear();
+        //foreach (var placementId in dto.PlacementIds.Distinct())
+        //{
+        //    var placement = await _unitOfWork.BannerPlacements.GetByIdAsync(placementId);
+        //    if (placement == null)
+        //        throw new KeyNotFoundException($"Placement with id {placementId} was not found.");
 
-            banner.Placements.Add(placement);
-        }
+        //    banner.Placements.Add(placement);
+        //}
 
         banner.ModifiedBy = _currentUserService.UserId;
         banner.ModifiedTime = DateTime.UtcNow;

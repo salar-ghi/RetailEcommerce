@@ -45,6 +45,7 @@ public class UnitOfWork : IUnitOfWork
     public ICategoryRepository Categories { get; }
     public IBannerRepository Banners { get; }
     public IBannerPlacementRepository BannerPlacements { get; }
+    public IBannerPlacementMapRepository BannerPlacementMaps { get; }
     public ICategoryAttributeRepository CategoryAttributes { get; }
     public IBrandRepository Brands { get; }
     public IBasketRepository Baskets { get; }

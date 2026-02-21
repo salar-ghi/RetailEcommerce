@@ -6,5 +6,6 @@ public class BannerPlacement : BaseModel<int>
     public BannerPageCode Code { get; set; } = default!;
     public string? RecommendedSize { get; set; }
 
-    public ICollection<Banner> Banners { get; set; } = new List<Banner>();
+    public ICollection<BannerPlacementMap> BannerPlacementMaps { get; set; }
+        = new List<BannerPlacementMap>();
 }

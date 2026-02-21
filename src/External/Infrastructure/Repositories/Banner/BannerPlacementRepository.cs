@@ -9,4 +9,14 @@ public class BannerPlacementRepository : Repository<BannerPlacement, int>, IBann
         return await _context.Set<BannerPlacement>()
             .FirstOrDefaultAsync(p => !p.IsDeleted);
     }
+
+
+    public async Task<List<BannerPlacement>> GetAllByIdsAsync(List<int> placementIds)
+    {
+        var result = await _context.Set<BannerPlacement>()
+            .Where(x => placementIds.Contains(x.Id))
+            .ToListAsync();
+
+        return result;
+    }
 }

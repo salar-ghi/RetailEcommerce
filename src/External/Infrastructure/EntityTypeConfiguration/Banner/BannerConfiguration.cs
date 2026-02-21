@@ -24,12 +24,12 @@ public class BannerConfiguration : IEntityTypeConfiguration<Banner>
             .IsRequired();
 
         // Many-to-many
-        builder.HasMany(x => x.Placements)
-            .WithMany(x => x.Banners)
-            .UsingEntity<Dictionary<string, object>>(
-                "BannerPlacementMap",
-                j => j.HasOne<BannerPlacement>().WithMany().HasForeignKey("PlacementId"),
-                j => j.HasOne<Banner>().WithMany().HasForeignKey("BannerId"));
+        //builder.HasMany(x => x.Placements)
+        //    .WithMany(x => x.Banners)
+        //    .UsingEntity<Dictionary<string, object>>(
+        //        "BannerPlacementMap",
+        //        j => j.HasOne<BannerPlacement>().WithMany().HasForeignKey("PlacementId"),
+        //        j => j.HasOne<Banner>().WithMany().HasForeignKey("BannerId"));
     }
 }
 
@@ -45,5 +45,32 @@ public class BannerPlacementConfiguration : IEntityTypeConfiguration<BannerPlace
             .HasMaxLength(50)
             .IsRequired();
         builder.Property(x => x.RecommendedSize).IsRequired(false).HasMaxLength(50);
+    }
+}
+
+public class BannerPlacementMapConfiguration
+    : IEntityTypeConfiguration<BannerPlacementMap>
+{
+    public void Configure(EntityTypeBuilder<BannerPlacementMap> builder)
+    {
+        builder.ToTable("BannerPlacementMap");
+
+        builder.HasKey(x => new { x.BannerId, x.PlacementId });
+
+        builder.Property(x => x.CreatedTime)
+            .IsRequired();
+
+        builder.Property(x => x.CreatedBy)
+            .HasMaxLength(100);
+
+        builder.HasOne(x => x.Banner)
+            .WithMany(x => x.BannerPlacementMaps)
+            .HasForeignKey(x => x.BannerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(x => x.Placement)
+            .WithMany(x => x.BannerPlacementMaps)
+            .HasForeignKey(x => x.PlacementId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

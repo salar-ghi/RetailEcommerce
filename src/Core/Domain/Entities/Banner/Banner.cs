@@ -18,5 +18,6 @@ public class Banner : BaseModel<int>
     public int ClickCount { get; set; } = 0; 
     public int ViewCount { get; set; } = 0;
     public bool IsActive { get; set; } = true;
-    public ICollection<BannerPlacement> Placements { get; set; } = new List<BannerPlacement>(); // Many-to-many
+    public ICollection<BannerPlacementMap> BannerPlacementMaps { get; set; }
+        = new List<BannerPlacementMap>();
 }
