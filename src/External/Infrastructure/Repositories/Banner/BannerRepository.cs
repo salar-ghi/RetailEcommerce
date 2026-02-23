@@ -10,9 +10,10 @@ public class BannerRepository : Repository<Banner, int>, IBannerRepository
     {
         var now = DateTime.UtcNow;
         return await _context.Banners
-            .Include(b => b.Placements)
+            .Include(b => b.BannerPlacementMaps)
+                .ThenInclude(z => z.Placement)
             .Where(b => !b.IsDeleted && b.IsActive &&
-                        b.Placements.Any(p => p.Code == code) &&
+                        b.BannerPlacementMaps.Any(p => p.Placement.Code == code) &&
                         (b.StartDate == null || b.StartDate <= now) &&
                         (b.EndDate == null || b.EndDate >= now))
             .OrderByDescending(b => b.Priority)
@@ -24,7 +25,8 @@ public class BannerRepository : Repository<Banner, int>, IBannerRepository
     {
         var now = DateTime.UtcNow;
         return await _context.Banners
-            .Include(b => b.Placements)
+            .Include(b => b.BannerPlacementMaps)
+                .ThenInclude(x => x.Placement)
             .Where(b => !b.IsDeleted && b.IsActive &&
                         (b.StartDate == null || b.StartDate <= now) &&
                         (b.EndDate == null || b.EndDate >= now))
@@ -35,14 +37,16 @@ public class BannerRepository : Repository<Banner, int>, IBannerRepository
     public async Task<Banner?> GetByIdWithPlacesAsync(int id)
     {
         return await _context.Banners
-            .Include(b => b.Placements)
+            .Include(b => b.BannerPlacementMaps)
+                .ThenInclude(z => z.Placement)
             .FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
     }
 
     public async Task<IEnumerable<Banner>> SearchAsync(string? name, BannerType? type)
     {
         var query = _context.Banners
-            .Include(b => b.Placements)
+            .Include(b => b.BannerPlacementMaps)
+                .ThenInclude(z => z.Placement)
             .Where(b => !b.IsDeleted);
 
         if (!string.IsNullOrEmpty(name))

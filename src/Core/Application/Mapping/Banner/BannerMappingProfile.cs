@@ -9,15 +9,14 @@ public class BannerMappingProfile : Profile
 
 
         CreateMap<Banner, BannerDto>()
-            //.ForMember(dest => dest.PlacementCodes, opt => opt.MapFrom(src => src.Placements.Select(p => p.Code).ToList()))
+            .ForMember(dest => dest.PlacementCodes, 
+                opt => opt.MapFrom(src => src.BannerPlacementMaps.Select(p => p.Placement)))
             .ReverseMap();
 
         CreateMap<CreateBannerDto, Banner>()
-            //.ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.DisplayOrder))
             .ReverseMap();
 
         CreateMap<UpdateBannerDto, Banner>()
-            //.ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.DisplayOrder))
             .ReverseMap();
     }
 }
