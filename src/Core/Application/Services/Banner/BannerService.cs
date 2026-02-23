@@ -75,7 +75,24 @@ public class BannerService : IBannerService
     public async Task<IEnumerable<BannerDto>> GetAllAsync()
     {
         var banners = await _unitOfWork.Banners.GetAllAsync();
-        return _mapper.Map<IEnumerable<BannerDto>>(banners);
+        var result  =  _mapper.Map<IEnumerable<BannerDto>>(banners);
+
+        var tasks = result
+            .Where(b => !string.IsNullOrEmpty(b.ImageUrl))
+            .Select(async banner =>
+            {
+                banner.ImageUrl = await _imageHelper.GetImageBase64(banner.ImageUrl);
+            });
+        await Task.WhenAll(tasks);
+
+        //foreach (var dto in result)
+        //{
+        //    if (string.IsNullOrEmpty(dto.ImageUrl))
+        //        continue;
+        //    dto.ImageUrl = await _imageHelper.GetImageBase64(dto.ImageUrl);
+        //}
+
+        return result;
     }
 
     public async Task<BannerDto> GetByIdAsync(int id)

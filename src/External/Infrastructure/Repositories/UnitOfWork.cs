@@ -15,6 +15,7 @@ public class UnitOfWork : IUnitOfWork
         Categories = new CategoryRepository(context);
         Banners = new BannerRepository(context);
         BannerPlacements = new BannerPlacementRepository(context);
+        BannerPlacementMaps = new BannerPlacementMapRepository(context);
         CategoryAttributes = new CategoryAttributeRepository(context);
         Brands = new BrandRepository(context);
         Suppliers = new SupplierRepository(context);
