@@ -10,9 +10,9 @@ public class BannerService : IBannerService
     private readonly IImageHelper _imageHelper;
 
     public BannerService(
-        IUnitOfWork unitOfWork, 
-        IMapper mapper, 
-        ICurrentUserService currentUserService, 
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ICurrentUserService currentUserService,
         IImageHelper imageHelper)
     {
         _unitOfWork = unitOfWork;
@@ -74,8 +74,8 @@ public class BannerService : IBannerService
 
     public async Task<IEnumerable<BannerDto>> GetAllAsync()
     {
-        var banners = await _unitOfWork.Banners.GetAllAsync();
-        var result  =  _mapper.Map<IEnumerable<BannerDto>>(banners);
+        var banners = await _unitOfWork.Banners.GetAllWithPlacementsAsync();
+        var result = _mapper.Map<List<BannerDto>>(banners);
 
         var tasks = result
             .Where(b => !string.IsNullOrEmpty(b.ImageUrl))
@@ -84,13 +84,6 @@ public class BannerService : IBannerService
                 banner.ImageUrl = await _imageHelper.GetImageBase64(banner.ImageUrl);
             });
         await Task.WhenAll(tasks);
-
-        //foreach (var dto in result)
-        //{
-        //    if (string.IsNullOrEmpty(dto.ImageUrl))
-        //        continue;
-        //    dto.ImageUrl = await _imageHelper.GetImageBase64(dto.ImageUrl);
-        //}
 
         return result;
     }
@@ -122,22 +115,25 @@ public class BannerService : IBannerService
         if (banner == null)
             throw new KeyNotFoundException($"Banner with id {dto.Id} was not found.");
 
+        if (dto.PlacementIds is null || dto.PlacementIds.Count == 0)
+            throw new ArgumentException("At least one Placement is required.");
+        var oldImage = banner.ImageUrl;
+
         _mapper.Map(dto, banner);
 
         const string subFolder = "images/banners";
-        if (!string.IsNullOrEmpty(dto.ImageUrl) && dto.ImageUrl != banner.ImageUrl)
+        if (!string.IsNullOrEmpty(dto.ImageUrl) &&
+            dto.ImageUrl.StartsWith("data:image"))
+        {
+            //if (!string.IsNullOrEmpty(oldImage))
+            //    _imageHelper.DeleteImage(banner.ImageUrl);
+
             banner.ImageUrl = await _imageHelper.SaveBase64Image(dto.ImageUrl, subFolder);
-
-        // Update placements: Clear and re-add
-        //banner.Placements.Clear();
-        //foreach (var placementId in dto.PlacementIds.Distinct())
-        //{
-        //    var placement = await _unitOfWork.BannerPlacements.GetByIdAsync(placementId);
-        //    if (placement == null)
-        //        throw new KeyNotFoundException($"Placement with id {placementId} was not found.");
-
-        //    banner.Placements.Add(placement);
-        //}
+        }
+        else
+        {
+            banner.ImageUrl = oldImage;
+        }
 
         banner.ModifiedBy = _currentUserService.UserId;
         banner.ModifiedTime = DateTime.UtcNow;

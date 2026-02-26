@@ -16,7 +16,15 @@ public record BannerDto
     public int Priority { get; set; }
     public int ClickCount { get; set; }
     public int ViewCount { get; set; }
-    public List<string> PlacementCodes { get; set; } = new();
+    public List<PlacementDto> Placements { get; set; } = new();
+}
+
+public class PlacementDto
+{
+    public int Id { get; set; }
+
+    public string Name { get; set; }
+    public string Code { get; set; } = string.Empty;
 }
 
 public class CreateBannerDto

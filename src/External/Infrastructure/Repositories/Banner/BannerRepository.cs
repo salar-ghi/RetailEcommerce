@@ -34,6 +34,17 @@ public class BannerRepository : Repository<Banner, int>, IBannerRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Banner>> GetAllWithPlacementsAsync()
+    {
+        var now = DateTime.UtcNow;
+        return await _context.Banners
+            .Include(b => b.BannerPlacementMaps)
+                .ThenInclude(x => x.Placement)
+            .Where(b => !b.IsDeleted)
+            .OrderByDescending(b => b.Priority)
+            .ToListAsync();
+    }
+
     public async Task<Banner?> GetByIdWithPlacesAsync(int id)
     {
         return await _context.Banners
