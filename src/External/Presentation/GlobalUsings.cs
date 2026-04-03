@@ -1,6 +1,7 @@
-﻿global using System.Text;
+﻿global using System.Net;
+global using System.Text;
+global using Domain.Enums;
 global using Infrastructure;
-global using System.Net;
 global using System.Text.Json;
 global using Application.DTOs;
 global using Application.Helper;
