@@ -69,8 +69,17 @@ public class ProductRepository : Repository<Product, long>, IProductRepository
     public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(int categoryId)
     {
         return await _context.Products
-            .Where(p => p.CategoryId == categoryId)
+            .Where(p => p.CategoryId == categoryId && p.IsActive == true)
             .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Product>> GetProductsByElectronicsCategoryAsync(string categoryName)
+    {
+        return await _context.Products
+            .Where(p => p.Category.Name == categoryName && p.IsActive == true)
+            .AsNoTracking()
+            .Take(8)
             .ToListAsync();
     }
 

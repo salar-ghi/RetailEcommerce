@@ -94,7 +94,7 @@ public static class DependencyInjection
         services.AddScoped<IBannerService, BannerService>();
         services.AddScoped<IBannerPlacementService, BannerPlacementService>();
 
-        services.AddScoped<ProductService>();
+        services.AddScoped<IProductService, ProductService>();
         services.AddScoped<ProductAttributeService>();
         services.AddScoped<ProductDimensionsService>();
         services.AddScoped<ProductReviewService>();
@@ -104,6 +104,7 @@ public static class DependencyInjection
         services.AddScoped<ProductSupplierService>();
         services.AddScoped<ProductTagService>();
         services.AddScoped<ProductUnitPriceService>();
+
         services.AddScoped<BrandService>();
         services.AddScoped<CategoryService>();
         services.AddScoped<CategoryAttributeService>();

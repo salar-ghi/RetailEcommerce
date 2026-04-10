@@ -2,7 +2,7 @@
 
 namespace Application.Services;
 
-public class ProductService
+public class ProductService : IProductService
 {
     private readonly IMapper _mapper;
     private readonly IUnitOfWork _unitOfWork;
@@ -27,6 +27,15 @@ public class ProductService
     {
         var product = await _unitOfWork.Products.GetByIdAsync(id);
         return product != null ? _mapper.Map<ProductDto>(product) : throw new KeyNotFoundException($"Product with ID {id} not found.");
+    }
+
+    public async Task<IEnumerable<ProductDto>> GetProductsByCategory(string categoryName)
+    {
+        var products = await _unitOfWork
+                .Products
+                .GetProductsByElectronicsCategoryAsync(categoryName);
+        var mapProducts = _mapper.Map<List<ProductDto>>(products);
+        return mapProducts;
     }
 
     public async Task AddProductAsync(ProductDto productDto)
