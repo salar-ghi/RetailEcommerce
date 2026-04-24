@@ -21,7 +21,7 @@ public class HomeController : ControllerBase
         var heroBanners = await _bannerService.GetByPlacementAsync(BannerPageCode.HOME_TOP);
 
         // get some products according to different filters
-        var products = await _productService.GetProductsByCategory("Electronics");
+        //var products = await _productService.GetProductsByCategory("Electronics");
 
         // get more product and category banners.
 
