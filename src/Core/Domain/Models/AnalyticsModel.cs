@@ -1,21 +1,11 @@
-﻿using Domain.Models;
+﻿namespace Domain.Models;
 
-namespace Application.DTOs;
-
-public class ProductDto
+internal class AnalyticsModel
 {
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public string CategoryName { get; set; }
-    public string BrandName { get; set; }
-    public decimal Price { get; set; }
-    public int StockQuantity { get; set; }
-    public string SupplierName { get; set; }
-    public string ImageUrl { get; set; }
 }
 
-public class ProductSalesDto
+
+public class ProductSalesModel
 {
     public long ProductId { get; set; }
     public string ProductName { get; set; }
@@ -26,17 +16,29 @@ public class ProductSalesDto
     public int OrderCount { get; set; }
 }
 
+public class ProductModel
+{
+    public long Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public decimal Price { get; set; }
+    public string CategoryName { get; set; }
+    public string BrandName { get; set; }
+    public string ImageUrl { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
 
-public class ProductSearchDto
+public class ProductSearchModel
 {
     public long ProductId { get; set; }
     public string ProductName { get; set; }
     public string CategoryName { get; set; }
+    public string BrandName { get; set; }
     public int SearchCount { get; set; }
     public int UniqueUsers { get; set; }
 }
 
-public class RevenueSummaryDto
+public class RevenueSummaryModel
 {
     public string Period { get; set; }
     public decimal TotalRevenue { get; set; }
@@ -44,7 +46,7 @@ public class RevenueSummaryDto
     public int TotalItemsSold { get; set; }
 }
 
-public class ProductSalesDetailDto
+public class ProductSalesDetailModel
 {
     public long ProductId { get; set; }
     public string ProductName { get; set; }
@@ -58,7 +60,16 @@ public class ProductSalesDetailDto
     public int ReviewCount { get; set; }
 }
 
-public class DashboardSummaryDto
+public class RecentOrderModel
+{
+    public string OrderId { get; set; }
+    public string CustomerName { get; set; }
+    public decimal TotalAmount { get; set; }
+    public OrderStatus Status { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class DashboardSummaryModel
 {
     public int TotalProducts { get; set; }
     public int TotalOrders { get; set; }
@@ -69,23 +80,6 @@ public class DashboardSummaryDto
     public decimal WeekRevenue { get; set; }
     public decimal MonthRevenue { get; set; }
     public decimal YearRevenue { get; set; }
-    public List<ProductSalesDto> TopSellingProducts { get; set; } = new();
-    public List<RecentOrderDto> RecentOrders { get; set; } = new();
-}
-
-public class RecentOrderDto
-{
-    public string OrderId { get; set; }
-    public string CustomerName { get; set; }
-    public decimal TotalAmount { get; set; }
-    public OrderStatus Status { get; set; }
-    public DateTime CreatedAt { get; set; }
-}
-
-public class CreateProductDto
-{
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public decimal Price { get; set; }
-    public int StockQuantity { get; set; }
+    public List<ProductSalesModel> TopSellingProducts { get; set; } = new();
+    public List<RecentOrderModel> RecentOrders { get; set; } = new();
 }

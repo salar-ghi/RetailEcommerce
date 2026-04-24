@@ -1,6 +1,5 @@
 ﻿namespace Presentation.Controllers;
 
-// Presentation/Controllers/ProductController.cs
 [ApiController]
 [Route("api/[controller]")]
 public class ProductController : ControllerBase
@@ -544,5 +543,7 @@ public class ProductController : ControllerBase
         var unitPrices = await _unitPriceService.SearchUnitPricesByPriceRangeAsync(minPrice, maxPrice);
         return Ok(unitPrices);
     }
+
+
 
 }

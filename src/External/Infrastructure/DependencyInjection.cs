@@ -83,6 +83,8 @@ public static class DependencyInjection
         services.AddScoped<IBannerPlacementRepository, BannerPlacementRepository>();
         services.AddScoped<IBannerPlacementMapRepository, BannerPlacementMapRepository>();
 
+        services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
+
         // Register Services from Application Layer
 
         services.AddScoped<IBasketService, BasketService>();
@@ -113,6 +115,8 @@ public static class DependencyInjection
         services.AddScoped<RoleService>();
         services.AddScoped<UserRoleService>();
         services.AddScoped<UserAddressService>();
+
+        services.AddScoped<IAnalyticsService, AnalyticsService>();
 
         // Add other services as needed: services.AddScoped<CategoryService>();
 

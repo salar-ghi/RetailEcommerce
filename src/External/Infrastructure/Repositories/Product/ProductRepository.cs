@@ -74,14 +74,34 @@ public class ProductRepository : Repository<Product, long>, IProductRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Product>> GetProductsByElectronicsCategoryAsync(string categoryName)
+    //public async Task<IEnumerable<Product>> GetProductsByElectronicsCategoryAsync(string categoryName)
+    //{
+    //    return await _context.Products
+    //        .Where(p => p.Category.Name == categoryName && p.IsActive == true)
+    //        .AsNoTracking()
+    //        .Take(8)
+    //        .ToListAsync();
+    //}
+
+    
+    public async Task<List<Product>> GetMostSellingProductsInCategoryAsync(string categoryName, int count = 10)
     {
         return await _context.Products
-            .Where(p => p.Category.Name == categoryName && p.IsActive == true)
+            .Where(p => p.Category.Name == categoryName && p.IsActive)
+            .Select(p => new
+            {
+                Product = p,
+                TotalSold = p.OrderItems.Sum(oi => oi.Quantity)
+            })
+            .OrderByDescending(x => x.TotalSold)
+            .Take(count)
+            .Select(x => x.Product)
+            .Include(p => p.Category)
             .AsNoTracking()
-            .Take(8)
             .ToListAsync();
     }
+
+
 
     public async Task<IEnumerable<Product>> GetProductsByBrandAsync(int brandId)
     {

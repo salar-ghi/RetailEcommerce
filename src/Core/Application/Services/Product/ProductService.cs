@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
@@ -31,9 +32,9 @@ public class ProductService : IProductService
 
     public async Task<IEnumerable<ProductDto>> GetProductsByCategory(string categoryName)
     {
+        var categoryId  = await _unitOfWork.Categories.GetByAsync(z => z.Name == categoryName);
         var products = await _unitOfWork
-                .Products
-                .GetProductsByElectronicsCategoryAsync(categoryName);
+                .Products.GetProductsByCategoryAsync(categoryId.Id);
         var mapProducts = _mapper.Map<List<ProductDto>>(products);
         return mapProducts;
     }
