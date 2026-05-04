@@ -9,3 +9,13 @@ public class ProductDimensionsDto
     public string Unit { get; set; }
     public int ProductId { get; set; }
 }
+
+public class DimensionDto
+{
+    public decimal Length { get; set; }
+    public decimal Width { get; set; }
+    public decimal Height { get; set; }
+    public decimal Weight { get; set; }
+    public string DimensionUnit { get; set; }
+    public string WeightUnit { get; set; }
+}

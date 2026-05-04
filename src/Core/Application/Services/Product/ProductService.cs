@@ -39,11 +39,17 @@ public class ProductService : IProductService
         return mapProducts;
     }
 
-    public async Task AddProductAsync(ProductDto productDto)
+    public async Task AddProductAsync(CreateProductRequest dto)
     {
-        var product = _mapper.Map<Product>(productDto);
-        product.CreatedBy = _currentUserService.UserId;
-        product.ModifiedBy = _currentUserService.UserId;
+        //var product = _mapper.Map<Product>(dto);
+        //product.CreatedBy = _currentUserService.UserId;
+        //product.ModifiedBy = _currentUserService.UserId;
+
+        var product = new Product
+        {
+
+        };
+
         await _unitOfWork.Products.AddAsync(product);
         await _unitOfWork.SaveChangesAsync();
     }

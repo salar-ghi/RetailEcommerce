@@ -24,9 +24,9 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
                .WithOne(d => d.Product)
                .HasForeignKey<ProductDimensions>(d => d.ProductId);
 
-        builder.HasOne(p => p.Stock)
-                .WithOne(s => s.Product)
-                .HasForeignKey<ProductStock>(s => s.ProductId);
+        //builder.HasOne(p => p.Stock)
+        //        .WithOne(s => s.Product)
+        //        .HasForeignKey<ProductStock>(s => s.ProductId);
 
         builder.HasMany(p => p.Attributes)
                .WithOne(a => a.Product)
@@ -40,13 +40,13 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
                .WithOne(r => r.Product)
                .HasForeignKey(r => r.ProductId);
 
-        builder.HasMany(p => p.UnitPrices)
-               .WithOne(up => up.Product)
-               .HasForeignKey(up => up.ProductId);
+        //builder.HasMany(p => p.UnitPrices)
+        //       .WithOne(up => up.Product)
+        //       .HasForeignKey(up => up.ProductId);
 
-        builder.HasMany(p => p.Variants)
-               .WithOne(v => v.Product)
-               .HasForeignKey(v => v.ProductId);
+        //builder.HasMany(p => p.Variants)
+        //       .WithOne(v => v.Product)
+        //       .HasForeignKey(v => v.ProductId);
 
 
         builder.HasMany(p => p.Suppliers)
@@ -62,6 +62,33 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasForeignKey(bi => bi.ProductId)
             .OnDelete(DeleteBehavior.Restrict);
 
+    }
+}
+
+public class ProductInventoryBatchConfiguration : IEntityTypeConfiguration<ProductInventoryBatch>
+{
+    public void Configure(EntityTypeBuilder<ProductInventoryBatch> builder)
+    {
+        builder.HasKey(pa => pa.Id);
+        builder.Property(pa => pa.Id).ValueGeneratedOnAdd();
+    }
+}
+
+public class ProductVariantDefinitionConfiguration : IEntityTypeConfiguration<ProductVariantDefinition>
+{
+    public void Configure(EntityTypeBuilder<ProductVariantDefinition> builder)
+    {
+        builder.HasKey(pa => pa.Id);
+        builder.Property(pa => pa.Id).ValueGeneratedOnAdd();
+    }
+}
+
+public class ProductVariantOptionConfiguration : IEntityTypeConfiguration<ProductVariantOption>
+{
+    public void Configure(EntityTypeBuilder<ProductVariantOption> builder)
+    {
+        builder.HasKey(pa => pa.Id);
+        builder.Property(pa => pa.Id).ValueGeneratedOnAdd();
     }
 }
 
@@ -82,7 +109,8 @@ public class ProductDimensionsConfiguration : IEntityTypeConfiguration<ProductDi
     {
         builder.HasKey(pd => pd.Id);
         builder.Property(pd => pd.Id).ValueGeneratedOnAdd();
-        builder.Property(pd => pd.Unit).HasMaxLength(20);
+        builder.Property(pd => pd.DimensionUnit).HasMaxLength(20);
+        builder.Property(pd => pd.WeightUnit).HasMaxLength(20);
 
         builder.Property(p => p.Length).HasColumnType("decimal(18,2)");
 
@@ -174,7 +202,6 @@ public class ProductUnitPriceConfiguration : IEntityTypeConfiguration<ProductUni
     {
         builder.HasKey(pup => pup.Id);
         builder.Property(pup => pup.Id).ValueGeneratedOnAdd();
-        builder.Property(pup => pup.EffectiveDate).IsRequired();
     }
 }
 

@@ -6,7 +6,8 @@ public class Product : BaseModel<long>
 {
     public string Name { get; set; }
     public string Description { get; set; }
-    public ProductStatus Status { get; set; }
+    public ProductStatus? Status { get; set; }
+    public ProductAvailability Availability { get; set; }
     public decimal Price { get; set; }
     public bool IsActive { get; set; }
 
@@ -17,19 +18,19 @@ public class Product : BaseModel<long>
 
     // One to one relation
     public ProductDimensions Dimensions { get; set; }
-    public ProductStock Stock { get; set; }
+
+    //public ProductStock Stock { get; set; }
+    //public ICollection<ProductUnitPrice> UnitPrices { get; set; } = new List<ProductUnitPrice>();
+    public ICollection<ProductInventoryBatch> Batches { get; set; } = new List<ProductInventoryBatch>();
+    //public ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
+    public ICollection<ProductVariantDefinition> VariantDefinitions { get; set; } = new List<ProductVariantDefinition>();
 
     // One to many relation
     public ICollection<ProductAttribute> Attributes { get; set; } = new List<ProductAttribute>();
     public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
     public ICollection<ProductReview> Reviews { get; set; } = new List<ProductReview>();
-    public ICollection<ProductUnitPrice> UnitPrices { get; set; } = new List<ProductUnitPrice>();
-    public ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
     public virtual ICollection<BasketItem> BasketItems { get; set; } = new List<BasketItem>();
-    // many to many relation
     public ICollection<ProductTag> Tags { get; set; } = new List<ProductTag>();
-
-//**************
     public ICollection<ProductSupplier> Suppliers { get; set; } = new List<ProductSupplier>();
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 

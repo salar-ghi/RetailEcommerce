@@ -4,7 +4,7 @@
 [Route("api/[controller]")]
 public class ProductController : ControllerBase
 {
-    private readonly ProductService _productService;
+    private readonly IProductService _productService;
     private readonly ProductAttributeService _attributeService;
     private readonly ProductDimensionsService _dimensionsService;
     private readonly ProductReviewService _reviewService;
@@ -16,7 +16,7 @@ public class ProductController : ControllerBase
     private readonly ProductUnitPriceService _unitPriceService;
 
     public ProductController(
-        ProductService productService,
+        IProductService productService,
         ProductAttributeService attributeService,
         ProductDimensionsService dimensionsService,
         ProductReviewService reviewService,
@@ -55,10 +55,10 @@ public class ProductController : ControllerBase
     }
 
     [HttpPost("products")]
-    public async Task<IActionResult> AddProduct(ProductDto productDto)
+    public async Task<IActionResult> CreateProduct([FromBody] CreateProductRequest dto)
     {
-        await _productService.AddProductAsync(productDto);
-        return CreatedAtAction(nameof(GetProductById), new { id = productDto.Id }, productDto);
+        await _productService.AddProductAsync(dto);
+        return Ok("Product created successfully");
     }
 
     [HttpPut("products/{id}")]

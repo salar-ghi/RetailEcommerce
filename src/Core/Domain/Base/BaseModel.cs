@@ -10,4 +10,3 @@ public abstract class BaseModel<TId>
     public bool IsDeleted { get; set; }
 
 }
-

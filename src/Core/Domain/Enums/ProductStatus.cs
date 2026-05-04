@@ -1,8 +1,7 @@
-﻿namespace Domain.Enums;
+﻿namespace Domain;
 
 public enum ProductStatus
 {
-    draft  = 1,
-    UnAvailable = 2,
-    Discontinued = 3,
+    Active = 1,
+    Inactive = 2,
 }

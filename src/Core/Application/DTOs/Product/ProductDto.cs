@@ -1,4 +1,6 @@
-﻿using Domain.Models;
+﻿using Domain;
+using Domain.Models;
+using System.Text.Json.Serialization;
 
 namespace Application.DTOs;
 
@@ -82,10 +84,51 @@ public class RecentOrderDto
     public DateTime CreatedAt { get; set; }
 }
 
-public class CreateProductDto
+public class CreateProductRequest
 {
+    //[JsonPropertyName("name")]
     public string Name { get; set; }
+
+    //[JsonPropertyName("description")]
     public string Description { get; set; }
-    public decimal Price { get; set; }
-    public int StockQuantity { get; set; }
+    
+    //[JsonPropertyName("categoryId")]
+    public int CategoryId { get; set; }
+    
+    //[JsonPropertyName("brandId")]
+    public int BrandId { get; set; }
+
+    //[JsonPropertyName("supplierId")]
+    public int SupplierId { get; set; }
+
+    //[JsonPropertyName("tagIds")]
+    public List<int> TagIds { get; set; }
+
+
+    // Images
+    //[JsonPropertyName("images")]
+    public List<string> Images { get; set; }
+    public string CoverImage { get; set; }
+
+    // Warehouse & Threshold
+    public int? ReorderThreshold { get; set; }
+    public int? WarehouseId { get; set; }
+    public string Location { get; set; }
+
+
+    // Status & availability
+    public ProductStatus? Status { get; set; }
+    public ProductAvailability? Availability { get; set; }
+
+    // Dimensions
+    public DimensionDto Dimensions { get; set; }
+
+    // Batches
+    public List<BatchDto> Prices { get; set; }
+
+    // Attributes
+    public List<AttributeDto> Attributes { get; set; }
+
+    // Variant definitions
+    public List<VariantDefinitionDto> Variants { get; set; }
 }

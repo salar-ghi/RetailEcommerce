@@ -21,6 +21,10 @@ public class AppDbContext : DbContext
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductAttribute> ProductAttributes { get; set; }
     public DbSet<ProductDimensions> ProductDimensions { get; set; }
+    public DbSet<ProductInventoryBatch> InventoryBatch { get; set; }
+    public DbSet<ProductVariantDefinition> ProductVariantDefinition { get; set; }
+    public DbSet<ProductVariantOption> ProductVariantOption { get; set; }
+
     public DbSet<ProductImage> ProductImages { get; set; }
     public DbSet<ProductReview> ProductReviews { get; set; }
     public DbSet<ProductStock> ProductStocks { get; set; }

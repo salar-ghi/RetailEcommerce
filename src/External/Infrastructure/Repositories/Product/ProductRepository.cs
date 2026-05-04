@@ -73,16 +73,6 @@ public class ProductRepository : Repository<Product, long>, IProductRepository
             .AsNoTracking()
             .ToListAsync();
     }
-
-    //public async Task<IEnumerable<Product>> GetProductsByElectronicsCategoryAsync(string categoryName)
-    //{
-    //    return await _context.Products
-    //        .Where(p => p.Category.Name == categoryName && p.IsActive == true)
-    //        .AsNoTracking()
-    //        .Take(8)
-    //        .ToListAsync();
-    //}
-
     
     public async Task<List<Product>> GetMostSellingProductsInCategoryAsync(string categoryName, int count = 10)
     {
@@ -100,8 +90,6 @@ public class ProductRepository : Repository<Product, long>, IProductRepository
             .AsNoTracking()
             .ToListAsync();
     }
-
-
 
     public async Task<IEnumerable<Product>> GetProductsByBrandAsync(int brandId)
     {
