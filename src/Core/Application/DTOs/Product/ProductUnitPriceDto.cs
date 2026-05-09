@@ -7,16 +7,17 @@ public class ProductUnitPriceDto
     public DateTime EffectiveDate { get; set; }
     public int ProductId { get; set; }
 }
-
-public class BatchDto
+public class PriceDto
 {
+    public int? Id { get; set; }
     public string BatchNumber { get; set; }
-    public decimal Amount { get; set; }          // selling price
+    public decimal Amount { get; set; }                   // selling price
     public decimal CostPrice { get; set; }
     public string Currency { get; set; }
-    public string PricingTier { get; set; }
+    public string PricingTier { get; set; }               // "retail", "wholesale", ...
     public DateTime EffectiveDate { get; set; }
     public DateTime? ExpiryDate { get; set; }
     public int Quantity { get; set; }
+    public int? SoldQuantity { get; set; }
     public string Notes { get; set; }
 }

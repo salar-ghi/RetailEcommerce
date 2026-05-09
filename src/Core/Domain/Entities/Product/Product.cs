@@ -11,6 +11,13 @@ public class Product : BaseModel<long>
     public decimal Price { get; set; }
     public bool IsActive { get; set; }
 
+
+    public int? SpaceId { get; set; }
+    public int? ZoneId { get; set; }
+    public int? ShelfId { get; set; }
+    public string StorageLocationNote { get; set; }   // e.g., “Aisle 5”
+
+
     public int CategoryId { get; set; }
     public Category Category { get; set; }
     public int BrandId { get; set; }

@@ -84,51 +84,30 @@ public class RecentOrderDto
     public DateTime CreatedAt { get; set; }
 }
 
+    //[JsonPropertyName("name")]
 public class CreateProductRequest
 {
-    //[JsonPropertyName("name")]
     public string Name { get; set; }
-
-    //[JsonPropertyName("description")]
     public string Description { get; set; }
-    
-    //[JsonPropertyName("categoryId")]
     public int CategoryId { get; set; }
-    
-    //[JsonPropertyName("brandId")]
     public int BrandId { get; set; }
-
-    //[JsonPropertyName("supplierId")]
     public int SupplierId { get; set; }
-
-    //[JsonPropertyName("tagIds")]
-    public List<int> TagIds { get; set; }
-
-
-    // Images
-    //[JsonPropertyName("images")]
     public List<string> Images { get; set; }
     public string CoverImage { get; set; }
+    public List<string> Tags { get; set; }
 
     // Warehouse & Threshold
-    public int? ReorderThreshold { get; set; }
-    public int? WarehouseId { get; set; }
     public string Location { get; set; }
+    public int? ReorderLevel { get; set; }
+    public string Status { get; set; }
+    public string Availability { get; set; }
 
 
-    // Status & availability
-    public ProductStatus? Status { get; set; }
-    public ProductAvailability? Availability { get; set; }
-
-    // Dimensions
+    //public int? ReorderThreshold { get; set; }
+    //public int? WarehouseId { get; set; }
     public DimensionDto Dimensions { get; set; }
-
-    // Batches
-    public List<BatchDto> Prices { get; set; }
-
-    // Attributes
+    public StockDto Stock { get; set; }
+    public List<PriceDto> Prices { get; set; }
     public List<AttributeDto> Attributes { get; set; }
-
-    // Variant definitions
-    public List<VariantDefinitionDto> Variants { get; set; }
+    public List<VariantDto> Variants { get; set; }
 }
