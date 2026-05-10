@@ -97,17 +97,17 @@ public class CreateProductRequest
     public List<string> Tags { get; set; }
 
     // Warehouse & Threshold
-    public string Location { get; set; }
+    public string? Location { get; set; }
     public int? ReorderLevel { get; set; }
-    public string Status { get; set; }
-    public string Availability { get; set; }
+    public string? Status { get; set; }
+    public string? Availability { get; set; }
 
 
     //public int? ReorderThreshold { get; set; }
     //public int? WarehouseId { get; set; }
-    public DimensionDto Dimensions { get; set; }
-    public StockDto Stock { get; set; }
-    public List<PriceDto> Prices { get; set; }
-    public List<AttributeDto> Attributes { get; set; }
-    public List<VariantDto> Variants { get; set; }
+    public DimensionDto? Dimensions { get; set; }
+    public StockDto? Stock { get; set; }
+    public List<PriceDto>? Prices { get; set; }
+    public List<AttributeDto>? Attributes { get; set; }
+    public List<VariantDto>? Variants { get; set; }
 }

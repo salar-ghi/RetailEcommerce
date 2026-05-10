@@ -165,7 +165,7 @@ public class ProductService : IProductService
                 Currency = "IRR",
                 PricingTier = "retail",
                 EffectiveDate = DateTime.UtcNow,
-                Quantity = dto.Stock.Quantity,
+                Quantity = dto.Stock.Quantity.Value,
                 SoldQuantity = 0,
                 CreatedTime = DateTime.UtcNow,
                 ModifiedTime = DateTime.UtcNow

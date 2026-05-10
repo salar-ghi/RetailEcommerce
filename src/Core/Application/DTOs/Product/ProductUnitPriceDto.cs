@@ -10,7 +10,7 @@ public class ProductUnitPriceDto
 public class PriceDto
 {
     public int? Id { get; set; }
-    public string BatchNumber { get; set; }
+    public string? BatchNumber { get; set; }
     public decimal Amount { get; set; }                   // selling price
     public decimal CostPrice { get; set; }
     public string Currency { get; set; }
@@ -19,5 +19,5 @@ public class PriceDto
     public DateTime? ExpiryDate { get; set; }
     public int Quantity { get; set; }
     public int? SoldQuantity { get; set; }
-    public string Notes { get; set; }
+    public string? Notes { get; set; }
 }
