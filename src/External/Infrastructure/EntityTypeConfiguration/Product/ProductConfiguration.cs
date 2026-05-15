@@ -8,9 +8,6 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.Id).ValueGeneratedOnAdd();
         builder.Property(p => p.Name).IsRequired().HasMaxLength(200);
         builder.Property(p => p.Description).IsRequired(false).HasMaxLength(1000);
-        builder.Property(p => p.Price)
-            .HasColumnType("decimal(18,2)")
-            .IsRequired();
         builder.HasOne(p => p.Category)
                .WithMany()
                .HasForeignKey(p => p.CategoryId);
@@ -24,10 +21,6 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
                .WithOne(d => d.Product)
                .HasForeignKey<ProductDimensions>(d => d.ProductId);
 
-        //builder.HasOne(p => p.Stock)
-        //        .WithOne(s => s.Product)
-        //        .HasForeignKey<ProductStock>(s => s.ProductId);
-
         builder.HasMany(p => p.Attributes)
                .WithOne(a => a.Product)
                .HasForeignKey(a => a.ProductId);
@@ -39,15 +32,6 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.HasMany(p => p.Reviews)
                .WithOne(r => r.Product)
                .HasForeignKey(r => r.ProductId);
-
-        //builder.HasMany(p => p.UnitPrices)
-        //       .WithOne(up => up.Product)
-        //       .HasForeignKey(up => up.ProductId);
-
-        //builder.HasMany(p => p.Variants)
-        //       .WithOne(v => v.Product)
-        //       .HasForeignKey(v => v.ProductId);
-
 
         builder.HasMany(p => p.Suppliers)
                .WithOne(ps => ps.Product)
@@ -61,7 +45,6 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .WithOne(bi => bi.Product)
             .HasForeignKey(bi => bi.ProductId)
             .OnDelete(DeleteBehavior.Restrict);
-
     }
 }
 

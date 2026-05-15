@@ -78,7 +78,7 @@ public class CategoryService
                 const string subFolder = "images/categories";
                 if (!string.IsNullOrWhiteSpace(categoryDto.Image))
                 {
-                    categoryDto.Image = await _imageHelper.SaveBase64Image(categoryDto.Image, subFolder);
+                    categoryDto.Image = await _imageHelper.SaveBase64Image(categoryDto.Image, subFolder, "category");
                 }
             }
             var category = _mapper.Map<Category>(categoryDto);
@@ -105,7 +105,7 @@ public class CategoryService
         const string subFolder = "images/categories";
         if (!string.IsNullOrWhiteSpace(categoryDto.Image))
         {
-            imagePath = await _imageHelper.SaveBase64Image(categoryDto.Image, subFolder);
+            imagePath = await _imageHelper.SaveBase64Image(categoryDto.Image, subFolder, "category");
         }
         categoryDto.Image = imagePath;
         _mapper.Map(categoryDto, category);

@@ -118,7 +118,7 @@ public class ProductRepository : Repository<Product, long>, IProductRepository
     public async Task<IEnumerable<Product>> GetProductsByPriceRangeAsync(decimal minPrice, decimal maxPrice)
     {
         return await _context.Products
-            .Where(p => p.Price >= minPrice && p.Price <= maxPrice)
+            .Where(p => p.Batches.Select(z => z.SellingPrice).FirstOrDefault() >= minPrice && p.Batches.Select(z => z.SellingPrice).FirstOrDefault() <= maxPrice)
             .AsNoTracking()
             .ToListAsync();
     }

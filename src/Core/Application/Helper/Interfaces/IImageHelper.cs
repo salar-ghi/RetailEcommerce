@@ -2,6 +2,6 @@
 
 public interface IImageHelper
 {
-    Task<string> SaveBase64Image(string dataUrl, string subFolder);
+    Task<string> SaveBase64Image(string dataUrl, string subFolder, string imagePrefix);
     Task<string> GetImageBase64(string imageUrl);
 }

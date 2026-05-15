@@ -9,13 +9,36 @@ public class ProductDto
     public int Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public string CategoryName { get; set; }
-    public string BrandName { get; set; }
+    public string Status { get; set; }
+    public string Availability { get; set; }
     public decimal Price { get; set; }
     public int StockQuantity { get; set; }
+    public string CategoryName { get; set; }
+    public string BrandName { get; set; }
     public string SupplierName { get; set; }
-    public string ImageUrl { get; set; }
+    public List<string> Images { get; set; }
+    public string CoverImage { get; set; }
+    public DimensionDto Dimensions { get; set; }
+    public List<BatchDto> Prices { get; set; }
+    public List<AttributeDto> Attributes { get; set; }
+    public List<string> Tags { get; set; }
 }
+
+public class BatchDto
+{
+    public int Id { get; set; }
+    public string BatchNumber { get; set; }
+    public decimal Amount { get; set; }          // selling price
+    public decimal CostPrice { get; set; }
+    public string Currency { get; set; }
+    public string PricingTier { get; set; }
+    public DateTime EffectiveDate { get; set; }
+    public DateTime? ExpiryDate { get; set; }
+    public int Quantity { get; set; }
+    public int SoldQuantity { get; set; }
+    public string Notes { get; set; }
+}
+
 
 public class ProductSalesDto
 {

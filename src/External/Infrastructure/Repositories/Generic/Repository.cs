@@ -12,6 +12,22 @@ public class Repository<T, TId> : IRepository<T, TId> where T : BaseModel<TId>
     public async Task AddAsync(T entity) => await _context.Set<T>().AddAsync(entity);
     public async Task<T> GetByIdAsync(TId id) => await _context.Set<T>().FindAsync(id);
     public async Task<IEnumerable<T>> GetAllAsync() => await _context.Set<T>().AsNoTracking().ToListAsync();
+    public async Task<IEnumerable<T>> GetAllAsync(Func<IQueryable<T>, IQueryable<T>> include = null)
+    {
+        IQueryable<T> query = _context.Set<T>().AsNoTracking();
+        if (include != null)
+            query = include(query);
+        return await query.ToListAsync();
+    }
+
+    public async Task<T> GetByIdAsync(TId id, Func<IQueryable<T>, IQueryable<T>> include = null)
+    {
+        IQueryable<T> query = _context.Set<T>();
+        if (include != null)
+            query = include(query);
+        return await query.FirstOrDefaultAsync(e => e.Id.Equals(id));
+    }
+
     public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> predicate) => await _context.Set<T>().Where(predicate).ToListAsync();
     public IQueryable<T> GetAll() => _context.Set<T>().AsNoTracking();
     public async Task UpdateAsync(T entity) => _context.Set<T>().Update(entity);

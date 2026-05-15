@@ -8,31 +8,20 @@ public class Product : BaseModel<long>
     public string Description { get; set; }
     public ProductStatus? Status { get; set; }
     public ProductAvailability Availability { get; set; }
-    public decimal Price { get; set; }
     public bool IsActive { get; set; }
-
-
     public int? SpaceId { get; set; }
     public int? ZoneId { get; set; }
     public int? ShelfId { get; set; }
-    public string StorageLocationNote { get; set; }   // e.g., “Aisle 5”
-
-
+    public string StorageLocationNote { get; set; }
     public int CategoryId { get; set; }
+    [ForeignKey(nameof(CategoryId))]
     public Category Category { get; set; }
     public int BrandId { get; set; }
+    [ForeignKey(nameof(BrandId))]
     public Brand Brand { get; set; }
-
-    // One to one relation
     public ProductDimensions Dimensions { get; set; }
-
-    //public ProductStock Stock { get; set; }
-    //public ICollection<ProductUnitPrice> UnitPrices { get; set; } = new List<ProductUnitPrice>();
     public ICollection<ProductInventoryBatch> Batches { get; set; } = new List<ProductInventoryBatch>();
-    //public ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
     public ICollection<ProductVariantDefinition> VariantDefinitions { get; set; } = new List<ProductVariantDefinition>();
-
-    // One to many relation
     public ICollection<ProductAttribute> Attributes { get; set; } = new List<ProductAttribute>();
     public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
     public ICollection<ProductReview> Reviews { get; set; } = new List<ProductReview>();
@@ -40,5 +29,4 @@ public class Product : BaseModel<long>
     public ICollection<ProductTag> Tags { get; set; } = new List<ProductTag>();
     public ICollection<ProductSupplier> Suppliers { get; set; } = new List<ProductSupplier>();
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-
 }

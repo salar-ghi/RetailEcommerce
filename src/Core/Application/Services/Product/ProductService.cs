@@ -1,9 +1,5 @@
-﻿using Application.DTOs;
-using Application.Helper;
-using Domain;
+﻿using Domain;
 using Domain.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Application.Services;
 
@@ -26,14 +22,48 @@ public class ProductService : IProductService
 
     public async Task<IEnumerable<ProductDto>> GetAllProductsAsync()
     {
-        var products = await _unitOfWork.Products.GetAllAsync();
-        return _mapper.Map<IEnumerable<ProductDto>>(products);
+        var products = await _unitOfWork.Products.GetAllAsync(
+            include: q => q
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Include(p => p.Suppliers).ThenInclude(ps => ps.Supplier)
+                .Include(p => p.Batches)
+                .Include(p => p.Attributes)
+                .Include(p => p.Dimensions)
+                .Include(p => p.Images)
+                .Include(p => p.Tags).ThenInclude(pt => pt.Tag));
+        
+        var productDto = _mapper.Map<IEnumerable<ProductDto>>(products);
+        var images = new List<string>();
+        foreach (var dto in productDto)
+        {
+            foreach (var item in dto.Images)
+            {
+                if (string.IsNullOrEmpty(item))
+                    continue;
+                images.Add(await _imageHelper.GetImageBase64(item));
+            }
+            dto.Images = images;
+        }
+        
+        return productDto;
     }
 
     public async Task<ProductDto> GetProductByIdAsync(int id)
     {
-        var product = await _unitOfWork.Products.GetByIdAsync(id);
-        return product != null ? _mapper.Map<ProductDto>(product) : throw new KeyNotFoundException($"Product with ID {id} not found.");
+        var product = await _unitOfWork.Products.GetByIdAsync(id,
+        include: q => q
+            .Include(p => p.Category)
+            .Include(p => p.Brand)
+            .Include(p => p.Suppliers).ThenInclude(ps => ps.Supplier)
+            .Include(p => p.Batches)
+            .Include(p => p.Attributes)
+            .Include(p => p.Dimensions)
+            .Include(p => p.Images)
+            .Include(p => p.Tags).ThenInclude(pt => pt.Tag));
+        if (product == null)
+            throw new KeyNotFoundException($"Product with ID {id} not found.");
+        return _mapper.Map<ProductDto>(product);
     }
 
     public async Task<IEnumerable<ProductDto>> GetProductsByCategory(string categoryName)
@@ -90,7 +120,9 @@ public class ProductService : IProductService
                 DimensionUnit = dto.Dimensions.DimensionUnit,
                 WeightUnit = dto.Dimensions.WeightUnit,
                 CreatedTime = DateTime.UtcNow,
-                ModifiedTime = DateTime.UtcNow
+                ModifiedTime = DateTime.UtcNow,
+                CreatedBy = _currentUserService.UserId,
+                ModifiedBy = _currentUserService.UserId
             };
         }
 
@@ -101,10 +133,12 @@ public class ProductService : IProductService
                 const string subFolder = "images/products";
                 product.Images.Add(new ProductImage
                 {
-                    ImageUrl = await _imageHelper.SaveBase64Image(image, subFolder),
+                    ImageUrl = await _imageHelper.SaveBase64Image(image, subFolder, "product"),
                     IsPrimary = string.Equals(image, dto.CoverImage, StringComparison.OrdinalIgnoreCase),
                     CreatedTime = DateTime.Now,
                     ModifiedTime = DateTime.Now,
+                    CreatedBy = _currentUserService.UserId,
+                    ModifiedBy = _currentUserService.UserId
                 });
             }
         }
@@ -120,6 +154,8 @@ public class ProductService : IProductService
                         TagId = tagId,
                         CreatedTime = DateTime.UtcNow,
                         ModifiedTime = DateTime.UtcNow,
+                        CreatedBy = _currentUserService.UserId,
+                        ModifiedBy = _currentUserService.UserId
                     });
                 }
             }
@@ -130,6 +166,8 @@ public class ProductService : IProductService
             SupplierId = dto.SupplierId,
             CreatedTime = DateTime.UtcNow,
             ModifiedTime= DateTime.UtcNow,
+            CreatedBy = _currentUserService.UserId,
+            ModifiedBy = _currentUserService.UserId
         });
 
         bool hasBatches = dto.Prices != null && dto.Prices.Any();
@@ -150,7 +188,9 @@ public class ProductService : IProductService
                     SoldQuantity = price.SoldQuantity ?? 0,
                     Notes = price.Notes,
                     CreatedTime = DateTime.UtcNow,
-                    ModifiedTime = DateTime.UtcNow
+                    ModifiedTime = DateTime.UtcNow,
+                    CreatedBy = _currentUserService.UserId,
+                    ModifiedBy = _currentUserService.UserId
                 });
             }
         }
@@ -168,7 +208,9 @@ public class ProductService : IProductService
                 Quantity = dto.Stock.Quantity.Value,
                 SoldQuantity = 0,
                 CreatedTime = DateTime.UtcNow,
-                ModifiedTime = DateTime.UtcNow
+                ModifiedTime = DateTime.UtcNow,
+                CreatedBy = _currentUserService.UserId,
+                ModifiedBy = _currentUserService.UserId
             });
         }
 
@@ -182,6 +224,8 @@ public class ProductService : IProductService
                     Value = attr.Value,
                     CreatedTime = DateTime.UtcNow,
                     ModifiedTime = DateTime.UtcNow,
+                    CreatedBy = _currentUserService.UserId,
+                    ModifiedBy = _currentUserService.UserId
                 });
             }
         }
@@ -197,7 +241,9 @@ public class ProductService : IProductService
                     Required = variant.Required ?? false,
                     DisplayOrder = variant.DisplayOrder ?? 0,
                     CreatedTime = DateTime.UtcNow,
-                    ModifiedTime = DateTime.UtcNow
+                    ModifiedTime = DateTime.UtcNow,
+                    CreatedBy = _currentUserService.UserId,
+                    ModifiedBy = _currentUserService.UserId
                 };
                 
                 foreach (var opt in variant.Options)
@@ -213,6 +259,8 @@ public class ProductService : IProductService
                         IsAvailable = opt.IsAvailable,
                         CreatedTime = DateTime.UtcNow,
                         ModifiedTime = DateTime.UtcNow,
+                        CreatedBy = _currentUserService.UserId,
+                        ModifiedBy = _currentUserService.UserId
                     });
                 }
                 product.VariantDefinitions.Add(definition);

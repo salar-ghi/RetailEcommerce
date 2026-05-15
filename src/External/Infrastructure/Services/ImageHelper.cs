@@ -7,7 +7,7 @@ public class ImageHelper : IImageHelper
     {
         _env = env;
     }
-    public async Task<string> SaveBase64Image(string dataUrl, string subFolder)
+    public async Task<string> SaveBase64Image(string dataUrl, string subFolder, string imagePrefix)
     {
         try
         {
@@ -49,7 +49,7 @@ public class ImageHelper : IImageHelper
 
             using var image = Image.Load(imageBytes);
 
-            var fileName = $"category-{Guid.NewGuid()}{extension}";
+            var fileName = $"{imagePrefix}-{Guid.NewGuid()}{extension}";
             //string folderPath = Path.Combine(_env.WebRootPath, subFolder);
             string folderPath = Path.Combine(_env.ContentRootPath, subFolder);
             if (!Directory.Exists(folderPath))

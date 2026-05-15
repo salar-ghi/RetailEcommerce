@@ -36,11 +36,14 @@ public class BasketService : IBasketService
     public async Task AddItemToBasketAsync(string userId, int productId, int quantity)
     {
         var basket = await GetBasketFromCacheOrDbAsync(userId);
-        var product = await _unitOfWork.Products.GetByIdAsync(productId);
+        var product = await _unitOfWork.Products.GetByIdAsync(productId,
+            include: q => q.Include(p => p.Batches));
         if (product == null)
-        {
             throw new KeyNotFoundException($"Product with ID {productId} not found.");
-        }
+
+        decimal unitPrice = product.Batches.Any()
+                        ? product.Batches.First().SellingPrice
+                        : 0;
 
         var existingItem = basket.Items.FirstOrDefault(i => i.ProductId == productId);
         if (existingItem != null)
@@ -53,7 +56,7 @@ public class BasketService : IBasketService
             {
                 ProductId = productId,
                 Quantity = quantity,
-                UnitPrice= product.Price,
+                UnitPrice= unitPrice,
                 BasketId = basket.Id
             });
         }

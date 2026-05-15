@@ -10,5 +10,5 @@ public class ProductVariantDefinition : BaseModel<int>
     public long ProductId { get; set; }
     public Product Product { get; set; }
 
-    public ICollection<ProductVariantOption> Options { get; set; } = new List<ProductVariantOption>();
+    public List<ProductVariantOption> Options { get; set; } = new List<ProductVariantOption>();
 }

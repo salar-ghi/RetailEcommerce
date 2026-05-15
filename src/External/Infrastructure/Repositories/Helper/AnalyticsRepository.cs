@@ -1,5 +1,6 @@
 ﻿using Domain.Enums;
 using Domain.Models;
+using Microsoft.Extensions.FileSystemGlobbing;
 
 namespace Infrastructure.Repositories;
 
@@ -136,14 +137,14 @@ public class AnalyticsRepository : IAnalyticsRepository
     {
         return await _context.Products
             .Where(p => p.IsActive)
-            .OrderByDescending(p => p.Price)
+            .OrderByDescending(p => p.Batches.Select(z => z.SellingPrice))
             .Take(top)
             .Select(p => new ProductModel
             {
                 Id = p.Id,
                 Name = p.Name,
                 Description = p.Description,
-                Price = p.Price,
+                Price = p.Batches.Select(z => z.SellingPrice).FirstOrDefault(),
                 CategoryName = p.Category.Name,
                 BrandName = p.Brand.Name,
                 //ImageUrl = p.Images.FirstOrDefault(i => i.IsMain).Url,
@@ -159,14 +160,14 @@ public class AnalyticsRepository : IAnalyticsRepository
     {
         return await _context.Products
             .Where(p => p.Category.Name == categoryName && p.IsActive)
-            .OrderByDescending(p => p.Price)
+            .OrderByDescending(p => p.Batches.Select(z => z.SellingPrice))
             .Take(top)
             .Select(p => new ProductModel
             {
                 Id = p.Id,
                 Name = p.Name,
                 Description = p.Description,
-                Price = p.Price,
+                Price = p.Batches.Select(z => z.SellingPrice).FirstOrDefault(),
                 CategoryName = p.Category.Name,
                 BrandName = p.Brand.Name,
                 //ImageUrl = p.Images.FirstOrDefault(i => i.IsMain).Url,
@@ -184,14 +185,14 @@ public class AnalyticsRepository : IAnalyticsRepository
     {
         return await _context.Products
             .Where(p => p.IsActive)
-            .OrderBy(p => p.Price)
+            .OrderBy(p => p.Batches.Select(z => z.SellingPrice))
             .Take(top)
             .Select(p => new ProductModel
             {
                 Id = p.Id,
                 Name = p.Name,
                 Description = p.Description,
-                Price = p.Price,
+                Price = p.Batches.Select(z => z.SellingPrice).FirstOrDefault(),
                 CategoryName = p.Category.Name,
                 BrandName = p.Brand.Name,
                 //ImageUrl = p.Images.FirstOrDefault(i => i.IsMain).Url,
@@ -207,14 +208,14 @@ public class AnalyticsRepository : IAnalyticsRepository
     {
         return await _context.Products
             .Where(p => p.Category.Name == categoryName && p.IsActive)
-            .OrderBy(p => p.Price)
+            .OrderBy(p => p.Batches.Select(z => z.SellingPrice))
             .Take(top)
             .Select(p => new ProductModel
             {
                 Id = p.Id,
                 Name = p.Name,
                 Description = p.Description,
-                Price = p.Price,
+                Price = p.Batches.Select(z => z.SellingPrice).FirstOrDefault(),
                 CategoryName = p.Category.Name,
                 BrandName = p.Brand.Name,
                 //ImageUrl = p.Images.FirstOrDefault(i => i.IsMain).Url,
@@ -633,7 +634,7 @@ public class AnalyticsRepository : IAnalyticsRepository
                 ProductName = p.Name,
                 CategoryName = p.Category.Name,
                 BrandName = p.Brand.Name,
-                CurrentPrice = p.Price,
+                CurrentPrice = p.Batches.Select(z => z.SellingPrice).FirstOrDefault(),
                 TotalQuantitySold = p.OrderItems.Sum(oi => oi.Quantity),
                 TotalRevenue = p.OrderItems.Sum(oi => oi.Quantity * oi.UnitPrice),
                 OrderCount = p.OrderItems.Select(oi => oi.OrderId).Distinct().Count(),

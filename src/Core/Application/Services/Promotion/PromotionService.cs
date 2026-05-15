@@ -65,7 +65,7 @@ public class PromotionService : IPromotionService
         {
             if (CheckConditions(product, promotion.Conditions))
             {
-                ApplyDiscountToProduct(product, promotion.Discounts.FirstOrDefault());
+                //ApplyDiscountToProduct(product, promotion.Discounts.FirstOrDefault());
             }
         }
         await _unitOfWork.SaveChangesAsync();
@@ -150,14 +150,14 @@ public class PromotionService : IPromotionService
         order.DiscountAmount += discountAmount;
     }
 
-    private void ApplyDiscountToProduct(Product product, Discount discount)
-    {
-        if (discount == null) return;
-        decimal discountAmount = discount.Type == DiscountType.Percentage
-            ? product.Price * (discount.Value / 100)
-            : discount.Value;
-        product.Price -= discountAmount;
-    }
+    //private void ApplyDiscountToProduct(Product product, Discount discount)
+    //{
+    //    if (discount == null) return;
+    //    decimal discountAmount = discount.Type == DiscountType.Percentage
+    //        ? product.Price * (discount.Value / 100)
+    //        : discount.Value;
+    //    product.Price -= discountAmount;
+    //}
 
     //private void ApplyDiscountToCatagory(Category category, Discount discount)
     //{

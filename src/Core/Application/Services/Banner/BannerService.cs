@@ -29,7 +29,7 @@ public class BannerService : IBannerService
         var banner = _mapper.Map<Banner>(dto);
         const string subFolder = "images/banners";
         if (!string.IsNullOrEmpty(dto.ImageUrl))
-            banner.ImageUrl = await _imageHelper.SaveBase64Image(dto.ImageUrl, subFolder);
+            banner.ImageUrl = await _imageHelper.SaveBase64Image(dto.ImageUrl, subFolder, "banner");
 
         banner.CreatedBy = _currentUserService.UserId;
         banner.CreatedTime = DateTime.UtcNow;
@@ -128,7 +128,7 @@ public class BannerService : IBannerService
             //if (!string.IsNullOrEmpty(oldImage))
             //    _imageHelper.DeleteImage(banner.ImageUrl);
 
-            banner.ImageUrl = await _imageHelper.SaveBase64Image(dto.ImageUrl, subFolder);
+            banner.ImageUrl = await _imageHelper.SaveBase64Image(dto.ImageUrl, subFolder, "banner");
         }
         else
         {

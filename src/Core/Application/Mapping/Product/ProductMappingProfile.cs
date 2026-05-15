@@ -5,10 +5,47 @@ public class ProductMappingProfile : Profile
     public ProductMappingProfile()
     {
         CreateMap<Product, ProductDto>()
-            .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
-            .ForMember(dest => dest.BrandName, opt => opt.MapFrom(src => src.Brand.Name)).ReverseMap();
-        //.ForMember(dest => dest.SupplierName, opt => opt.MapFrom(src => src.Suppliers.Select(z => z.Product) .Name));
+            .ForMember(dest => dest.Status, 
+                opt => opt.MapFrom(src => src.Status.HasValue ? src.Status.Value.ToString().ToLower() : null))
+            .ForMember(dest => dest.Availability,
+                opt => opt.MapFrom(src => src.Availability.ToString().ToLower()))  // not nullable
+            .ForMember(dest => dest.Price,
+                opt => opt.MapFrom(src =>
+                    src.Batches.Any() ? (decimal?)src.Batches.First().SellingPrice : 0))
+            .ForMember(dest => dest.StockQuantity,
+                opt => opt.MapFrom(src => src.Batches.Sum(b => b.Quantity - b.SoldQuantity)))
+            .ForMember(dest => dest.CategoryName,
+                opt => opt.MapFrom(src => src.Category.Name))
+            .ForMember(dest => dest.BrandName,
+                opt => opt.MapFrom(src => src.Brand.Name))
+            .ForMember(dest => dest.SupplierName,
+                opt => opt.MapFrom(src =>
+                    src.Suppliers.Any() ? src.Suppliers.First().Supplier.Name : null))
+            .ForMember(dest => dest.Images,
+                opt => opt.MapFrom(src => src.Images.Select(i => i.ImageUrl).ToList()))
 
+            .ForMember(dest => dest.CoverImage, 
+                opt => opt.MapFrom(src => src.Images.OrderByDescending(i => i.IsPrimary).Select(i => i.ImageUrl).FirstOrDefault()))
+
+            //.ForMember(dest => dest.CoverImage,
+            //    opt => opt.MapFrom(src =>
+            //        src.Images.Any()
+            //            ? (src.Images.FirstOrDefault(i => i.IsPrimary) ?? src.Images.First()).ImageUrl
+            //            : null))
+
+            .ForMember(dest => dest.Tags,
+                opt => opt.MapFrom(src => src.Tags.Select(pt => pt.Tag.Name).ToList()));
+
+
+        CreateMap<ProductDimensions, DimensionDto>();
+
+        CreateMap<ProductInventoryBatch, BatchDto>()
+            .ForMember(dest => dest.Amount,
+                opt => opt.MapFrom(src => src.SellingPrice))
+            .ForMember(dest => dest.Id,
+                opt => opt.MapFrom(src => (int?)src.Id)); // assuming id is long, convert
+
+        CreateMap<ProductAttribute, AttributeDto>();
 
         CreateMap<ProductAttribute, ProductAttributeDto>().ReverseMap();
         CreateMap<ProductDimensions, ProductDimensionsDto>().ReverseMap();
