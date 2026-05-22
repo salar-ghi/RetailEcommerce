@@ -8,6 +8,7 @@ global using Infrastructure.Data;
 global using Domain.IRepositories;
 global using Application.Services;
 global using SixLabors.ImageSharp;
+global using Application.Interfaces;
 global using System.Threading.Tasks;
 global using Application.Interfaces;
 global using Infrastructure.Caching;

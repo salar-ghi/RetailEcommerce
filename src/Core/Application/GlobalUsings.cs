@@ -1,10 +1,12 @@
-﻿global using AutoMapper;
+﻿global using Domain;
+global using AutoMapper;
 global using System.Text;
 global using Domain.Enums;
 global using Domain.Entities;
 global using Application.DTOs;
-global using FluentValidation;
 global using System.Text.Json;
+global using FluentValidation;
+global using Application.Common;
 global using Application.Helper;
 global using Domain.IRepositories;
 global using Application.Interfaces;

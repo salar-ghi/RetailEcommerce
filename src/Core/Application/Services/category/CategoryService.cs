@@ -3,7 +3,6 @@ public class CategoryService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-    private readonly ICurrentUserService _currentUserService;
     private readonly IImageHelper _imageHelper;
 
     public CategoryService(IUnitOfWork unitOfWork, 
@@ -12,7 +11,6 @@ public class CategoryService
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
-        _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
         _imageHelper = imageHelper;
     }
 
@@ -82,11 +80,6 @@ public class CategoryService
                 }
             }
             var category = _mapper.Map<Category>(categoryDto);
-
-            //category.CreatedBy = _currentUserService.UserId;
-            //category.ModifiedBy = _currentUserService.UserId;
-            //category.ModifiedTime = DateTime.Now;
-
             await _unitOfWork.Categories.AddAsync(category);
             await _unitOfWork.SaveChangesAsync();
         }
@@ -108,11 +101,7 @@ public class CategoryService
             imagePath = await _imageHelper.SaveBase64Image(categoryDto.Image, subFolder, "category");
         }
         categoryDto.Image = imagePath;
-        _mapper.Map(categoryDto, category);
-        
-        category.ModifiedBy = _currentUserService.UserId;
-        category.ModifiedTime = DateTime.Now;
-
+        _mapper.Map(categoryDto, category);        
         await _unitOfWork.Categories.UpdateAsync(category);
         await _unitOfWork.SaveChangesAsync();
     }

@@ -1,23 +1,17 @@
-﻿using Domain;
-using Domain.Entities;
-
-namespace Application.Services;
+﻿namespace Application.Services;
 
 public class ProductService : IProductService
 {
     private readonly IMapper _mapper;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly ICurrentUserService _currentUserService;
     private readonly IImageHelper _imageHelper;
 
     public ProductService(IUnitOfWork unitOfWork, 
-        IMapper mapper, IImageHelper imageHelper,
-        ICurrentUserService currentUserService)
+        IMapper mapper, IImageHelper imageHelper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _imageHelper = imageHelper;
-        _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
     }
 
     public async Task<IEnumerable<ProductDto>> GetAllProductsAsync()
@@ -84,10 +78,6 @@ public class ProductService : IProductService
             CategoryId = dto.CategoryId,
             BrandId = dto.BrandId,
             IsActive = true,
-            CreatedTime = DateTime.UtcNow,
-            ModifiedTime = DateTime.UtcNow,
-            CreatedBy = _currentUserService.UserId,
-            ModifiedBy = _currentUserService.UserId
         };
 
         if (Enum.TryParse<ProductStatus>(dto.Status, true, out var status))
@@ -118,11 +108,7 @@ public class ProductService : IProductService
                 Height = dto.Dimensions.Height,
                 Weight = dto.Dimensions.Weight,
                 DimensionUnit = dto.Dimensions.DimensionUnit,
-                WeightUnit = dto.Dimensions.WeightUnit,
-                CreatedTime = DateTime.UtcNow,
-                ModifiedTime = DateTime.UtcNow,
-                CreatedBy = _currentUserService.UserId,
-                ModifiedBy = _currentUserService.UserId
+                WeightUnit = dto.Dimensions.WeightUnit
             };
         }
 
@@ -134,11 +120,7 @@ public class ProductService : IProductService
                 product.Images.Add(new ProductImage
                 {
                     ImageUrl = await _imageHelper.SaveBase64Image(image, subFolder, "product"),
-                    IsPrimary = string.Equals(image, dto.CoverImage, StringComparison.OrdinalIgnoreCase),
-                    CreatedTime = DateTime.Now,
-                    ModifiedTime = DateTime.Now,
-                    CreatedBy = _currentUserService.UserId,
-                    ModifiedBy = _currentUserService.UserId
+                    IsPrimary = string.Equals(image, dto.CoverImage, StringComparison.OrdinalIgnoreCase)
                 });
             }
         }
@@ -152,10 +134,6 @@ public class ProductService : IProductService
                     product.Tags.Add(new ProductTag
                     {
                         TagId = tagId,
-                        CreatedTime = DateTime.UtcNow,
-                        ModifiedTime = DateTime.UtcNow,
-                        CreatedBy = _currentUserService.UserId,
-                        ModifiedBy = _currentUserService.UserId
                     });
                 }
             }
@@ -164,10 +142,6 @@ public class ProductService : IProductService
         product.Suppliers.Add(new ProductSupplier
         {
             SupplierId = dto.SupplierId,
-            CreatedTime = DateTime.UtcNow,
-            ModifiedTime= DateTime.UtcNow,
-            CreatedBy = _currentUserService.UserId,
-            ModifiedBy = _currentUserService.UserId
         });
 
         bool hasBatches = dto.Prices != null && dto.Prices.Any();
@@ -186,11 +160,7 @@ public class ProductService : IProductService
                     ExpiryDate = price.ExpiryDate,
                     Quantity = price.Quantity,
                     SoldQuantity = price.SoldQuantity ?? 0,
-                    Notes = price.Notes,
-                    CreatedTime = DateTime.UtcNow,
-                    ModifiedTime = DateTime.UtcNow,
-                    CreatedBy = _currentUserService.UserId,
-                    ModifiedBy = _currentUserService.UserId
+                    Notes = price.Notes
                 });
             }
         }
@@ -206,11 +176,7 @@ public class ProductService : IProductService
                 PricingTier = "retail",
                 EffectiveDate = DateTime.UtcNow,
                 Quantity = dto.Stock.Quantity.Value,
-                SoldQuantity = 0,
-                CreatedTime = DateTime.UtcNow,
-                ModifiedTime = DateTime.UtcNow,
-                CreatedBy = _currentUserService.UserId,
-                ModifiedBy = _currentUserService.UserId
+                SoldQuantity = 0
             });
         }
 
@@ -221,11 +187,7 @@ public class ProductService : IProductService
                 product.Attributes.Add(new ProductAttribute
                 {
                     Key = attr.Key,
-                    Value = attr.Value,
-                    CreatedTime = DateTime.UtcNow,
-                    ModifiedTime = DateTime.UtcNow,
-                    CreatedBy = _currentUserService.UserId,
-                    ModifiedBy = _currentUserService.UserId
+                    Value = attr.Value
                 });
             }
         }
@@ -239,11 +201,7 @@ public class ProductService : IProductService
                     Name = variant.Name,
                     Type = variant.Type,
                     Required = variant.Required ?? false,
-                    DisplayOrder = variant.DisplayOrder ?? 0,
-                    CreatedTime = DateTime.UtcNow,
-                    ModifiedTime = DateTime.UtcNow,
-                    CreatedBy = _currentUserService.UserId,
-                    ModifiedBy = _currentUserService.UserId
+                    DisplayOrder = variant.DisplayOrder ?? 0
                 };
                 
                 foreach (var opt in variant.Options)
@@ -256,11 +214,7 @@ public class ProductService : IProductService
                         PriceAdjustment = opt.PriceAdjustment,
                         StockQuantity = opt.StockQuantity,
                         Sku = opt.Sku,
-                        IsAvailable = opt.IsAvailable,
-                        CreatedTime = DateTime.UtcNow,
-                        ModifiedTime = DateTime.UtcNow,
-                        CreatedBy = _currentUserService.UserId,
-                        ModifiedBy = _currentUserService.UserId
+                        IsAvailable = opt.IsAvailable
                     });
                 }
                 product.VariantDefinitions.Add(definition);

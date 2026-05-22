@@ -12,7 +12,6 @@ public class BrandController : ControllerBase
         _brandService = brandService;
     }
 
-    // Brand CRUD Operations
     [HttpGet("brands")]
     public async Task<IActionResult> GetAllBrands()
     {

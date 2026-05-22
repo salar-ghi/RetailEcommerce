@@ -9,13 +9,11 @@ public class CategoryController : ControllerBase
 {
     private readonly CategoryService _categoryService;
     private readonly CategoryAttributeService _categoryAttributeService;
-    //private readonly ImageService _imageService;
     public CategoryController(CategoryService categoryService,
         CategoryAttributeService categoryAttributeService)
     {
         _categoryService = categoryService;
         _categoryAttributeService = categoryAttributeService;
-        //_imageService = imageService;
     }
 
     [HttpGet("categories")]

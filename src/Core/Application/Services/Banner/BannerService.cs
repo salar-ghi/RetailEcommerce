@@ -6,18 +6,14 @@ public class BannerService : IBannerService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-    private readonly ICurrentUserService _currentUserService;
     private readonly IImageHelper _imageHelper;
 
     public BannerService(
         IUnitOfWork unitOfWork,
-        IMapper mapper,
-        ICurrentUserService currentUserService,
-        IImageHelper imageHelper)
+        IMapper mapper, IImageHelper imageHelper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
-        _currentUserService = currentUserService;
         _imageHelper = imageHelper;
     }
 
@@ -30,9 +26,6 @@ public class BannerService : IBannerService
         const string subFolder = "images/banners";
         if (!string.IsNullOrEmpty(dto.ImageUrl))
             banner.ImageUrl = await _imageHelper.SaveBase64Image(dto.ImageUrl, subFolder, "banner");
-
-        banner.CreatedBy = _currentUserService.UserId;
-        banner.CreatedTime = DateTime.UtcNow;
 
         await _unitOfWork.Banners.AddAsync(banner);
         await _unitOfWork.SaveChangesAsync();
@@ -48,8 +41,6 @@ public class BannerService : IBannerService
             {
                 BannerId = banner.Id,
                 PlacementId = placement.Id,
-                CreatedTime = DateTime.UtcNow,
-                CreatedBy = _currentUserService.UserId
             };
 
             await _unitOfWork.BannerPlacementMaps.AddAsync(map);
@@ -66,8 +57,6 @@ public class BannerService : IBannerService
 
         // Soft delete
         banner.IsDeleted = true;
-        banner.ModifiedBy = _currentUserService.UserId;
-        banner.ModifiedTime = DateTime.UtcNow;
         await _unitOfWork.Banners.UpdateAsync(banner);
         await _unitOfWork.SaveChangesAsync();
     }
@@ -134,9 +123,6 @@ public class BannerService : IBannerService
         {
             banner.ImageUrl = oldImage;
         }
-
-        banner.ModifiedBy = _currentUserService.UserId;
-        banner.ModifiedTime = DateTime.UtcNow;
         await _unitOfWork.Banners.UpdateAsync(banner);
         await _unitOfWork.SaveChangesAsync();
     }

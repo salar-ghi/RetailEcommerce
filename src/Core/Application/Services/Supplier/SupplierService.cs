@@ -1,23 +1,20 @@
-﻿using Application.Common;
-
-namespace Application.Services;
+﻿namespace Application.Services;
 
 public class SupplierService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-    private readonly ICurrentUserService _currentUserService;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly ICurrentUserService _currentUserService;
 
     public SupplierService(
-        IUnitOfWork unitOfWork,
-        IMapper mapper, IPasswordHasher passwordHasher,
-        ICurrentUserService currentUserService)
+        IUnitOfWork unitOfWork, IMapper mapper, 
+        IPasswordHasher passwordHasher, ICurrentUserService currentUserService)
     {
         _mapper = mapper;
         _unitOfWork = unitOfWork;
         _passwordHasher = passwordHasher;
-        _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
+        _currentUserService = currentUserService;
     }
 
     public async Task<IEnumerable<SupplierDto>> GetAllSuppliersAsync()
@@ -34,12 +31,8 @@ public class SupplierService
 
         //supplier.Status = request.IsApproved ? SupplierStatus.Approved : SupplierStatus.Rejected;
         supplier.Status = SupplierStatus.Approved;
-        supplier.ApprovalDate = DateTime.Now;
-        supplier.ModifiedTime = DateTime.Now;
-        //supplier.ModifiedBy = _currentUserService.UserId;
-        //supplier.ApprovedByUserId = _currentUserService.UserId;
-        supplier.ApprovedByUserId = "576b27d5-11b8-4c21-b211-6e4882f1a80e";
-        supplier.ModifiedBy = "576b27d5-11b8-4c21-b211-6e4882f1a80e";
+        supplier.ApprovedByUserId = _currentUserService.UserId;
+        
         await _unitOfWork.Suppliers.UpdateAsync(supplier);
         await _unitOfWork.SaveChangesAsync();
         return _mapper.Map<SupplierDto>(supplier);
@@ -54,7 +47,6 @@ public class SupplierService
 
     public async Task<Result<string>> CreateSupplierAsync(SupplierRegistrationDto supplierDto)
     {
-        var sessionId = _currentUserService.UserId;
         var existedSupplier = await _unitOfWork.Suppliers.GetSingleAsync(s => s.Info == supplierDto.ContactInfo && !s.IsDeleted);
         if (existedSupplier != null)
             return Result<string>.Failure("تامین کننده با شماره تلفن مشابه موجود میباشد");
@@ -78,10 +70,6 @@ public class SupplierService
                 TwoFactorEnabled = false,
                 Username = supplierDto.ContactInfo,
                 Email = supplierDto.Email,
-                CreatedBy = sessionId,
-                CreatedTime = DateTime.Now,
-                ModifiedBy = sessionId,
-                ModifiedTime = DateTime.Now,
             };
             await _unitOfWork.Users.AddAsync(user);
 
@@ -90,12 +78,8 @@ public class SupplierService
         }
 
         CreateSuplier:
-        var supplier = _mapper.Map<Supplier>(supplierDto);
-        supplier.CreatedTime = DateTime.Now;
-        supplier.ModifiedTime = DateTime.Now;
+        var supplier = _mapper.Map<Supplier>(supplierDto);        
         supplier.UserId = user.Id;
-        supplier.CreatedBy = sessionId;
-        supplier.ModifiedBy = sessionId;
 
         await _unitOfWork.Suppliers.AddAsync(supplier);
 
@@ -120,12 +104,8 @@ public class SupplierService
         if (existedSupplier != null)
             return Result<string>.Failure("تامین کننده با شماره تلفن مشابه موجود میباشد");
         
-        var supplier = _mapper.Map<Supplier>(supplierDto);        
-        supplier.CreatedTime = DateTime.Now;
-        supplier.ModifiedTime = DateTime.Now;
+        var supplier = _mapper.Map<Supplier>(supplierDto);
         supplier.UserId = user.Id;
-        supplier.CreatedBy = sessionId;
-        supplier.ModifiedBy = sessionId;
         await _unitOfWork.Suppliers.AddAsync(supplier);
 
         var supplierRole = (await _unitOfWork.Roles.GetSingleAsync(r => r.Name == "Supplier"));
