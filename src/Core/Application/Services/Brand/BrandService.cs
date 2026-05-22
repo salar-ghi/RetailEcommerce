@@ -33,10 +33,10 @@ public class BrandService
     public async Task AddBrandAsync(BrandDto brandDto)
     {
         var brand = _mapper.Map<Brand>(brandDto);
-        brand.CreatedBy = _currentUserService.UserId;
-        brand.ModifiedBy = _currentUserService.UserId;
-        brand.CreatedTime = DateTime.Now;
-        brand.ModifiedTime = DateTime.Now;
+        //brand.CreatedBy = _currentUserService.UserId;
+        //brand.ModifiedBy = _currentUserService.UserId;
+        //brand.CreatedTime = DateTime.Now;
+        //brand.ModifiedTime = DateTime.Now;
         await _unitOfWork.Brands.AddAsync(brand);
         await _unitOfWork.SaveChangesAsync();
     }

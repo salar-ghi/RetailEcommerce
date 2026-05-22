@@ -1,5 +1,6 @@
 ﻿global using Domain.Enums;
 global using Domain.Models;
+global using Domain.Common;
 global using Domain.Entities;
 global using System.Linq.Expressions;
 global using System.ComponentModel.DataAnnotations;

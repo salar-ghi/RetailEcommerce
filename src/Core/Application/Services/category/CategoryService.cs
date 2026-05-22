@@ -83,9 +83,9 @@ public class CategoryService
             }
             var category = _mapper.Map<Category>(categoryDto);
 
-            category.CreatedBy = _currentUserService.UserId;
-            category.ModifiedBy = _currentUserService.UserId;
-            category.ModifiedTime = DateTime.Now;
+            //category.CreatedBy = _currentUserService.UserId;
+            //category.ModifiedBy = _currentUserService.UserId;
+            //category.ModifiedTime = DateTime.Now;
 
             await _unitOfWork.Categories.AddAsync(category);
             await _unitOfWork.SaveChangesAsync();

@@ -6,11 +6,15 @@ public class TagService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ICurrentUserService _currentUserService;
 
-    public TagService(IUnitOfWork unitOfWork, IMapper mapper)
+    public TagService(IUnitOfWork unitOfWork, 
+        IMapper mapper,
+        ICurrentUserService currentUserService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _currentUserService = currentUserService;
     }
 
     public async Task<IEnumerable<TagDto>> GetAllTagsAsync()

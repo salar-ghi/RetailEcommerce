@@ -1,6 +1,5 @@
-﻿using Application.Helper;
+﻿using Infrastructure.Services;
 using Infrastructure.Persistence;
-using Infrastructure.Services;
 
 namespace Infrastructure;
 public static class DependencyInjection
@@ -8,7 +7,7 @@ public static class DependencyInjection
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
-        services.AddDbContext<AppDbContext>(options =>
+        services.AddDbContext<AppDbContext>((serviceProvider, options) =>
         {
             options.UseSqlServer(connectionString,
                 sqlServerOptionsAction: sqlOptions =>
@@ -18,6 +17,7 @@ public static class DependencyInjection
                         maxRetryDelay: TimeSpan.FromMilliseconds(10),
                         errorNumbersToAdd: null);
                 });
+            options.AddInterceptors(serviceProvider.GetRequiredService<AuditInterceptor>());
             options.EnableThreadSafetyChecks(true);
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         });
@@ -27,6 +27,7 @@ public static class DependencyInjection
         {
             options.Configuration = configuration.GetConnectionString("RedisConnection");
         });
+
 
         services.AddSingleton<IRedisCacheService, RedisCacheService>();
 

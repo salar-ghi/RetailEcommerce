@@ -1,6 +1,6 @@
 ﻿namespace Domain;
 
-public abstract class BaseModel<TId>
+public abstract class BaseModel<TId> : IAuditableEntity
 {
     public TId Id { get; set; }
     public string? CreatedBy { get; set; } = string.Empty;
