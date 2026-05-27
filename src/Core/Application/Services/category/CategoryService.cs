@@ -22,12 +22,11 @@ public class CategoryService
 
     public async Task<List<CategoryDetailsDto>> GetAllCategoriesWithDetailsAsync()
     {
-        var query = _unitOfWork.Categories.GetAll();
-        var categories = await query
+        var data = _unitOfWork.Categories.GetAll(z => z.IsDeleted == false);
+        var categories = await data
             .ProjectTo<CategoryDetailsDto>(_mapper.ConfigurationProvider)
             .OrderBy(z => z.Name)
             .ToListAsync();
-
         foreach (var dto in categories)
         {
             if (string.IsNullOrEmpty(dto.Image))

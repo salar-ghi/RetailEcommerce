@@ -1,14 +1,19 @@
-﻿namespace Application.Services;
+﻿using Application.DTOs;
+using Application.Helper;
+
+namespace Application.Services;
 
 public class BrandService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IImageHelper _imageHelper;
 
-    public BrandService(IUnitOfWork unitOfWork, IMapper mapper)
+    public BrandService(IUnitOfWork unitOfWork, IMapper mapper, IImageHelper imageHelper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _imageHelper = imageHelper;
     }
 
     public async Task<IEnumerable<BrandDto>> GetAllBrandsAsync()
@@ -26,7 +31,22 @@ public class BrandService
 
     public async Task AddBrandAsync(BrandDto brandDto)
     {
+        if (brandDto.Logo != null)
+        {
+            const string subFolder = "images/brands";
+            if (!string.IsNullOrWhiteSpace(brandDto.Logo))
+            {
+                brandDto.Logo = await _imageHelper.SaveBase64Image(brandDto.Logo, subFolder, "brand");
+            }
+        }
         var brand = _mapper.Map<Brand>(brandDto);
+        foreach (var item in brandDto.Categories)
+        {
+            brand.BrandCategories.Add(new BrandCategory
+            {
+                CategoryId = item.Id
+            });
+        }
         await _unitOfWork.Brands.AddAsync(brand);
         await _unitOfWork.SaveChangesAsync();
     }

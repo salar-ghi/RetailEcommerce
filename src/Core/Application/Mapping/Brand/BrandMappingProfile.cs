@@ -7,8 +7,11 @@ public class BrandMappingProfile : Profile
         CreateMap<Brand, BrandDto>()
             .ForMember(dest => dest.Logo, opt => opt.MapFrom(src => src.ImageUrl))
             .ForMember(dest => dest.CreatedTime, opt => opt.MapFrom(src => src.CreatedTime))
-            .ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.Products.Select(z => z.Category.Name)))
-            .ReverseMap();
+            .ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.BrandCategories
+                .Select(bc => new BrandCategories { Id = bc.Category.Id, Name = bc.Category.Name })));
+
+            //.ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.Products.Select(z => z.Category.Name)))
+            
 
         CreateMap<Brand, BrandUpdateDto>()
             .ForMember(dest => dest.Logo, opt => opt.MapFrom(src => src.ImageUrl))

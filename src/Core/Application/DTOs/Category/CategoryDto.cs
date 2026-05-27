@@ -32,5 +32,4 @@ public record CategoryDetailsDto
     public int ProductCount { get; set; }
     public DateTime CreatedAt { get; set; }
     public List<BrandDto> Brands { get; set; }
-
 }

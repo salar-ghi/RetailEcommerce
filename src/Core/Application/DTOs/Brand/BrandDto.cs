@@ -7,7 +7,13 @@ public record BrandDto
     public string Description { get; set; }
     public string Logo { get; set; }
     public DateTime CreatedTime { get; set; }
-    public List<string> Categories { get; set; } = new List<string>();
+    public List<BrandCategories> Categories { get; set; }
+}
+
+public class BrandCategories
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
 }
 
 public record BrandUpdateDto

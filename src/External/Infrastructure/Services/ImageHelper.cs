@@ -11,10 +11,8 @@ public class ImageHelper : IImageHelper
     {
         try
         {
-
             if (string.IsNullOrWhiteSpace(dataUrl))
                 return null;
-
 
             // data:[mime];base64,xxx
             var match = Regex.Match(dataUrl, @"^data:(?<mime>image\/(jpeg|png|gif|jpg|webp));base64,(?<data>.+)$");
@@ -30,7 +28,7 @@ public class ImageHelper : IImageHelper
             {
                 "image/webp" => ".webp",
                 "image/jpeg" => ".jpg",
-                //"image/jpg" => ".jpg",
+                "image/jpg" => ".jpg",
                 "image/png" => ".png",
                 "image/gif" => ".gif",
                 _ => ".bin"
@@ -63,7 +61,6 @@ public class ImageHelper : IImageHelper
             // return relative path for the client, e.g. "images/categories/xyz.jpg"
             var relativePath = Path.Combine(subFolder, fileName).Replace("\\", "/");
             return relativePath;
-
         }
         catch (Exception ex)
         {

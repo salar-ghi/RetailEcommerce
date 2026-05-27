@@ -87,7 +87,8 @@ public class BannerController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, UpdateBannerDto dto)
     {
-        if (id != dto.Id) return BadRequest();
+        if (id == null || id is 0) return BadRequest();
+        dto.Id = id;
         await _bannerService.UpdateAsync(dto);
         return NoContent();
     }

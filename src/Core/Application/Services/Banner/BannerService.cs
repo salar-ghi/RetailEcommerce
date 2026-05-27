@@ -25,10 +25,7 @@ public class BannerService : IBannerService
         var banner = _mapper.Map<Banner>(dto);
         const string subFolder = "images/banners";
         if (!string.IsNullOrEmpty(dto.ImageUrl))
-            banner.ImageUrl = await _imageHelper.SaveBase64Image(dto.ImageUrl, subFolder, "banner");
-
-        await _unitOfWork.Banners.AddAsync(banner);
-        await _unitOfWork.SaveChangesAsync();
+            banner.ImageUrl = await _imageHelper.SaveBase64Image(dto.ImageUrl, subFolder, "banner");        
 
         var placements = await _unitOfWork.BannerPlacements.GetAllByIdsAsync(dto.PlacementIds);
 
@@ -37,14 +34,12 @@ public class BannerService : IBannerService
 
         foreach (var placement in placements)
         {
-            var map = new BannerPlacementMap
+            banner.BannerPlacementMaps.Add(new BannerPlacementMap
             {
-                BannerId = banner.Id,
                 PlacementId = placement.Id,
-            };
-
-            await _unitOfWork.BannerPlacementMaps.AddAsync(map);
+            });
         }
+        await _unitOfWork.Banners.AddAsync(banner);
         await _unitOfWork.SaveChangesAsync();
         return banner.Id;
     }

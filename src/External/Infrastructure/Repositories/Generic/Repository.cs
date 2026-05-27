@@ -30,6 +30,7 @@ public class Repository<T, TId> : IRepository<T, TId> where T : BaseModel<TId>
 
     public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> predicate) => await _context.Set<T>().Where(predicate).ToListAsync();
     public IQueryable<T> GetAll() => _context.Set<T>().AsNoTracking();
+    public IQueryable<T> GetAll(Expression<Func<T, bool>> predicate) => _context.Set<T>().AsNoTracking().Where(predicate);
     public async Task UpdateAsync(T entity) => _context.Set<T>().Update(entity);
     public async Task DeleteAsync(T entity) => _context.Set<T>().Remove(entity);
     public async Task<T> GetSingleAsync(Expression<Func<T, bool>> predicate) => await _context.Set<T>().FirstOrDefaultAsync(predicate);

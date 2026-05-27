@@ -44,16 +44,7 @@ public class CategoryController : ControllerBase
             return BadRequest(ModelState);
         if (id == null || id is 0) return BadRequest();
 
-        
-        //string imagePath = null;
-        //const string subFolder = "images/categories";
-        //if (!string.IsNullOrWhiteSpace(categoryDto.Image))
-        //{
-        //    imagePath = await _imageService.SaveBase64Image(categoryDto.Image, subFolder);
-        //}
-
         categoryDto.Id = id.Value;
-        //categoryDto.Image = imagePath;
         await _categoryService.UpdateCategoryAsync(categoryDto);
         
         return NoContent();

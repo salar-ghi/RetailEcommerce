@@ -25,6 +25,7 @@ public class BrandRepository : Repository<Brand, int>, IBrandRepository
         return await _context.Brands
             .Include(z => z.Products)
             .ThenInclude(x => x.Category)
+            .Where(z => z.IsDeleted == false)
             .AsNoTracking()
             .ToListAsync();
     }
