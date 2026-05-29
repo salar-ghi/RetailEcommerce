@@ -134,6 +134,39 @@ public class ProductStockConfiguration : IEntityTypeConfiguration<ProductStock>
         builder.HasKey(ps => ps.Id);
         builder.Property(ps => ps.Id).ValueGeneratedOnAdd();
         builder.Property(ps => ps.Quantity).IsRequired();
+        builder.Property(ps => ps.Sku).HasMaxLength(100);
+        builder.Property(ps => ps.LocationNote).HasMaxLength(500);
+        builder.Ignore(ps => ps.AvailableQuantity);
+
+        builder.HasOne(ps => ps.Product)
+            .WithMany(p => p.Stocks)
+            .HasForeignKey(ps => ps.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(ps => ps.Space)
+            .WithMany(s => s.ProductStocks)
+            .HasForeignKey(ps => ps.SpaceId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(ps => ps.Zone)
+            .WithMany(z => z.ProductStocks)
+            .HasForeignKey(ps => ps.ZoneId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(ps => ps.Shelf)
+            .WithMany(s => s.ProductStocks)
+            .HasForeignKey(ps => ps.ShelfId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(ps => ps.ProductInventoryBatch)
+            .WithMany()
+            .HasForeignKey(ps => ps.ProductInventoryBatchId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(ps => ps.ProductVariantOption)
+            .WithMany()
+            .HasForeignKey(ps => ps.ProductVariantOptionId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }
 

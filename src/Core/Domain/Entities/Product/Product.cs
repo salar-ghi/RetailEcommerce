@@ -21,6 +21,7 @@ public class Product : BaseModel<long>
     public Brand Brand { get; set; }
     public ProductDimensions Dimensions { get; set; }
     public ICollection<ProductInventoryBatch> Batches { get; set; } = new List<ProductInventoryBatch>();
+    public ICollection<ProductStock> Stocks { get; set; } = new List<ProductStock>();
     public ICollection<ProductVariantDefinition> VariantDefinitions { get; set; } = new List<ProductVariantDefinition>();
     public ICollection<ProductAttribute> Attributes { get; set; } = new List<ProductAttribute>();
     public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
