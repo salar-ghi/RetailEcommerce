@@ -9,11 +9,11 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.Name).IsRequired().HasMaxLength(200);
         builder.Property(p => p.Description).IsRequired(false).HasMaxLength(1000);
         builder.HasOne(p => p.Category)
-               .WithMany()
+               .WithMany(c => c.Products)
                .HasForeignKey(p => p.CategoryId);
 
         builder.HasOne(p => p.Brand)
-               .WithMany()
+               .WithMany(b => b.Products)
                .HasForeignKey(p => p.BrandId)
                .OnDelete(DeleteBehavior.Restrict);
 
@@ -69,6 +69,8 @@ public class ProductInventoryBatchConfiguration : IEntityTypeConfiguration<Produ
     {
         builder.HasKey(pa => pa.Id);
         builder.Property(pa => pa.Id).ValueGeneratedOnAdd();
+        builder.Property(pa => pa.CostPrice).HasPrecision(18, 2);
+        builder.Property(pa => pa.SellingPrice).HasPrecision(18, 2);
 
         builder.HasOne(pa => pa.Product)
             .WithMany(p => p.Batches)
@@ -186,6 +188,11 @@ public class ProductStockConfiguration : IEntityTypeConfiguration<ProductStock>
             .HasForeignKey(ps => ps.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne(ps => ps.Warehouse)
+            .WithMany(w => w.InventoryItems)
+            .HasForeignKey(ps => ps.WarehouseId)
+            .OnDelete(DeleteBehavior.NoAction);
+
         builder.HasOne(ps => ps.Space)
             .WithMany(s => s.ProductStocks)
             .HasForeignKey(ps => ps.SpaceId)
@@ -272,5 +279,23 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
         builder.Property(pv => pv.Id).ValueGeneratedOnAdd();
         builder.Property(pv => pv.VariantName).IsRequired().HasMaxLength(50);
         builder.Property(pv => pv.VariantValue).IsRequired().HasMaxLength(50);
+    }
+}
+
+public class WarehouseConfiguration : IEntityTypeConfiguration<Warehouse>
+{
+    public void Configure(EntityTypeBuilder<Warehouse> builder)
+    {
+        builder.HasKey(w => w.Id);
+        builder.Property(w => w.Id).ValueGeneratedOnAdd();
+        builder.Property(w => w.Code).IsRequired().HasMaxLength(100);
+        builder.Property(w => w.Name).IsRequired().HasMaxLength(200);
+        builder.Property(w => w.Location).IsRequired().HasMaxLength(500);
+        builder.Property(w => w.StorageCapacity).HasPrecision(18, 2);
+
+        builder.HasMany(w => w.InventoryItems)
+            .WithOne(ps => ps.Warehouse)
+            .HasForeignKey(ps => ps.WarehouseId)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

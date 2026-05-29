@@ -59,7 +59,7 @@ public class BasketItemConfiguration : IEntityTypeConfiguration<BasketItem>
             .HasMaxLength(50);
 
         builder.HasOne(bi => bi.Product)
-            .WithMany()
+            .WithMany(p => p.BasketItems)
             .HasForeignKey(bi => bi.ProductId)
             .OnDelete(DeleteBehavior.Restrict);
 

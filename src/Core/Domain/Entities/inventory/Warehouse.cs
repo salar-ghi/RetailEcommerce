@@ -2,7 +2,6 @@
 
 public class Warehouse : BaseModel<int>
 {
-    public Guid Id { get; set; }
     public string Code { get; set; } // e.g., "WH-USA-01"
     public string Name { get; set; }
     //public Address Location { get; set; } // Value Object
