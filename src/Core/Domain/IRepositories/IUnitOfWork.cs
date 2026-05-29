@@ -27,6 +27,9 @@ public interface IUnitOfWork : IDisposable
     IProductTagRepository ProductTags { get; }
     IProductUnitPriceRepository ProductUnitPrices { get; }
     IProductVariantRepository ProductVariants { get; }
+    IStorageSpaceRepository StorageSpaces { get; }
+    IStorageZoneRepository StorageZones { get; }
+    IShelfRepository Shelves { get; }
 
     IOrderRepository Orders { get; }
     IOrderItemRepository OrderItems { get; }

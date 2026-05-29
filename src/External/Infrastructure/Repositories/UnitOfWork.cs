@@ -34,6 +34,9 @@ public class UnitOfWork : IUnitOfWork
         ProductTags = new ProductTagRepository(context);
         ProductUnitPrices = new ProductUnitPriceRepository(context);
         ProductVariants = new ProductVariantRepository(context);
+        StorageSpaces = new StorageSpaceRepository(context);
+        StorageZones = new StorageZoneRepository(context);
+        Shelves = new ShelfRepository(context);
         Baskets = new BasketRepository(context);
         BasketItems = new BasketItemRepository(context);
 
@@ -67,6 +70,9 @@ public class UnitOfWork : IUnitOfWork
     public IProductTagRepository ProductTags { get; }
     public IProductUnitPriceRepository ProductUnitPrices { get; }
     public IProductVariantRepository ProductVariants { get; }
+    public IStorageSpaceRepository StorageSpaces { get; }
+    public IStorageZoneRepository StorageZones { get; }
+    public IShelfRepository Shelves { get; }
     public IOrderRepository Orders { get; }
     public IOrderItemRepository OrderItems { get; }
 

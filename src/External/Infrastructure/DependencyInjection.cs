@@ -67,6 +67,9 @@ public static class DependencyInjection
         services.AddScoped<IProductTagRepository, ProductTagRepository>();
         services.AddScoped<IProductUnitPriceRepository, ProductUnitPriceRepository>();
         services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
+        services.AddScoped<IStorageSpaceRepository, StorageSpaceRepository>();
+        services.AddScoped<IStorageZoneRepository, StorageZoneRepository>();
+        services.AddScoped<IShelfRepository, ShelfRepository>();
         services.AddScoped<ISupplierRepository, SupplierRepository>();
         services.AddScoped<ITagRepository, TagRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
@@ -107,6 +110,7 @@ public static class DependencyInjection
         services.AddScoped<ProductSupplierService>();
         services.AddScoped<ProductTagService>();
         services.AddScoped<ProductUnitPriceService>();
+        services.AddScoped<IInventoryService, InventoryService>();
 
         services.AddScoped<BrandService>();
         services.AddScoped<CategoryService>();

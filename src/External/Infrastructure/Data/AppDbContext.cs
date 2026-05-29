@@ -28,6 +28,9 @@ public class AppDbContext : DbContext
     public DbSet<ProductImage> ProductImages { get; set; }
     public DbSet<ProductReview> ProductReviews { get; set; }
     public DbSet<ProductStock> ProductStocks { get; set; }
+    public DbSet<StorageSpace> StorageSpaces { get; set; }
+    public DbSet<StorageZone> StorageZones { get; set; }
+    public DbSet<Shelf> Shelves { get; set; }
     public DbSet<ProductSupplier> ProductSuppliers { get; set; }
     public DbSet<Tag> Tags { get; set; }
     public DbSet<ProductTag> ProductTags { get; set; }
@@ -69,6 +72,9 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new ProductImageConfiguration());
         modelBuilder.ApplyConfiguration(new ProductReviewConfiguration());
         modelBuilder.ApplyConfiguration(new ProductStockConfiguration());
+        modelBuilder.ApplyConfiguration(new StorageSpaceConfiguration());
+        modelBuilder.ApplyConfiguration(new StorageZoneConfiguration());
+        modelBuilder.ApplyConfiguration(new ShelfConfiguration());
         modelBuilder.ApplyConfiguration(new ProductSupplierConfiguration());
         modelBuilder.ApplyConfiguration(new TagConfiguration());
         modelBuilder.ApplyConfiguration(new ProductTagConfiguration());
