@@ -413,6 +413,18 @@ obj/
 /Presentation/images/
 */Presentation/images/
 /src/External/Presentation/images/
+images/categories/**/*.png
+images/categories/**/*.jpg
+images/categories/**/*.webp
+images/products/**/*.png
+images/products/**/*.jpg
+images/products/**/*.webp
+images/banners/**/*.png
+images/banners/**/*.jpg
+images/banners/**/*.webp
+images/users/**/*.png
+images/users/**/*.jpg
+images/users/**/*.webp
 
 ### VisualStudio ###
 
