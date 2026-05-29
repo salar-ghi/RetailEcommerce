@@ -40,11 +40,15 @@ public class BrandService
             }
         }
         var brand = _mapper.Map<Brand>(brandDto);
-        foreach (var item in brandDto.Categories)
+        var categoryIds = brandDto.CategoryIds.Count > 0
+            ? brandDto.CategoryIds
+            : brandDto.Categories.Select(category => category.Id);
+
+        foreach (var categoryId in categoryIds.Distinct())
         {
             brand.BrandCategories.Add(new BrandCategory
             {
-                CategoryId = item.Id
+                CategoryId = categoryId
             });
         }
         await _unitOfWork.Brands.AddAsync(brand);
