@@ -11,51 +11,25 @@ namespace Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql(@"
-IF OBJECT_ID(N'[dbo].[BannerPlacement]', N'U') IS NULL
-BEGIN
-    CREATE TABLE [dbo].[BannerPlacement] (
-        [Id] int NOT NULL IDENTITY,
-        [Name] nvarchar(100) NOT NULL,
-        [Code] nvarchar(50) NOT NULL,
-        [RecommendedSize] nvarchar(50) NULL,
-        [CreatedBy] nvarchar(max) NULL,
-        [CreatedTime] datetime2 NOT NULL,
-        [ModifiedBy] nvarchar(max) NOT NULL,
-        [ModifiedTime] datetime2 NOT NULL,
-        [IsDeleted] bit NOT NULL,
-        CONSTRAINT [PK_BannerPlacement] PRIMARY KEY ([Id])
-    );
-END
-");
-
-            migrationBuilder.Sql(@"
-SET IDENTITY_INSERT [dbo].[BannerPlacement] ON;
-
-MERGE [dbo].[BannerPlacement] AS target
-USING (VALUES
-    (3, N'HOME TOP', N'HOME_TOP', NULL, N'', CONVERT(datetime2, '2026-02-20T09:43:36.2395852'), N'', CONVERT(datetime2, '2026-02-20T13:13:36.2392581'), CAST(0 AS bit)),
-    (4, N'HOME BOTTOM', N'HOME_BOTTOM', NULL, N'', CONVERT(datetime2, '2026-02-20T09:43:36.3233995'), N'', CONVERT(datetime2, '2026-02-20T13:13:36.3233956'), CAST(0 AS bit)),
-    (5, N'PRODUCT MID', N'PRODUCT_MID', NULL, N'', CONVERT(datetime2, '2026-02-20T09:43:36.3242640'), N'', CONVERT(datetime2, '2026-02-20T13:13:36.3242623'), CAST(0 AS bit)),
-    (6, N'PRODUCT TOP', N'PRODUCT_TOP', NULL, N'', CONVERT(datetime2, '2026-02-20T09:43:36.3243037'), N'', CONVERT(datetime2, '2026-02-20T13:13:36.3243029'), CAST(0 AS bit)),
-    (7, N'PRODUCT BOTTOM', N'PRODUCT_BOTTOM', NULL, N'', CONVERT(datetime2, '2026-02-20T09:43:36.3243338'), N'', CONVERT(datetime2, '2026-02-20T13:13:36.3243331'), CAST(0 AS bit))
-) AS source ([Id], [Name], [Code], [RecommendedSize], [CreatedBy], [CreatedTime], [ModifiedBy], [ModifiedTime], [IsDeleted])
-ON target.[Code] = source.[Code]
-WHEN MATCHED THEN
-    UPDATE SET
-        [Name] = source.[Name],
-        [RecommendedSize] = source.[RecommendedSize],
-        [CreatedBy] = source.[CreatedBy],
-        [CreatedTime] = source.[CreatedTime],
-        [ModifiedBy] = source.[ModifiedBy],
-        [ModifiedTime] = source.[ModifiedTime],
-        [IsDeleted] = source.[IsDeleted]
-WHEN NOT MATCHED BY TARGET THEN
-    INSERT ([Id], [Name], [Code], [RecommendedSize], [CreatedBy], [CreatedTime], [ModifiedBy], [ModifiedTime], [IsDeleted])
-    VALUES (source.[Id], source.[Name], source.[Code], source.[RecommendedSize], source.[CreatedBy], source.[CreatedTime], source.[ModifiedBy], source.[ModifiedTime], source.[IsDeleted]);
-
-SET IDENTITY_INSERT [dbo].[BannerPlacement] OFF;
-");
+            migrationBuilder.CreateTable(
+                name: "BannerPlacement",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    RecommendedSize = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ModifiedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BannerPlacement", x => x.Id);
+                });
 
             migrationBuilder.CreateTable(
                 name: "Banners",
@@ -260,7 +234,7 @@ SET IDENTITY_INSERT [dbo].[BannerPlacement] OFF;
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Location = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    StorageCapacity = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    StorageCapacity = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -657,8 +631,8 @@ SET IDENTITY_INSERT [dbo].[BannerPlacement] OFF;
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BatchNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CostPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    SellingPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    CostPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    SellingPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Currency = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PricingTier = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     EffectiveDate = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -1234,11 +1208,6 @@ SET IDENTITY_INSERT [dbo].[BannerPlacement] OFF;
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ProductStocks_Warehouse_WarehouseId",
-                        column: x => x.WarehouseId,
-                        principalTable: "Warehouse",
-                        principalColumn: "Id");
-                    table.ForeignKey(
                         name: "FK_ProductStocks_Shelves_ShelfId",
                         column: x => x.ShelfId,
                         principalTable: "Shelves",
@@ -1252,6 +1221,11 @@ SET IDENTITY_INSERT [dbo].[BannerPlacement] OFF;
                         name: "FK_ProductStocks_StorageZones_ZoneId",
                         column: x => x.ZoneId,
                         principalTable: "StorageZones",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_ProductStocks_Warehouse_WarehouseId",
+                        column: x => x.WarehouseId,
+                        principalTable: "Warehouse",
                         principalColumn: "Id");
                 });
 

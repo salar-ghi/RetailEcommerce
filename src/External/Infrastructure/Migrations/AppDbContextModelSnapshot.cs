@@ -497,11 +497,9 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.InventoryTransaction", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
@@ -1660,8 +1658,6 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("SpaceId");
 
-                    b.HasIndex("WarehouseId");
-
                     b.HasIndex("ZoneId");
 
                     b.ToTable("Shelves");
@@ -2168,6 +2164,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<decimal>("StorageCapacity")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
