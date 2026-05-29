@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="images\categories\" />
+    <Folder Include="images\" />
     <Folder Include="Models\Dtos\" />
     <Folder Include="Helper\" />
     <Folder Include="wwwroot\images\" />
