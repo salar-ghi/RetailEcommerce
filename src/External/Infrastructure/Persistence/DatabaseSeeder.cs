@@ -1,6 +1,7 @@
 ﻿namespace Infrastructure.Persistence;
 
 using Application.Helper;
+using Domain.Enums;
 
 public class DatabaseSeeder
 {
@@ -14,18 +15,21 @@ public class DatabaseSeeder
 
     public async Task SeedAsync()
     {
+        // Ensure the database is created and migrations are applied once before seeding.
+        await _context.Database.MigrateAsync();
+
         // Seed roles
         await SeedRolesAsync();
 
         // Seed user with username 09108592503
         await SeedUserAsync();
+
+        // Seed banner placements that the application depends on.
+        await SeedBannerPlacementsAsync();
     }
 
     private async Task SeedRolesAsync()
     {
-        // Ensure the database is created and migrations are applied
-        await _context.Database.MigrateAsync();
-
         var rolesNames = new[] { "Manager", "Supplier", "Customer", "Admin", "employee", "Developer", "Accountant" };
         foreach (var roleName in rolesNames)
         {
@@ -67,6 +71,77 @@ public class DatabaseSeeder
                 _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
             }
             await _context.SaveChangesAsync();
+        }
+    }
+    private async Task SeedBannerPlacementsAsync()
+    {
+        var placements = new[]
+        {
+            new BannerPlacement
+            {
+                Id = 3,
+                Name = "HOME TOP",
+                Code = BannerPageCode.HOME_TOP,
+                CreatedTime = new DateTime(2026, 2, 20, 9, 43, 36).AddTicks(2395852),
+                ModifiedTime = new DateTime(2026, 2, 20, 13, 13, 36).AddTicks(2392581)
+            },
+            new BannerPlacement
+            {
+                Id = 4,
+                Name = "HOME BOTTOM",
+                Code = BannerPageCode.HOME_BOTTOM,
+                CreatedTime = new DateTime(2026, 2, 20, 9, 43, 36).AddTicks(3233995),
+                ModifiedTime = new DateTime(2026, 2, 20, 13, 13, 36).AddTicks(3233956)
+            },
+            new BannerPlacement
+            {
+                Id = 5,
+                Name = "PRODUCT MID",
+                Code = BannerPageCode.PRODUCT_MID,
+                CreatedTime = new DateTime(2026, 2, 20, 9, 43, 36).AddTicks(3242640),
+                ModifiedTime = new DateTime(2026, 2, 20, 13, 13, 36).AddTicks(3242623)
+            },
+            new BannerPlacement
+            {
+                Id = 6,
+                Name = "PRODUCT TOP",
+                Code = BannerPageCode.PRODUCT_TOP,
+                CreatedTime = new DateTime(2026, 2, 20, 9, 43, 36).AddTicks(3243037),
+                ModifiedTime = new DateTime(2026, 2, 20, 13, 13, 36).AddTicks(3243029)
+            },
+            new BannerPlacement
+            {
+                Id = 7,
+                Name = "PRODUCT BOTTOM",
+                Code = BannerPageCode.PRODUCT_BOTTOM,
+                CreatedTime = new DateTime(2026, 2, 20, 9, 43, 36).AddTicks(3243338),
+                ModifiedTime = new DateTime(2026, 2, 20, 13, 13, 36).AddTicks(3243331)
+            }
+        };
+
+        foreach (var placement in placements)
+        {
+            await _context.Database.ExecuteSqlInterpolatedAsync($@"
+SET IDENTITY_INSERT [dbo].[BannerPlacement] ON;
+
+MERGE [dbo].[BannerPlacement] AS target
+USING (VALUES ({placement.Id}, {placement.Name}, {placement.Code.ToString()}, {placement.RecommendedSize}, {placement.CreatedBy}, {placement.CreatedTime}, {placement.ModifiedBy}, {placement.ModifiedTime}, {placement.IsDeleted}))
+    AS source ([Id], [Name], [Code], [RecommendedSize], [CreatedBy], [CreatedTime], [ModifiedBy], [ModifiedTime], [IsDeleted])
+ON target.[Code] = source.[Code]
+WHEN MATCHED THEN
+    UPDATE SET
+        [Name] = source.[Name],
+        [RecommendedSize] = source.[RecommendedSize],
+        [CreatedBy] = source.[CreatedBy],
+        [CreatedTime] = source.[CreatedTime],
+        [ModifiedBy] = source.[ModifiedBy],
+        [ModifiedTime] = source.[ModifiedTime],
+        [IsDeleted] = source.[IsDeleted]
+WHEN NOT MATCHED BY TARGET THEN
+    INSERT ([Id], [Name], [Code], [RecommendedSize], [CreatedBy], [CreatedTime], [ModifiedBy], [ModifiedTime], [IsDeleted])
+    VALUES (source.[Id], source.[Name], source.[Code], source.[RecommendedSize], source.[CreatedBy], source.[CreatedTime], source.[ModifiedBy], source.[ModifiedTime], source.[IsDeleted]);
+
+SET IDENTITY_INSERT [dbo].[BannerPlacement] OFF;");
         }
     }
 }
