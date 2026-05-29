@@ -8,21 +8,21 @@ public class ProductStock : BaseModel<long>
     public int MinimumStockLevel { get; set; }
 
     public int? WarehouseId { get; set; }    // Optional foreign key to Warehouse
-    public Warehouse Warehouse { get; set; }
+    public Warehouse? Warehouse { get; set; }
 
     public int? SpaceId { get; set; }
-    public StorageSpace Space { get; set; }
+    public StorageSpace? Space { get; set; }
     public int? ZoneId { get; set; }
-    public StorageZone Zone { get; set; }
+    public StorageZone? Zone { get; set; }
     public int? ShelfId { get; set; }
-    public Shelf Shelf { get; set; }
+    public Shelf? Shelf { get; set; }
     public long? ProductInventoryBatchId { get; set; }
-    public ProductInventoryBatch ProductInventoryBatch { get; set; }
+    public ProductInventoryBatch? ProductInventoryBatch { get; set; }
     public int? ProductVariantOptionId { get; set; }
-    public ProductVariantOption ProductVariantOption { get; set; }
+    public ProductVariantOption? ProductVariantOption { get; set; }
     public int ReservedQuantity { get; set; }
-    public string Sku { get; set; }
-    public string LocationNote { get; set; }
+    public string? Sku { get; set; }
+    public string? LocationNote { get; set; }
 
     public int AvailableQuantity => Math.Max(0, Quantity - ReservedQuantity);
 

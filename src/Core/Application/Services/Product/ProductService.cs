@@ -202,11 +202,11 @@ public class ProductService : IProductService
                     DisplayOrder = variant.DisplayOrder ?? 0
                 };
                 
-                foreach (var opt in variant.Options)
+                foreach (var opt in variant.Options ?? Enumerable.Empty<VariantOptionDto>())
                 {
                     definition.Options.Add(new ProductVariantOption
                     {
-                        Value = opt.Value,
+                        Value = opt.Name ?? opt.Value,
                         DisplayOrder = 0,
                         OptionValue = opt.Value,
                         PriceAdjustment = opt.PriceAdjustment,

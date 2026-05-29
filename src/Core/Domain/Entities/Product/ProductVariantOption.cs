@@ -9,6 +9,7 @@ public class ProductVariantOption : BaseModel<int>
     // New fields to match frontend’s richer option data
     public string OptionValue { get; set; }          // e.g., “#FF0000” for colors
     public decimal? PriceAdjustment { get; set; }
+    // UI/default stock input only. ProductStock records are the inventory source of truth.
     public int? StockQuantity { get; set; }
     public string? Sku { get; set; }
     public bool? IsAvailable { get; set; }
