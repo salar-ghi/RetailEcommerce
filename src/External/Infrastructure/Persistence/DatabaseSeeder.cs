@@ -26,6 +26,9 @@ public class DatabaseSeeder
 
         // Seed banner placements that the application depends on.
         await SeedBannerPlacementsAsync();
+
+        // Seed the default category tree used by the catalog.
+        await SeedCategoriesAsync();
     }
 
     private async Task SeedRolesAsync()
@@ -73,6 +76,82 @@ public class DatabaseSeeder
             await _context.SaveChangesAsync();
         }
     }
+
+    private async Task SeedCategoriesAsync()
+    {
+        var categoryTree = new[]
+        {
+            new CategorySeedItem(
+                "کالای دیجیتال",
+                new CategorySeedItem(
+                    "موبایل",
+                    new CategorySeedItem("گوشی موبایل"),
+                    new CategorySeedItem("لوازم جانبی موبایل")),
+                new CategorySeedItem(
+                    "کامپیوتر و لپ‌تاپ",
+                    new CategorySeedItem("لپ‌تاپ و الترابوک"),
+                    new CategorySeedItem("لوازم جانبی کامپیوتر"),
+                    new CategorySeedItem("مانیتور"))),
+            new CategorySeedItem(
+                "ورزش و سفر",
+                new CategorySeedItem(
+                    "تجهیزات",
+                    new CategorySeedItem("بدنسازی"),
+                    new CategorySeedItem("کوهنوردی")),
+                new CategorySeedItem("پوشاک ورزشی")),
+            new CategorySeedItem(
+                "عطر و ادکلن",
+                new CategorySeedItem("عطر مردانه"),
+                new CategorySeedItem("عطر زنانه"),
+                new CategorySeedItem("برندهای محبوب"))
+        };
+
+        foreach (var category in categoryTree)
+        {
+            await SeedCategoryAsync(category);
+        }
+    }
+
+    private async Task SeedCategoryAsync(CategorySeedItem categorySeed, int? parentId = null)
+    {
+        var category = await _context.Categories
+            .FirstOrDefaultAsync(c => c.Name == categorySeed.Name && c.ParentId == parentId);
+
+        if (category is null)
+        {
+            category = new Category
+            {
+                Name = categorySeed.Name,
+                Description = categorySeed.Description,
+                ParentId = parentId,
+                ImageUrl = categorySeed.ImageUrl
+            };
+
+            _context.Categories.Add(category);
+            await _context.SaveChangesAsync();
+        }
+
+        foreach (var childCategory in categorySeed.Children)
+        {
+            await SeedCategoryAsync(childCategory, category.Id);
+        }
+    }
+
+    private sealed class CategorySeedItem
+    {
+        public CategorySeedItem(string name, params CategorySeedItem[] children)
+        {
+            Name = name;
+            Description = name;
+            Children = children;
+        }
+
+        public string Name { get; }
+        public string Description { get; init; }
+        public string? ImageUrl { get; init; }
+        public IReadOnlyCollection<CategorySeedItem> Children { get; }
+    }
+
     private async Task SeedBannerPlacementsAsync()
     {
         var placements = new[]
