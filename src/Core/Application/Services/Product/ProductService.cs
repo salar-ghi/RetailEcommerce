@@ -28,9 +28,9 @@ public class ProductService : IProductService
                 .Include(p => p.Tags).ThenInclude(pt => pt.Tag));
         
         var productDto = _mapper.Map<IEnumerable<ProductDto>>(products);
-        var images = new List<string>();
         foreach (var dto in productDto)
         {
+            var images = new List<string>();
             foreach (var item in dto.Images)
             {
                 if (string.IsNullOrEmpty(item))
@@ -92,12 +92,10 @@ public class ProductService : IProductService
 
         product.StorageLocationNote = dto.Location ?? dto.Stock?.Location;
 
-        if (dto.Stock != null)
-        {
-            product.SpaceId = dto.Stock.SpaceId;
-            product.ZoneId = dto.Stock.ZoneId;
-            product.ShelfId = dto.Stock.ShelfId;
-        }
+        var resolvedLocation = await ResolveStockLocationAsync(dto.Stock);
+        product.SpaceId = resolvedLocation.SpaceId;
+        product.ZoneId = resolvedLocation.ZoneId;
+        product.ShelfId = resolvedLocation.ShelfId;
 
         if (dto.Dimensions != null)
         {
@@ -221,10 +219,102 @@ public class ProductService : IProductService
             }
         }
 
+        AddInitialStock(product, dto.Stock, resolvedLocation);
+        await ApplyStorageUsageAsync(dto.Stock?.Quantity ?? 0, resolvedLocation);
+
         await _unitOfWork.Products.AddAsync(product);
         await _unitOfWork.SaveChangesAsync();
 
         return product;
+    }
+
+
+    private async Task<(int? SpaceId, int? ZoneId, int? ShelfId, Shelf? Shelf)> ResolveStockLocationAsync(StockDto? stock)
+    {
+        if (stock == null)
+            return (null, null, null, null);
+
+        Shelf? shelf = null;
+        var resolvedSpaceId = stock.SpaceId;
+        var resolvedZoneId = stock.ZoneId;
+
+        if (stock.ShelfId.HasValue)
+        {
+            shelf = await _unitOfWork.Shelves.GetByIdAsync(stock.ShelfId.Value);
+            if (shelf == null)
+                throw new KeyNotFoundException($"Shelf with ID {stock.ShelfId.Value} not found.");
+
+            if (resolvedSpaceId.HasValue && shelf.SpaceId != resolvedSpaceId.Value)
+                throw new InvalidOperationException("Selected shelf does not belong to selected storage space.");
+
+            if (resolvedZoneId.HasValue && shelf.ZoneId != resolvedZoneId.Value)
+                throw new InvalidOperationException("Selected shelf does not belong to selected zone.");
+
+            resolvedSpaceId ??= shelf.SpaceId;
+            resolvedZoneId ??= shelf.ZoneId;
+        }
+
+        if (resolvedZoneId.HasValue)
+        {
+            var zone = await _unitOfWork.StorageZones.GetByIdAsync(resolvedZoneId.Value);
+            if (zone == null)
+                throw new KeyNotFoundException($"Storage zone with ID {resolvedZoneId.Value} not found.");
+
+            if (resolvedSpaceId.HasValue && zone.SpaceId != resolvedSpaceId.Value)
+                throw new InvalidOperationException("Selected zone does not belong to selected storage space.");
+
+            resolvedSpaceId ??= zone.SpaceId;
+        }
+
+        if (resolvedSpaceId.HasValue)
+        {
+            var space = await _unitOfWork.StorageSpaces.GetByIdAsync(resolvedSpaceId.Value);
+            if (space == null)
+                throw new KeyNotFoundException($"Storage space with ID {resolvedSpaceId.Value} not found.");
+        }
+
+        return (resolvedSpaceId, resolvedZoneId, stock.ShelfId, shelf);
+    }
+
+    private static void AddInitialStock(Product product, StockDto? stock, (int? SpaceId, int? ZoneId, int? ShelfId, Shelf? Shelf) resolvedLocation)
+    {
+        if (stock?.Quantity is not > 0)
+            return;
+
+        product.Stocks.Add(new ProductStock
+        {
+            Quantity = stock.Quantity.Value,
+            ReservedQuantity = 0,
+            ReorderThreshold = stock.ReorderThreshold ?? 0,
+            MinimumStockLevel = stock.ReorderThreshold ?? 0,
+            WarehouseId = stock.WarehouseId,
+            SpaceId = resolvedLocation.SpaceId,
+            ZoneId = resolvedLocation.ZoneId,
+            ShelfId = resolvedLocation.ShelfId,
+            LocationNote = stock.Location
+        });
+    }
+
+    private async Task ApplyStorageUsageAsync(int quantity, (int? SpaceId, int? ZoneId, int? ShelfId, Shelf? Shelf) resolvedLocation)
+    {
+        if (quantity <= 0)
+            return;
+
+        if (resolvedLocation.SpaceId.HasValue)
+        {
+            var space = await _unitOfWork.StorageSpaces.GetByIdAsync(resolvedLocation.SpaceId.Value);
+            if (space != null)
+            {
+                space.Used += quantity;
+                await _unitOfWork.StorageSpaces.UpdateAsync(space);
+            }
+        }
+
+        if (resolvedLocation.Shelf != null)
+        {
+            resolvedLocation.Shelf.Used += quantity;
+            await _unitOfWork.Shelves.UpdateAsync(resolvedLocation.Shelf);
+        }
     }
 
     public async Task UpdateProductAsync(ProductDto productDto)
