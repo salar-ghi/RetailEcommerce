@@ -23,7 +23,7 @@ public class BrandRepository : Repository<Brand, int>, IBrandRepository
     public async Task<IEnumerable<Brand>> GetAllWithCategoryAsync()
     {
         return await _context.Brands
-            .Include(z => z.Products)
+            .Include(z => z.BrandCategories)
             .ThenInclude(x => x.Category)
             .Where(z => z.IsDeleted == false)
             .AsNoTracking()
