@@ -19,7 +19,17 @@ public class BrandService
     public async Task<IEnumerable<BrandDto>> GetAllBrandsAsync()
     {
         var brands = await _unitOfWork.Brands.GetAllWithCategoryAsync();
-        return _mapper.Map<IEnumerable<BrandDto>>(brands);
+        var brandDtos = _mapper.Map<List<BrandDto>>(brands);
+
+        foreach (var dto in brandDtos)
+        {
+            if (string.IsNullOrEmpty(dto.Logo))
+                continue;
+
+            dto.Logo = await _imageHelper.GetImageBase64(dto.Logo);
+        }
+
+        return brandDtos;
     }
 
     public async Task<BrandDto> GetBrandByIdAsync(int id)
