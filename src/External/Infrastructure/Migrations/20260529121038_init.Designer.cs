@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260509184126_updateProduct")]
-    partial class updateProduct
+    [Migration("20260529121038_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -796,9 +796,6 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int?>("ShelfId")
                         .HasColumnType("int");
 
@@ -1126,6 +1123,10 @@ namespace Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<string>("LocationNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<int>("MinimumStockLevel")
                         .HasColumnType("int");
 
@@ -1139,11 +1140,22 @@ namespace Infrastructure.Migrations
                     b.Property<long>("ProductId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("ProductInventoryBatchId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("ProductVariantOptionId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
                     b.Property<int>("ReorderThreshold")
                         .HasColumnType("int");
+
+                    b.Property<int>("ReservedQuantity")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -1151,17 +1163,40 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<int?>("ShelfId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Sku")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("SpaceId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("WarehouseId")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("WarehouseId1")
+                    b.Property<Guid?>("WarehouseId1")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("ZoneId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
 
+                    b.HasIndex("ProductInventoryBatchId");
+
+                    b.HasIndex("ProductVariantOptionId");
+
+                    b.HasIndex("ShelfId");
+
+                    b.HasIndex("SpaceId");
+
                     b.HasIndex("WarehouseId1");
+
+                    b.HasIndex("ZoneId");
 
                     b.ToTable("ProductStocks");
                 });
@@ -1365,7 +1400,8 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<long>("ProductId")
                         .HasColumnType("bigint");
@@ -1375,7 +1411,8 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
@@ -1419,25 +1456,31 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("OptionValue")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<decimal?>("PriceAdjustment")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Sku")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int?>("StockQuantity")
                         .HasColumnType("int");
 
                     b.Property<string>("Value")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("DefinitionId");
+
+                    b.HasIndex("Sku")
+                        .IsUnique()
+                        .HasFilter("[Sku] IS NOT NULL");
 
                     b.ToTable("ProductVariantOption");
                 });
@@ -1574,6 +1617,76 @@ namespace Infrastructure.Migrations
                     b.ToTable("Roles");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Shelf", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<int?>("Column")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("Level")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ModifiedTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("Row")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SpaceId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Used")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ZoneId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("SpaceId");
+
+                    b.HasIndex("ZoneId");
+
+                    b.ToTable("Shelves");
+                });
+
             modelBuilder.Entity("Domain.Entities.StockReservation", b =>
                 {
                     b.Property<int>("Id")
@@ -1618,6 +1731,125 @@ namespace Infrastructure.Migrations
                     b.HasIndex("ProductStockId");
 
                     b.ToTable("StockReservation");
+                });
+
+            modelBuilder.Entity("Domain.Entities.StorageSpace", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ModifiedTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Used")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasFilter("[Code] IS NOT NULL");
+
+                    b.ToTable("StorageSpaces");
+                });
+
+            modelBuilder.Entity("Domain.Entities.StorageZone", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ModifiedTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("SpaceId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SpaceId");
+
+                    b.ToTable("StorageZones");
                 });
 
             modelBuilder.Entity("Domain.Entities.Supplier", b =>
@@ -2318,20 +2550,53 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.ProductStock", b =>
                 {
                     b.HasOne("Domain.Entities.Product", "Product")
-                        .WithMany()
+                        .WithMany("Stocks")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Domain.Entities.ProductInventoryBatch", "ProductInventoryBatch")
+                        .WithMany()
+                        .HasForeignKey("ProductInventoryBatchId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Domain.Entities.ProductVariantOption", "ProductVariantOption")
+                        .WithMany()
+                        .HasForeignKey("ProductVariantOptionId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Domain.Entities.Shelf", "Shelf")
+                        .WithMany("ProductStocks")
+                        .HasForeignKey("ShelfId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Domain.Entities.StorageSpace", "Space")
+                        .WithMany("ProductStocks")
+                        .HasForeignKey("SpaceId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Domain.Entities.Warehouse", "Warehouse")
                         .WithMany("InventoryItems")
-                        .HasForeignKey("WarehouseId1")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("WarehouseId1");
+
+                    b.HasOne("Domain.Entities.StorageZone", "Zone")
+                        .WithMany("ProductStocks")
+                        .HasForeignKey("ZoneId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Product");
 
+                    b.Navigation("ProductInventoryBatch");
+
+                    b.Navigation("ProductVariantOption");
+
+                    b.Navigation("Shelf");
+
+                    b.Navigation("Space");
+
                     b.Navigation("Warehouse");
+
+                    b.Navigation("Zone");
                 });
 
             modelBuilder.Entity("Domain.Entities.ProductSupplier", b =>
@@ -2427,6 +2692,24 @@ namespace Infrastructure.Migrations
                     b.Navigation("Promotion");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Shelf", b =>
+                {
+                    b.HasOne("Domain.Entities.StorageSpace", "Space")
+                        .WithMany("Shelves")
+                        .HasForeignKey("SpaceId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.StorageZone", "Zone")
+                        .WithMany("Shelves")
+                        .HasForeignKey("ZoneId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Space");
+
+                    b.Navigation("Zone");
+                });
+
             modelBuilder.Entity("Domain.Entities.StockReservation", b =>
                 {
                     b.HasOne("Domain.Entities.ProductStock", "ProductStock")
@@ -2436,6 +2719,17 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("ProductStock");
+                });
+
+            modelBuilder.Entity("Domain.Entities.StorageZone", b =>
+                {
+                    b.HasOne("Domain.Entities.StorageSpace", "Space")
+                        .WithMany("Zones")
+                        .HasForeignKey("SpaceId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Space");
                 });
 
             modelBuilder.Entity("Domain.Entities.Supplier", b =>
@@ -2534,6 +2828,8 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Reviews");
 
+                    b.Navigation("Stocks");
+
                     b.Navigation("Suppliers");
 
                     b.Navigation("Tags");
@@ -2569,6 +2865,27 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Role", b =>
                 {
                     b.Navigation("UserRoles");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Shelf", b =>
+                {
+                    b.Navigation("ProductStocks");
+                });
+
+            modelBuilder.Entity("Domain.Entities.StorageSpace", b =>
+                {
+                    b.Navigation("ProductStocks");
+
+                    b.Navigation("Shelves");
+
+                    b.Navigation("Zones");
+                });
+
+            modelBuilder.Entity("Domain.Entities.StorageZone", b =>
+                {
+                    b.Navigation("ProductStocks");
+
+                    b.Navigation("Shelves");
                 });
 
             modelBuilder.Entity("Domain.Entities.Supplier", b =>

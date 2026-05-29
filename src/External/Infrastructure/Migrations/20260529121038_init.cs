@@ -12,6 +12,57 @@ namespace Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "BannerPlacement",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    RecommendedSize = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ModifiedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BannerPlacement", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Banners",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    AltText = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    Link = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    CallToActionText = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    Type = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Size = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    Priority = table.Column<int>(type: "int", nullable: false),
+                    ClickCount = table.Column<int>(type: "int", nullable: false),
+                    ViewCount = table.Column<int>(type: "int", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ModifiedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Banners", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Brands",
                 columns: table => new
                 {
@@ -100,6 +151,31 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "StorageSpaces",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    Capacity = table.Column<int>(type: "int", nullable: false),
+                    Used = table.Column<int>(type: "int", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ModifiedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StorageSpaces", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Tags",
                 columns: table => new
                 {
@@ -170,6 +246,36 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "BannerPlacementMap",
+                columns: table => new
+                {
+                    BannerId = table.Column<int>(type: "int", nullable: false),
+                    PlacementId = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ModifiedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BannerPlacementMap", x => new { x.BannerId, x.PlacementId });
+                    table.ForeignKey(
+                        name: "FK_BannerPlacementMap_BannerPlacement_PlacementId",
+                        column: x => x.PlacementId,
+                        principalTable: "BannerPlacement",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_BannerPlacementMap_Banners_BannerId",
+                        column: x => x.BannerId,
+                        principalTable: "Banners",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "BrandCategories",
                 columns: table => new
                 {
@@ -229,9 +335,13 @@ namespace Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: true),
+                    Availability = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    SpaceId = table.Column<int>(type: "int", nullable: true),
+                    ZoneId = table.Column<int>(type: "int", nullable: true),
+                    ShelfId = table.Column<int>(type: "int", nullable: true),
+                    StorageLocationNote = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
                     BrandId = table.Column<int>(type: "int", nullable: false),
                     BrandId1 = table.Column<int>(type: "int", nullable: true),
@@ -343,6 +453,33 @@ namespace Infrastructure.Migrations
                         principalTable: "Promotions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StorageZones",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SpaceId = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ModifiedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StorageZones", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_StorageZones_StorageSpaces_SpaceId",
+                        column: x => x.SpaceId,
+                        principalTable: "StorageSpaces",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -499,6 +636,40 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "InventoryBatch",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    BatchNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CostPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    SellingPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Currency = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PricingTier = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    EffectiveDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    SoldQuantity = table.Column<int>(type: "int", nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ProductId = table.Column<long>(type: "bigint", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ModifiedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_InventoryBatch", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_InventoryBatch_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ProductAttributes",
                 columns: table => new
                 {
@@ -534,7 +705,8 @@ namespace Infrastructure.Migrations
                     Width = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Height = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Weight = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Unit = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    DimensionUnit = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    WeightUnit = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     ProductId = table.Column<long>(type: "bigint", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -639,42 +811,6 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductStocks",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
-                    ReorderThreshold = table.Column<int>(type: "int", nullable: false),
-                    MinimumStockLevel = table.Column<int>(type: "int", nullable: false),
-                    WarehouseId = table.Column<int>(type: "int", nullable: true),
-                    WarehouseId1 = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ProductId = table.Column<long>(type: "bigint", nullable: false),
-                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
-                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ModifiedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProductStocks", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ProductStocks_Products_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Products",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ProductStocks_Warehouse_WarehouseId1",
-                        column: x => x.WarehouseId1,
-                        principalTable: "Warehouse",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ProductTags",
                 columns: table => new
                 {
@@ -713,8 +849,6 @@ namespace Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Currency = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PricingTier = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    EffectiveDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ProductId = table.Column<long>(type: "bigint", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -727,6 +861,34 @@ namespace Infrastructure.Migrations
                     table.PrimaryKey("PK_ProductUnitPrices", x => x.Id);
                     table.ForeignKey(
                         name: "FK_ProductUnitPrices_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProductVariantDefinition",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Required = table.Column<bool>(type: "bit", nullable: false),
+                    DisplayOrder = table.Column<int>(type: "int", nullable: false),
+                    ProductId = table.Column<long>(type: "bigint", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ModifiedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductVariantDefinition", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProductVariantDefinition_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
@@ -759,6 +921,43 @@ namespace Infrastructure.Migrations
                         principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Shelves",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SpaceId = table.Column<int>(type: "int", nullable: false),
+                    ZoneId = table.Column<int>(type: "int", nullable: true),
+                    Code = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Level = table.Column<int>(type: "int", nullable: true),
+                    Row = table.Column<int>(type: "int", nullable: true),
+                    Column = table.Column<int>(type: "int", nullable: true),
+                    Capacity = table.Column<int>(type: "int", nullable: false),
+                    Used = table.Column<int>(type: "int", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ModifiedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Shelves", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Shelves_StorageSpaces_SpaceId",
+                        column: x => x.SpaceId,
+                        principalTable: "StorageSpaces",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Shelves_StorageZones_ZoneId",
+                        column: x => x.ZoneId,
+                        principalTable: "StorageZones",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -956,6 +1155,105 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ProductVariantOption",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Value = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    DisplayOrder = table.Column<int>(type: "int", nullable: false),
+                    OptionValue = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    PriceAdjustment = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    StockQuantity = table.Column<int>(type: "int", nullable: true),
+                    Sku = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    IsAvailable = table.Column<bool>(type: "bit", nullable: true),
+                    DefinitionId = table.Column<int>(type: "int", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ModifiedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductVariantOption", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProductVariantOption_ProductVariantDefinition_DefinitionId",
+                        column: x => x.DefinitionId,
+                        principalTable: "ProductVariantDefinition",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProductStocks",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    ReorderThreshold = table.Column<int>(type: "int", nullable: false),
+                    MinimumStockLevel = table.Column<int>(type: "int", nullable: false),
+                    WarehouseId = table.Column<int>(type: "int", nullable: true),
+                    WarehouseId1 = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    SpaceId = table.Column<int>(type: "int", nullable: true),
+                    ZoneId = table.Column<int>(type: "int", nullable: true),
+                    ShelfId = table.Column<int>(type: "int", nullable: true),
+                    ProductInventoryBatchId = table.Column<long>(type: "bigint", nullable: true),
+                    ProductVariantOptionId = table.Column<int>(type: "int", nullable: true),
+                    ReservedQuantity = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    Sku = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    LocationNote = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    ProductId = table.Column<long>(type: "bigint", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ModifiedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductStocks", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProductStocks_InventoryBatch_ProductInventoryBatchId",
+                        column: x => x.ProductInventoryBatchId,
+                        principalTable: "InventoryBatch",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_ProductStocks_ProductVariantOption_ProductVariantOptionId",
+                        column: x => x.ProductVariantOptionId,
+                        principalTable: "ProductVariantOption",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_ProductStocks_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ProductStocks_Shelves_ShelfId",
+                        column: x => x.ShelfId,
+                        principalTable: "Shelves",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_ProductStocks_StorageSpaces_SpaceId",
+                        column: x => x.SpaceId,
+                        principalTable: "StorageSpaces",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_ProductStocks_StorageZones_ZoneId",
+                        column: x => x.ZoneId,
+                        principalTable: "StorageZones",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_ProductStocks_Warehouse_WarehouseId1",
+                        column: x => x.WarehouseId1,
+                        principalTable: "Warehouse",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "InventoryTransaction",
                 columns: table => new
                 {
@@ -1013,6 +1311,11 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_BannerPlacementMap_PlacementId",
+                table: "BannerPlacementMap",
+                column: "PlacementId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_BasketItems_BasketId",
                 table: "BasketItems",
                 column: "BasketId");
@@ -1062,6 +1365,11 @@ namespace Infrastructure.Migrations
                 name: "IX_Discounts_PromotionId",
                 table: "Discounts",
                 column: "PromotionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InventoryBatch_ProductId",
+                table: "InventoryBatch",
+                column: "ProductId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_InventoryTransaction_ProductStockId",
@@ -1162,13 +1470,37 @@ namespace Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_ProductStocks_ProductId",
                 table: "ProductStocks",
-                column: "ProductId",
-                unique: true);
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductStocks_ProductInventoryBatchId",
+                table: "ProductStocks",
+                column: "ProductInventoryBatchId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductStocks_ProductVariantOptionId",
+                table: "ProductStocks",
+                column: "ProductVariantOptionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductStocks_ShelfId",
+                table: "ProductStocks",
+                column: "ShelfId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductStocks_SpaceId",
+                table: "ProductStocks",
+                column: "SpaceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProductStocks_WarehouseId1",
                 table: "ProductStocks",
                 column: "WarehouseId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductStocks_ZoneId",
+                table: "ProductStocks",
+                column: "ZoneId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProductSuppliers_ProductId",
@@ -1196,6 +1528,23 @@ namespace Infrastructure.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ProductVariantDefinition_ProductId",
+                table: "ProductVariantDefinition",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductVariantOption_DefinitionId",
+                table: "ProductVariantOption",
+                column: "DefinitionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductVariantOption_Sku",
+                table: "ProductVariantOption",
+                column: "Sku",
+                unique: true,
+                filter: "[Sku] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ProductVariants_ProductId",
                 table: "ProductVariants",
                 column: "ProductId");
@@ -1206,9 +1555,37 @@ namespace Infrastructure.Migrations
                 column: "PromotionId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Shelves_Code",
+                table: "Shelves",
+                column: "Code",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Shelves_SpaceId",
+                table: "Shelves",
+                column: "SpaceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Shelves_ZoneId",
+                table: "Shelves",
+                column: "ZoneId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_StockReservation_ProductStockId",
                 table: "StockReservation",
                 column: "ProductStockId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StorageSpaces_Code",
+                table: "StorageSpaces",
+                column: "Code",
+                unique: true,
+                filter: "[Code] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StorageZones_SpaceId",
+                table: "StorageZones",
+                column: "SpaceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Suppliers_UserId",
@@ -1243,6 +1620,9 @@ namespace Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "BannerPlacementMap");
+
             migrationBuilder.DropTable(
                 name: "BasketItems");
 
@@ -1313,6 +1693,12 @@ namespace Infrastructure.Migrations
                 name: "UserRoles");
 
             migrationBuilder.DropTable(
+                name: "BannerPlacement");
+
+            migrationBuilder.DropTable(
+                name: "Banners");
+
+            migrationBuilder.DropTable(
                 name: "Baskets");
 
             migrationBuilder.DropTable(
@@ -1337,10 +1723,28 @@ namespace Infrastructure.Migrations
                 name: "Users");
 
             migrationBuilder.DropTable(
-                name: "Products");
+                name: "InventoryBatch");
+
+            migrationBuilder.DropTable(
+                name: "ProductVariantOption");
+
+            migrationBuilder.DropTable(
+                name: "Shelves");
 
             migrationBuilder.DropTable(
                 name: "Warehouse");
+
+            migrationBuilder.DropTable(
+                name: "ProductVariantDefinition");
+
+            migrationBuilder.DropTable(
+                name: "StorageZones");
+
+            migrationBuilder.DropTable(
+                name: "Products");
+
+            migrationBuilder.DropTable(
+                name: "StorageSpaces");
 
             migrationBuilder.DropTable(
                 name: "Brands");
