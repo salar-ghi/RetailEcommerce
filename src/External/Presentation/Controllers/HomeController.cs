@@ -22,18 +22,17 @@ public class HomeController : ControllerBase
     [HttpGet("Index")]
     public async Task<ActionResult<HomeIndexDto>> Index()
     {
-        var topBannersTask = _bannerService.GetByPlacementAsync(BannerPageCode.HOME_TOP);
-        var bottomBannersTask = _bannerService.GetByPlacementAsync(BannerPageCode.HOME_BOTTOM);
-        var productsTask = _productService.GetAllProductsAsync();
-
-        await Task.WhenAll(topBannersTask, bottomBannersTask, productsTask);
-
-        var allProducts = productsTask.Result.ToList();
+        // These service calls share the request-scoped UnitOfWork/DbContext, so they must not
+        // run in parallel. EF Core DbContext instances are not thread-safe and will throw
+        // if a second query starts before the previous query has completed.
+        var topBanners = await _bannerService.GetByPlacementAsync(BannerPageCode.HOME_TOP);
+        var bottomBanners = await _bannerService.GetByPlacementAsync(BannerPageCode.HOME_BOTTOM);
+        var allProducts = (await _productService.GetAllProductsAsync()).ToList();
         var digitalProducts = ProductsByCategory(allProducts, DigitalCategoryName).ToList();
 
         var model = new HomeIndexDto(
-            HeroBanners: topBannersTask.Result.Select(ToHomeBanner).ToList(),
-            PromoBanners: bottomBannersTask.Result.Select(ToHomeBanner).ToList(),
+            HeroBanners: topBanners.Select(ToHomeBanner).ToList(),
+            PromoBanners: bottomBanners.Select(ToHomeBanner).ToList(),
             ProductCarousels: new List<HomeProductCarouselDto>
             {
                 new(
