@@ -27,7 +27,7 @@ public class StorageZoneConfiguration : IEntityTypeConfiguration<StorageZone>
         builder.HasOne(z => z.Space)
             .WithMany(s => s.Zones)
             .HasForeignKey(z => z.SpaceId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }
 
@@ -43,10 +43,10 @@ public class ShelfConfiguration : IEntityTypeConfiguration<Shelf>
         builder.HasOne(s => s.Space)
             .WithMany(sp => sp.Shelves)
             .HasForeignKey(s => s.SpaceId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
         builder.HasOne(s => s.Zone)
             .WithMany(z => z.Shelves)
             .HasForeignKey(s => s.ZoneId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

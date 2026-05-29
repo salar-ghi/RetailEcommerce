@@ -45,6 +45,21 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .WithOne(bi => bi.Product)
             .HasForeignKey(bi => bi.ProductId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(p => p.Batches)
+               .WithOne(b => b.Product)
+               .HasForeignKey(b => b.ProductId)
+               .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(p => p.Stocks)
+               .WithOne(s => s.Product)
+               .HasForeignKey(s => s.ProductId)
+               .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(p => p.VariantDefinitions)
+               .WithOne(v => v.Product)
+               .HasForeignKey(v => v.ProductId)
+               .OnDelete(DeleteBehavior.Cascade);
     }
 }
 
@@ -54,6 +69,11 @@ public class ProductInventoryBatchConfiguration : IEntityTypeConfiguration<Produ
     {
         builder.HasKey(pa => pa.Id);
         builder.Property(pa => pa.Id).ValueGeneratedOnAdd();
+
+        builder.HasOne(pa => pa.Product)
+            .WithMany(p => p.Batches)
+            .HasForeignKey(pa => pa.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
 
@@ -63,6 +83,14 @@ public class ProductVariantDefinitionConfiguration : IEntityTypeConfiguration<Pr
     {
         builder.HasKey(pa => pa.Id);
         builder.Property(pa => pa.Id).ValueGeneratedOnAdd();
+
+        builder.Property(pa => pa.Name).IsRequired().HasMaxLength(100);
+        builder.Property(pa => pa.Type).IsRequired().HasMaxLength(50);
+
+        builder.HasOne(pa => pa.Product)
+            .WithMany(p => p.VariantDefinitions)
+            .HasForeignKey(pa => pa.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
 
@@ -72,6 +100,20 @@ public class ProductVariantOptionConfiguration : IEntityTypeConfiguration<Produc
     {
         builder.HasKey(pa => pa.Id);
         builder.Property(pa => pa.Id).ValueGeneratedOnAdd();
+
+        builder.Property(pa => pa.Value).IsRequired().HasMaxLength(200);
+        builder.Property(pa => pa.OptionValue).IsRequired().HasMaxLength(200);
+        builder.Property(pa => pa.Sku).HasMaxLength(100);
+        builder.Property(pa => pa.PriceAdjustment).HasColumnType("decimal(18,2)");
+
+        builder.HasOne(pa => pa.Definition)
+            .WithMany(d => d.Options)
+            .HasForeignKey(pa => pa.DefinitionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(pa => pa.Sku)
+            .IsUnique()
+            .HasFilter("[Sku] IS NOT NULL");
     }
 }
 
@@ -134,6 +176,7 @@ public class ProductStockConfiguration : IEntityTypeConfiguration<ProductStock>
         builder.HasKey(ps => ps.Id);
         builder.Property(ps => ps.Id).ValueGeneratedOnAdd();
         builder.Property(ps => ps.Quantity).IsRequired();
+        builder.Property(ps => ps.ReservedQuantity).HasDefaultValue(0);
         builder.Property(ps => ps.Sku).HasMaxLength(100);
         builder.Property(ps => ps.LocationNote).HasMaxLength(500);
         builder.Ignore(ps => ps.AvailableQuantity);
@@ -146,27 +189,27 @@ public class ProductStockConfiguration : IEntityTypeConfiguration<ProductStock>
         builder.HasOne(ps => ps.Space)
             .WithMany(s => s.ProductStocks)
             .HasForeignKey(ps => ps.SpaceId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(ps => ps.Zone)
             .WithMany(z => z.ProductStocks)
             .HasForeignKey(ps => ps.ZoneId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(ps => ps.Shelf)
             .WithMany(s => s.ProductStocks)
             .HasForeignKey(ps => ps.ShelfId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(ps => ps.ProductInventoryBatch)
             .WithMany()
             .HasForeignKey(ps => ps.ProductInventoryBatchId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(ps => ps.ProductVariantOption)
             .WithMany()
             .HasForeignKey(ps => ps.ProductVariantOptionId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }
 
