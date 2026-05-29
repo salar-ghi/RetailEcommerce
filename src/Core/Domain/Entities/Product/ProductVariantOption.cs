@@ -10,7 +10,7 @@ public class ProductVariantOption : BaseModel<int>
     public string OptionValue { get; set; }          // e.g., “#FF0000” for colors
     public decimal? PriceAdjustment { get; set; }
     public int? StockQuantity { get; set; }
-    public string Sku { get; set; }
+    public string? Sku { get; set; }
     public bool? IsAvailable { get; set; }
 
     public int DefinitionId { get; set; }
