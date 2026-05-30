@@ -8,6 +8,9 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
         builder.Property(c => c.Id).ValueGeneratedOnAdd();
         builder.Property(c => c.Name).IsRequired().HasMaxLength(100);
         builder.Property(c => c.ImageUrl).HasMaxLength(500);
+        builder.HasIndex(c => c.Name)
+               .IsUnique()
+               .HasFilter("[IsDeleted] = 0");
         builder.HasMany(c => c.Attributes)
                .WithOne(a => a.Category)
                .HasForeignKey(a => a.CategoryId)

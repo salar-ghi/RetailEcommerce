@@ -29,4 +29,14 @@ public class BrandRepository : Repository<Brand, int>, IBrandRepository
             .AsNoTracking()
             .ToListAsync();
     }
+
+    public async Task<bool> ExistsByNameAsync(string normalizedName, int? excludedId = null)
+    {
+        return await _context.Brands
+            .AsNoTracking()
+            .AnyAsync(brand =>
+                !brand.IsDeleted &&
+                (excludedId == null || brand.Id != excludedId.Value) &&
+                brand.Name.Trim().ToLower() == normalizedName);
+    }
 }
