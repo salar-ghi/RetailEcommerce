@@ -70,6 +70,17 @@ public class BrandService
         var brand = await _unitOfWork.Brands.GetByIdAsync(brandDto.Id);
         if (brand == null) throw new KeyNotFoundException($"Brand with ID {brandDto.Id} not found.");
 
+        const string subFolder = "images/brands";
+        if (!string.IsNullOrWhiteSpace(brandDto.Logo) &&
+            brandDto.Logo.StartsWith("data:image", StringComparison.OrdinalIgnoreCase))
+        {
+            brandDto.Logo = await _imageHelper.SaveBase64Image(brandDto.Logo, subFolder, "brand");
+        }
+        else if (string.IsNullOrWhiteSpace(brandDto.Logo))
+        {
+            brandDto.Logo = brand.ImageUrl;
+        }
+
         _mapper.Map(brandDto, brand);
         await _unitOfWork.Brands.UpdateAsync(brand);
         await _unitOfWork.SaveChangesAsync();
