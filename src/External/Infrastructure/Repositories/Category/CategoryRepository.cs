@@ -36,4 +36,14 @@ public class CategoryRepository : Repository<Category, int>, ICategoryRepository
             .AsNoTracking()
             .ToListAsync();
     }
+
+    public async Task<bool> ExistsByNameAsync(string normalizedName, int? excludedId = null)
+    {
+        return await _context.Categories
+            .AsNoTracking()
+            .AnyAsync(category =>
+                !category.IsDeleted &&
+                (excludedId == null || category.Id != excludedId.Value) &&
+                category.Name.Trim().ToLower() == normalizedName);
+    }
 }

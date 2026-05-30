@@ -67,31 +67,38 @@ public class CategoryService
 
     public async Task AddCategoryAsync(CategoryDto categoryDto)
     {
-        try
+        categoryDto.Name = NormalizeName(categoryDto.Name, nameof(categoryDto.Name));
+
+        if (await _unitOfWork.Categories.ExistsByNameAsync(categoryDto.Name.ToLower()))
         {
-            //string imagePath = null;
-            if (categoryDto.Image != null)
+            throw new ArgumentException($"Category with name '{categoryDto.Name}' already exists.");
+        }
+
+        if (categoryDto.Image != null)
+        {
+            const string subFolder = "images/categories";
+            if (!string.IsNullOrWhiteSpace(categoryDto.Image))
             {
-                const string subFolder = "images/categories";
-                if (!string.IsNullOrWhiteSpace(categoryDto.Image))
-                {
-                    categoryDto.Image = await _imageHelper.SaveBase64Image(categoryDto.Image, subFolder, "category");
-                }
+                categoryDto.Image = await _imageHelper.SaveBase64Image(categoryDto.Image, subFolder, "category");
             }
-            var category = _mapper.Map<Category>(categoryDto);
-            await _unitOfWork.Categories.AddAsync(category);
-            await _unitOfWork.SaveChangesAsync();
         }
-        catch (Exception ex)
-        {
-            throw ex;
-        }
+
+        var category = _mapper.Map<Category>(categoryDto);
+        await _unitOfWork.Categories.AddAsync(category);
+        await _unitOfWork.SaveChangesAsync();
     }
 
     public async Task UpdateCategoryAsync(CategoryDto categoryDto)
     {
         var category = await _unitOfWork.Categories.GetByIdAsync(categoryDto.Id);
         if (category == null) throw new KeyNotFoundException($"Category with ID {categoryDto.Id} not found.");
+
+        categoryDto.Name = NormalizeName(categoryDto.Name, nameof(categoryDto.Name));
+
+        if (await _unitOfWork.Categories.ExistsByNameAsync(categoryDto.Name.ToLower(), categoryDto.Id))
+        {
+            throw new ArgumentException($"Category with name '{categoryDto.Name}' already exists.");
+        }
 
         string imagePath = null;
         const string subFolder = "images/categories";
@@ -125,5 +132,15 @@ public class CategoryService
     {
         var categories = await _unitOfWork.Categories.SearchByDescriptionAsync(description);
         return _mapper.Map<IEnumerable<CategoryDto>>(categories);
+    }
+
+    private static string NormalizeName(string name, string parameterName)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("Category name is required.", parameterName);
+        }
+
+        return name.Trim();
     }
 }

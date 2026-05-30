@@ -41,6 +41,13 @@ public class BrandService
 
     public async Task AddBrandAsync(BrandDto brandDto)
     {
+        brandDto.Name = NormalizeName(brandDto.Name, nameof(brandDto.Name));
+
+        if (await _unitOfWork.Brands.ExistsByNameAsync(brandDto.Name.ToLower()))
+        {
+            throw new ArgumentException($"Brand with name '{brandDto.Name}' already exists.");
+        }
+
         if (brandDto.Logo != null)
         {
             const string subFolder = "images/brands";
@@ -69,6 +76,13 @@ public class BrandService
     {
         var brand = await _unitOfWork.Brands.GetByIdAsync(brandDto.Id);
         if (brand == null) throw new KeyNotFoundException($"Brand with ID {brandDto.Id} not found.");
+
+        brandDto.Name = NormalizeName(brandDto.Name, nameof(brandDto.Name));
+
+        if (await _unitOfWork.Brands.ExistsByNameAsync(brandDto.Name.ToLower(), brandDto.Id))
+        {
+            throw new ArgumentException($"Brand with name '{brandDto.Name}' already exists.");
+        }
 
         const string subFolder = "images/brands";
         if (!string.IsNullOrWhiteSpace(brandDto.Logo) &&
@@ -106,5 +120,15 @@ public class BrandService
     {
         var brands = await _unitOfWork.Brands.SearchByDescriptionAsync(description);
         return _mapper.Map<IEnumerable<BrandDto>>(brands);
+    }
+
+    private static string NormalizeName(string name, string parameterName)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("Brand name is required.", parameterName);
+        }
+
+        return name.Trim();
     }
 }

@@ -9,6 +9,9 @@ public class BrandConfiguration : IEntityTypeConfiguration<Brand>
         builder.Property(b => b.Name).IsRequired().HasMaxLength(100);
         builder.Property(b => b.ImageUrl).HasMaxLength(500);
         builder.Property(b => b.Description).IsRequired(false).HasMaxLength(1000);
+        builder.HasIndex(b => b.Name)
+            .IsUnique()
+            .HasFilter("[IsDeleted] = 0");
     }
 }
 
