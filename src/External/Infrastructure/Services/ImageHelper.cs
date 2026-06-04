@@ -49,6 +49,78 @@ public class ImageHelper : IImageHelper
 
     public async Task<string> SaveBase64Image(string dataUrl, string subFolder, string imagePrefix)
     {
+        var parsedImage = ParseBase64Image(dataUrl);
+        if (parsedImage == null)
+            return null;
+
+        string folderPath = Path.Combine(_env.ContentRootPath, subFolder);
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
+
+        var existingRelativePath = await FindExistingImagePathAsync(
+            folderPath,
+            subFolder,
+            parsedImage.Bytes,
+            parsedImage.Hash,
+            parsedImage.Extension,
+            imagePrefix);
+
+        if (existingRelativePath != null)
+            return existingRelativePath;
+
+        var fileName = $"{imagePrefix}-{parsedImage.Hash}{parsedImage.Extension}";
+        var filePath = Path.Combine(folderPath, fileName);
+
+        if (!File.Exists(filePath))
+        {
+            await File.WriteAllBytesAsync(filePath, parsedImage.Bytes);
+        }
+
+        // return relative path for the client, e.g. "images/categories/xyz.jpg"
+        return BuildRelativePath(subFolder, fileName);
+    }
+
+    public async Task<string> SaveBase64ImageIfChanged(
+        string dataUrl,
+        string? existingImageUrl,
+        string subFolder,
+        string imagePrefix)
+    {
+        var parsedImage = ParseBase64Image(dataUrl);
+        if (parsedImage == null)
+            return existingImageUrl;
+
+        if (!string.IsNullOrWhiteSpace(existingImageUrl) &&
+            await ImageMatchesExistingFileAsync(existingImageUrl, parsedImage.Bytes))
+        {
+            return existingImageUrl;
+        }
+
+        return await SaveBase64Image(dataUrl, subFolder, imagePrefix);
+    }
+
+    public async Task<string> GetImageBase64(string imageUrl)
+    {
+        string relativePath = imageUrl.TrimStart('/');
+        string filePath = Path.Combine(_env.ContentRootPath, relativePath);
+
+        if (!File.Exists(filePath))
+            return null;
+
+        var bytes = await File.ReadAllBytesAsync(filePath);
+        var base64 = Convert.ToBase64String(bytes);
+
+        // choose correct mime based on extension
+        var ext = Path.GetExtension(filePath).ToLowerInvariant();
+        var mime = SupportedImageMimeTypes.GetValueOrDefault(ext, "application/octet-stream");
+
+        return $"data:{mime};base64,{base64}";
+    }
+
+    private static ParsedImage? ParseBase64Image(string dataUrl)
+    {
         if (string.IsNullOrWhiteSpace(dataUrl))
             return null;
 
@@ -83,37 +155,60 @@ public class ImageHelper : IImageHelper
             throw new ArgumentException("Invalid base64 image content.", ex);
         }
 
-        var fileName = $"{imagePrefix}-{Guid.NewGuid()}{extension}";
-        string folderPath = Path.Combine(_env.ContentRootPath, subFolder);
-        if (!Directory.Exists(folderPath))
+        return new ParsedImage(imageBytes, extension, ComputeHash(imageBytes));
+    }
+
+    private async Task<string?> FindExistingImagePathAsync(
+        string folderPath,
+        string subFolder,
+        byte[] imageBytes,
+        string hash,
+        string extension,
+        string imagePrefix)
+    {
+        var hashFileName = $"{imagePrefix}-{hash}{extension}";
+        var hashFilePath = Path.Combine(folderPath, hashFileName);
+        if (File.Exists(hashFilePath))
+            return BuildRelativePath(subFolder, hashFileName);
+
+        foreach (var filePath in Directory.EnumerateFiles(folderPath))
         {
-            Directory.CreateDirectory(folderPath);
+            if (!SupportedImageMimeTypes.ContainsKey(Path.GetExtension(filePath)))
+                continue;
+
+            var existingBytes = await File.ReadAllBytesAsync(filePath);
+            if (existingBytes.Length == imageBytes.Length &&
+                existingBytes.SequenceEqual(imageBytes))
+            {
+                return BuildRelativePath(subFolder, Path.GetFileName(filePath));
+            }
         }
 
-        string filePath = Path.Combine(folderPath, fileName);
-
-        await File.WriteAllBytesAsync(filePath, imageBytes);
-
-        // return relative path for the client, e.g. "images/categories/xyz.jpg"
-        var relativePath = Path.Combine(subFolder, fileName).Replace("\\", "/");
-        return relativePath;
+        return null;
     }
 
-    public async Task<string> GetImageBase64(string imageUrl)
+    private async Task<bool> ImageMatchesExistingFileAsync(string existingImageUrl, byte[] imageBytes)
     {
-        string relativePath = imageUrl.TrimStart('/');
-        string filePath = Path.Combine(_env.ContentRootPath, relativePath);
+        var relativePath = existingImageUrl.TrimStart('/');
+        var filePath = Path.Combine(_env.ContentRootPath, relativePath);
 
         if (!File.Exists(filePath))
-            return null;
+            return false;
 
-        var bytes = await File.ReadAllBytesAsync(filePath);
-        var base64 = Convert.ToBase64String(bytes);
-
-        // choose correct mime based on extension
-        var ext = Path.GetExtension(filePath).ToLowerInvariant();
-        var mime = SupportedImageMimeTypes.GetValueOrDefault(ext, "application/octet-stream");
-
-        return $"data:{mime};base64,{base64}";
+        var existingBytes = await File.ReadAllBytesAsync(filePath);
+        return existingBytes.Length == imageBytes.Length && existingBytes.SequenceEqual(imageBytes);
     }
+
+    private static string ComputeHash(byte[] bytes)
+    {
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+        return Convert.ToHexString(sha256.ComputeHash(bytes)).ToLowerInvariant();
+    }
+
+    private static string BuildRelativePath(string subFolder, string fileName)
+    {
+        return Path.Combine(subFolder, fileName).Replace("\\", "/");
+    }
+
+    private sealed record ParsedImage(byte[] Bytes, string Extension, string Hash);
 }
