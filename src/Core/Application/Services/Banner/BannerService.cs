@@ -120,8 +120,12 @@ public class BannerService : IBannerService
         if (banner == null)
             throw new KeyNotFoundException($"Banner with id {dto.Id} was not found.");
 
-        var requestedPlacementIds = GetRequestedPlacementIds(dto);
-        if (requestedPlacementIds.Count == 0)
+        var shouldUpdatePlacements = ShouldUpdatePlacements(dto);
+        var requestedPlacementIds = shouldUpdatePlacements
+            ? GetRequestedPlacementIds(dto)
+            : new List<int>();
+
+        if (shouldUpdatePlacements && requestedPlacementIds.Count == 0)
             throw new ArgumentException("At least one Placement is required.");
 
         var oldImage = banner.ImageUrl;
@@ -129,7 +133,8 @@ public class BannerService : IBannerService
         ApplyBannerUpdates(banner, dto);
         banner.ImageUrl = await ResolveBannerImageUrlAsync(dto.ImageUrl, oldImage);
 
-        await UpdateBannerPlacementMapsAsync(banner, requestedPlacementIds);
+        if (shouldUpdatePlacements)
+            await UpdateBannerPlacementMapsAsync(banner, requestedPlacementIds);
 
         await _unitOfWork.SaveChangesAsync();
         await DeleteReplacedBannerImageAsync(oldImage, banner.ImageUrl, banner.Id);
@@ -188,6 +193,11 @@ public class BannerService : IBannerService
             .Where(placementId => placementId > 0)
             .Distinct()
             .ToList() ?? new List<int>();
+    }
+
+    private static bool ShouldUpdatePlacements(UpdateBannerDto dto)
+    {
+        return dto.PlacementIds is not null || dto.Placements is { Count: > 0 };
     }
 
     private static List<int> GetRequestedPlacementIds(UpdateBannerDto dto)

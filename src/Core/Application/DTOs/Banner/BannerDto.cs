@@ -4,15 +4,40 @@ public record BannerDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string BannerName
+    {
+        get => Name;
+        set => Name = value;
+    }
     public string? Description { get; set; }
+    public string? BannerDescription
+    {
+        get => Description;
+        set => Description = value;
+    }
     public string? AltText { get; set; }
     public string ImageUrl { get; set; } = string.Empty;
+    public string BannerImage
+    {
+        get => ImageUrl;
+        set => ImageUrl = value;
+    }
     public string? Link { get; set; }
     public string? CallToActionText { get; set; }
     public BannerType Type { get; set; }
+    public BannerType BannerType
+    {
+        get => Type;
+        set => Type = value;
+    }
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public BannerSize Size { get; set; }
+    public BannerSize BannerSize
+    {
+        get => Size;
+        set => Size = value;
+    }
     public bool IsActive { get; set; }
     public int Priority { get; set; }
     public int ClickCount { get; set; }
@@ -31,13 +56,38 @@ public class PlacementDto
 public class CreateBannerDto
 {
     public string Name { get; set; } = string.Empty;
+    public string BannerName
+    {
+        get => Name;
+        set => Name = value;
+    }
     public string? Description { get; set; }
+    public string? BannerDescription
+    {
+        get => Description;
+        set => Description = value;
+    }
     public string ImageUrl { get; set; } = string.Empty;
+    public string BannerImage
+    {
+        get => ImageUrl;
+        set => ImageUrl = value;
+    }
     public string? AltText { get; set; }
     public string? Link { get; set; }
     public string? CallToActionText { get; set; }
     public BannerType Type { get; set; }
+    public BannerType BannerType
+    {
+        get => Type;
+        set => Type = value;
+    }
     public BannerSize Size { get; set; }
+    public BannerSize BannerSize
+    {
+        get => Size;
+        set => Size = value;
+    }
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public bool IsActive { get; set; } = true;
