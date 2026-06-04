@@ -133,6 +133,8 @@ public class BannerService : IBannerService
         ApplyBannerUpdates(banner, dto);
         banner.ImageUrl = await ResolveBannerImageUrlAsync(dto.ImageUrl, oldImage);
 
+        await _unitOfWork.Banners.UpdateAsync(banner);
+
         if (shouldUpdatePlacements)
             await UpdateBannerPlacementMapsAsync(banner, requestedPlacementIds);
 
