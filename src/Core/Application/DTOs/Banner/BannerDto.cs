@@ -1,4 +1,7 @@
-﻿namespace Application.DTOs;
+﻿using Application.Common.Json;
+using System.Text.Json.Serialization;
+
+namespace Application.DTOs;
 
 public record BannerDto
 {
@@ -24,7 +27,9 @@ public record BannerDto
     }
     public string? Link { get; set; }
     public string? CallToActionText { get; set; }
+    [JsonConverter(typeof(NumericEnumJsonConverter<BannerType>))]
     public BannerType Type { get; set; }
+    [JsonConverter(typeof(NumericEnumJsonConverter<BannerType>))]
     public BannerType BannerType
     {
         get => Type;
@@ -32,7 +37,9 @@ public record BannerDto
     }
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
+    [JsonConverter(typeof(NumericEnumJsonConverter<BannerSize>))]
     public BannerSize Size { get; set; }
+    [JsonConverter(typeof(NumericEnumJsonConverter<BannerSize>))]
     public BannerSize BannerSize
     {
         get => Size;
@@ -76,13 +83,17 @@ public class CreateBannerDto
     public string? AltText { get; set; }
     public string? Link { get; set; }
     public string? CallToActionText { get; set; }
+    [JsonConverter(typeof(NumericEnumJsonConverter<BannerType>))]
     public BannerType Type { get; set; }
+    [JsonConverter(typeof(NumericEnumJsonConverter<BannerType>))]
     public BannerType BannerType
     {
         get => Type;
         set => Type = value;
     }
+    [JsonConverter(typeof(NumericEnumJsonConverter<BannerSize>))]
     public BannerSize Size { get; set; }
+    [JsonConverter(typeof(NumericEnumJsonConverter<BannerSize>))]
     public BannerSize BannerSize
     {
         get => Size;
