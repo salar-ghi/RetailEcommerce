@@ -19,7 +19,9 @@ public class BannerMappingProfile : Profile
         CreateMap<Banner, BannerDto>()
             .ForMember(dest => dest.Placements,
                 opt => opt.MapFrom(src =>
-                    src.BannerPlacementMaps.Select(m => m.Placement)))
+                    src.BannerPlacementMaps
+                        .Where(m => !m.IsDeleted && !m.Placement.IsDeleted)
+                        .Select(m => m.Placement)))
             .ReverseMap();
 
         CreateMap<CreateBannerDto, Banner>()

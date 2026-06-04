@@ -10,10 +10,11 @@ public class BannerRepository : Repository<Banner, int>, IBannerRepository
     {
         var now = DateTime.UtcNow;
         return await _context.Banners
-            .Include(b => b.BannerPlacementMaps)
+            .Include(b => b.BannerPlacementMaps
+                .Where(map => !map.IsDeleted && !map.Placement.IsDeleted))
                 .ThenInclude(z => z.Placement)
             .Where(b => !b.IsDeleted && b.IsActive &&
-                        b.BannerPlacementMaps.Any(p => p.Placement.Code == code) &&
+                        b.BannerPlacementMaps.Any(p => !p.IsDeleted && !p.Placement.IsDeleted && p.Placement.Code == code) &&
                         (b.StartDate == null || b.StartDate <= now) &&
                         (b.EndDate == null || b.EndDate >= now))
             .OrderByDescending(b => b.Priority)
@@ -25,7 +26,8 @@ public class BannerRepository : Repository<Banner, int>, IBannerRepository
     {
         var now = DateTime.UtcNow;
         return await _context.Banners
-            .Include(b => b.BannerPlacementMaps)
+            .Include(b => b.BannerPlacementMaps
+                .Where(map => !map.IsDeleted && !map.Placement.IsDeleted))
                 .ThenInclude(x => x.Placement)
             .Where(b => !b.IsDeleted && b.IsActive &&
                         (b.StartDate == null || b.StartDate <= now) &&
@@ -36,9 +38,9 @@ public class BannerRepository : Repository<Banner, int>, IBannerRepository
 
     public async Task<IEnumerable<Banner>> GetAllWithPlacementsAsync()
     {
-        var now = DateTime.UtcNow;
         return await _context.Banners
-            .Include(b => b.BannerPlacementMaps)
+            .Include(b => b.BannerPlacementMaps
+                .Where(map => !map.IsDeleted && !map.Placement.IsDeleted))
                 .ThenInclude(x => x.Placement)
             .Where(b => !b.IsDeleted)
             .OrderByDescending(b => b.Priority)
@@ -46,6 +48,15 @@ public class BannerRepository : Repository<Banner, int>, IBannerRepository
     }
 
     public async Task<Banner?> GetByIdWithPlacesAsync(int id)
+    {
+        return await _context.Banners
+            .Include(b => b.BannerPlacementMaps
+                .Where(map => !map.IsDeleted && !map.Placement.IsDeleted))
+                .ThenInclude(z => z.Placement)
+            .FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
+    }
+
+    public async Task<Banner?> GetByIdWithAllPlacementMapsAsync(int id)
     {
         return await _context.Banners
             .Include(b => b.BannerPlacementMaps)
@@ -56,7 +67,8 @@ public class BannerRepository : Repository<Banner, int>, IBannerRepository
     public async Task<IEnumerable<Banner>> SearchAsync(string? name, BannerType? type)
     {
         var query = _context.Banners
-            .Include(b => b.BannerPlacementMaps)
+            .Include(b => b.BannerPlacementMaps
+                .Where(map => !map.IsDeleted && !map.Placement.IsDeleted))
                 .ThenInclude(z => z.Placement)
             .Where(b => !b.IsDeleted);
 
