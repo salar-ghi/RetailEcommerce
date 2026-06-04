@@ -101,6 +101,33 @@ public class ImageHelper : IImageHelper
         return await SaveBase64Image(dataUrl, subFolder, imagePrefix);
     }
 
+
+    public Task DeleteImageAsync(string? imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl))
+            return Task.CompletedTask;
+
+        var relativePath = imageUrl.TrimStart('/');
+        var filePath = Path.GetFullPath(Path.Combine(_env.ContentRootPath, relativePath));
+        var contentRootPath = Path.GetFullPath(_env.ContentRootPath);
+        var pathComparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+        var relativeToContentRoot = Path.GetRelativePath(contentRootPath, filePath);
+
+        if (relativeToContentRoot == ".." ||
+            relativeToContentRoot.StartsWith($"..{Path.DirectorySeparatorChar}", pathComparison) ||
+            Path.IsPathRooted(relativeToContentRoot))
+        {
+            throw new ArgumentException("Image path must be inside the application content root.", nameof(imageUrl));
+        }
+
+        if (File.Exists(filePath))
+            File.Delete(filePath);
+
+        return Task.CompletedTask;
+    }
+
     public async Task<string> GetImageBase64(string imageUrl)
     {
         string relativePath = imageUrl.TrimStart('/');
