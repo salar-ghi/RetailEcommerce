@@ -3,12 +3,41 @@ using Microsoft.OpenApi;
 using Presentation.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddProblemDetails();
 
 // Add services to the container.
 builder.Services.AddApplicationServices(builder.Configuration);
 
 builder.Services
     .AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState
+                .Where(entry => entry.Value?.Errors.Count > 0)
+                .ToDictionary(
+                    entry => entry.Key,
+                    entry => entry.Value!.Errors
+                        .Select(error => string.IsNullOrWhiteSpace(error.ErrorMessage)
+                            ? "The input was not valid."
+                            : error.ErrorMessage)
+                        .ToArray());
+
+            var response = new ApiErrorResponse
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                ErrorCode = ErrorCodes.ValidationFailed,
+                Message = "The request contains validation errors.",
+                Details = "One or more request fields failed validation.",
+                TraceId = context.HttpContext.TraceIdentifier,
+                Path = context.HttpContext.Request.Path,
+                Errors = errors
+            };
+
+            return new BadRequestObjectResult(response);
+        };
+    })
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
@@ -36,9 +65,36 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             OnChallenge = context =>
             {
                 context.HandleResponse();
-                context.Response.StatusCode = 401;
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 context.Response.ContentType = "application/json";
-                return context.Response.WriteAsync("{\"error\": \"Unauthorized\"}");
+
+                var response = new ApiErrorResponse
+                {
+                    StatusCode = StatusCodes.Status401Unauthorized,
+                    ErrorCode = ErrorCodes.Unauthorized,
+                    Message = "Authentication is required to access this resource.",
+                    Details = context.ErrorDescription,
+                    TraceId = context.HttpContext.TraceIdentifier,
+                    Path = context.HttpContext.Request.Path
+                };
+
+                return context.Response.WriteAsync(JsonSerializer.Serialize(response, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
+            },
+            OnForbidden = context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                context.Response.ContentType = "application/json";
+
+                var response = new ApiErrorResponse
+                {
+                    StatusCode = StatusCodes.Status403Forbidden,
+                    ErrorCode = ErrorCodes.Forbidden,
+                    Message = "You do not have permission to access this resource.",
+                    TraceId = context.HttpContext.TraceIdentifier,
+                    Path = context.HttpContext.Request.Path
+                };
+
+                return context.Response.WriteAsync(JsonSerializer.Serialize(response, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
             }
         };
         options.TokenValidationParameters = new TokenValidationParameters
@@ -87,27 +143,70 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = string.Empty; // Serve Swagger UI at the root (optional)
 });
 
+app.UseGlobalExceptionHandling();
 app.UseStaticFiles();
 app.Use(async (context, next) =>
 {
     context.Request.EnableBuffering();
     await next();
 });
+app.UseStatusCodePages(async statusCodeContext =>
+{
+    var httpContext = statusCodeContext.HttpContext;
+
+    if (httpContext.Response.HasStarted || httpContext.Response.ContentLength.HasValue)
+    {
+        return;
+    }
+
+    var statusCode = httpContext.Response.StatusCode;
+    var response = new ApiErrorResponse
+    {
+        StatusCode = statusCode,
+        ErrorCode = statusCode switch
+        {
+            StatusCodes.Status401Unauthorized => ErrorCodes.Unauthorized,
+            StatusCodes.Status403Forbidden => ErrorCodes.Forbidden,
+            StatusCodes.Status404NotFound => ErrorCodes.NotFound,
+            _ => ErrorCodes.BadRequest
+        },
+        Message = statusCode switch
+        {
+            StatusCodes.Status401Unauthorized => "Authentication is required to access this resource.",
+            StatusCodes.Status403Forbidden => "You do not have permission to access this resource.",
+            StatusCodes.Status404NotFound => "The requested endpoint was not found.",
+            _ => "The request could not be processed."
+        },
+        TraceId = httpContext.TraceIdentifier,
+        Path = httpContext.Request.Path
+    };
+
+    httpContext.Response.ContentType = "application/json";
+    await httpContext.Response.WriteAsync(JsonSerializer.Serialize(response, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
+});
 
 using (var scope = app.Services.CreateScope())
 {
-    var placementService = scope.ServiceProvider
-        .GetRequiredService<IBannerPlacementService>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
 
-    await placementService.SyncPlacementsWithEnumAsync();
+    try
+    {
+        var placementService = scope.ServiceProvider
+            .GetRequiredService<IBannerPlacementService>();
+
+        await placementService.SyncPlacementsWithEnumAsync();
+    }
+    catch (Exception exception)
+    {
+        logger.LogError(exception,
+            "Banner placement synchronization failed during startup. The application will continue running and the operation can be retried later.");
+    }
 }
 
 
 //app.UseHttpsRedirection();
 
 //app.UseAuthorization();
-
-app.UseGlobalExceptionHandling();
 
 app.UseCors("AllowAll"); // Apply CORS policy
 app.UseRouting();

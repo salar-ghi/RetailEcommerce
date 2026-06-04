@@ -1,4 +1,4 @@
-﻿namespace Presentation.Controllers;
+namespace Presentation.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -29,15 +29,8 @@ public class UserController : ControllerBase
     [HttpGet("users")]
     public async Task<IActionResult> GetAllUsers()
     {
-        try
-        {
-            var users = await _userService.GetAllUsersAsync();
-            return Ok(users);
-        }
-        catch (Exception ex)
-        {
-            throw ex;
-        }
+        var users = await _userService.GetAllUsersAsync();
+        return Ok(users);
     }
 
     [HttpGet("users/{id}")]
@@ -50,28 +43,21 @@ public class UserController : ControllerBase
     [HttpPost("users")]
     public async Task<IActionResult> AddUser([FromBody] AddUserDto userDto)
     {
-        if (!ModelState.IsValid)
+        var user = await _userService.AddUserAsync(userDto);
+
+        if (!user.IsSuccess)
         {
-            // Log all model errors
-            var errors = ModelState
-                .Where(kvp => kvp.Value?.Errors.Count > 0)
-                .ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
-                );
-            Console.Clear();
-            Console.WriteLine("Model validation failed: {@Errors}", errors);
-            return ValidationProblem(ModelState); // same format as automatic 400
+            return BadRequest(new ApiErrorResponse
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                ErrorCode = ErrorCodes.BadRequest,
+                Message = user.Error,
+                TraceId = HttpContext.TraceIdentifier,
+                Path = HttpContext.Request.Path
+            });
         }
-        try
-        {
-            var user = await _userService.AddUserAsync(userDto);
-            return Ok(new { Message = "User added successfully", UserId = user.Value });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+
+        return Ok(ApiResponse<object>.Ok(new { UserId = user.Value }, "User added successfully", HttpContext.TraceIdentifier));
     }
 
     [HttpPut("users/{id}")]

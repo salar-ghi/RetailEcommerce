@@ -1,4 +1,4 @@
-﻿using Application.Common;
+using Application.Common;
 
 namespace Application.Services;
 
@@ -44,64 +44,57 @@ public class UserService : IUserService
 
     public async Task<Result<string>> AddUserAsync(AddUserDto dto)
     {
-        try
+        var existingUser = await _unitOfWork.Users.GetByAsync(u => u.PhoneNumber == dto.PhoneNumber);
+        if (existingUser != null)
         {
-            var existingUser = await _unitOfWork.Users.GetByAsync(u => u.PhoneNumber == dto.PhoneNumber);
-            if (existingUser != null)
-            {
-                return Result<string>.Failure("شماره همراه تکراری می باشد");
-            }
+            return Result<string>.Failure("شماره همراه تکراری می باشد");
+        }
 
-            //var password = _currentUserService.GenerateRandomPassword();
-            var password = "12345678*";
-            var passwordHash = _passwordHasher.HashPassword(password);
+        //var password = _currentUserService.GenerateRandomPassword();
+        var password = "12345678*";
+        var passwordHash = _passwordHasher.HashPassword(password);
 
-            var user = new User
-            {
-                Id = Guid.NewGuid().ToString(),
-                PhoneNumber = dto.PhoneNumber,
-                Username = dto.PhoneNumber,
-                PasswordHash = passwordHash,
-                FirstName = dto.FirstName,
-                LastName = dto.LastName,
-                Email = dto.Email,
-                IsActive = true,
-                IsEmailConfirmed = false,
-                TwoFactorEnabled = false,
-                CreatedBy = _currentUserService.UserId,
-                CreatedTime = DateTime.Now,
-                ModifiedBy = _currentUserService.UserId,
-                ModifiedTime = DateTime.Now,
-            };
+        var user = new User
+        {
+            Id = Guid.NewGuid().ToString(),
+            PhoneNumber = dto.PhoneNumber,
+            Username = dto.PhoneNumber,
+            PasswordHash = passwordHash,
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            Email = dto.Email,
+            IsActive = true,
+            IsEmailConfirmed = false,
+            TwoFactorEnabled = false,
+            CreatedBy = _currentUserService.UserId,
+            CreatedTime = DateTime.Now,
+            ModifiedBy = _currentUserService.UserId,
+            ModifiedTime = DateTime.Now,
+        };
 
-            var roles = await _unitOfWork.Roles.GetAllAsync(r => dto.RoleIds.Contains(r.Id));
-            if (roles != null)
+        var roles = await _unitOfWork.Roles.GetAllAsync(r => dto.RoleIds.Contains(r.Id));
+        if (roles != null)
+        {
+            foreach (var role in roles)
             {
-                foreach (var role in roles)
+                user.UserRoles.Add(new UserRole
                 {
-                    user.UserRoles.Add(new UserRole
-                    {
-                        //Id = 1,
-                        UserId = user.Id,
-                        RoleId = role.Id,
-                        CreatedBy = _currentUserService.UserId,
-                        ModifiedBy = _currentUserService.UserId,
-                        CreatedTime = DateTime.Now,
-                    });
-                    //await _unitOfWork.UserRoles.AddAsync(userRole);
-                    //await _unitOfWork.SaveChangesAsync();
-                }
+                    //Id = 1,
+                    UserId = user.Id,
+                    RoleId = role.Id,
+                    CreatedBy = _currentUserService.UserId,
+                    ModifiedBy = _currentUserService.UserId,
+                    CreatedTime = DateTime.Now,
+                });
+                //await _unitOfWork.UserRoles.AddAsync(userRole);
+                //await _unitOfWork.SaveChangesAsync();
             }
-            await _unitOfWork.Users.AddAsync(user);
-            await _unitOfWork.SaveChangesAsync();
+        }
+        await _unitOfWork.Users.AddAsync(user);
+        await _unitOfWork.SaveChangesAsync();
 
-            //var userId = user.Id;
-            return Result<string>.Success("کاربر مورد نظر با موفقیت ثبت گردید.");
-        }
-        catch (Exception exxx)
-        {
-            throw exxx;
-        }
+        //var userId = user.Id;
+        return Result<string>.Success("کاربر مورد نظر با موفقیت ثبت گردید.");
     }
 
     public async Task UpdateUserAsync(UserDto userDto)
