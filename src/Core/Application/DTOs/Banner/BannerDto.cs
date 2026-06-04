@@ -42,10 +42,17 @@ public class CreateBannerDto
     public DateTime? EndDate { get; set; }
     public bool IsActive { get; set; } = true;
     public int Priority { get; set; } = 0;
-    public List<int> PlacementIds { get; set; } = new();   // required
+    public List<int>? PlacementIds { get; set; }   // required
 }
 
-public class UpdateBannerDto : CreateBannerDto { public int Id { get; set; } }
+public class UpdateBannerDto : CreateBannerDto
+{
+    public int Id { get; set; }
+
+    // Allows clients that edit a saved BannerDto to send the existing `placements`
+    // collection back instead of manually converting it to `placementIds`.
+    public List<PlacementDto> Placements { get; set; } = new();
+}
 
 public class UpdateBannerStatusDto
 {

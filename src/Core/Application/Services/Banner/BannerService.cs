@@ -19,7 +19,8 @@ public class BannerService : IBannerService
 
     public async Task<int> CreateAsync(CreateBannerDto dto)
     {
-        if (dto.PlacementIds is null || dto.PlacementIds.Count == 0)
+        var requestedPlacementIds = NormalizePlacementIds(dto.PlacementIds);
+        if (requestedPlacementIds.Count == 0)
             throw new ArgumentException("At least one Placement is required.");
 
         var banner = _mapper.Map<Banner>(dto);
@@ -27,9 +28,9 @@ public class BannerService : IBannerService
         if (!string.IsNullOrEmpty(dto.ImageUrl))
             banner.ImageUrl = await _imageHelper.SaveBase64Image(dto.ImageUrl, subFolder, "banner");        
 
-        var placements = await _unitOfWork.BannerPlacements.GetAllByIdsAsync(dto.PlacementIds);
+        var placements = await _unitOfWork.BannerPlacements.GetAllByIdsAsync(requestedPlacementIds);
 
-        if (placements.Count != dto.PlacementIds.Count)
+        if (placements.Count != requestedPlacementIds.Count)
             throw new Exception("Some placements not found.");
 
         foreach (var placement in placements)
@@ -114,8 +115,10 @@ public class BannerService : IBannerService
         if (banner == null)
             throw new KeyNotFoundException($"Banner with id {dto.Id} was not found.");
 
-        if (dto.PlacementIds is null || dto.PlacementIds.Count == 0)
+        var requestedPlacementIds = GetRequestedPlacementIds(dto);
+        if (requestedPlacementIds.Count == 0)
             throw new ArgumentException("At least one Placement is required.");
+
         var oldImage = banner.ImageUrl;
 
         _mapper.Map(dto, banner);
@@ -131,14 +134,34 @@ public class BannerService : IBannerService
             banner.ImageUrl = oldImage;
         }
 
-        await UpdateBannerPlacementMapsAsync(banner, dto.PlacementIds);
+        await UpdateBannerPlacementMapsAsync(banner, requestedPlacementIds);
 
         await _unitOfWork.SaveChangesAsync();
     }
 
+    private static List<int> NormalizePlacementIds(IEnumerable<int>? placementIds)
+    {
+        return placementIds?
+            .Where(placementId => placementId > 0)
+            .Distinct()
+            .ToList() ?? new List<int>();
+    }
+
+    private static List<int> GetRequestedPlacementIds(UpdateBannerDto dto)
+    {
+        if (dto.PlacementIds is not null)
+            return NormalizePlacementIds(dto.PlacementIds);
+
+        return dto.Placements?
+            .Select(placement => placement.Id)
+            .Where(placementId => placementId > 0)
+            .Distinct()
+            .ToList() ?? new List<int>();
+    }
+
     private async Task UpdateBannerPlacementMapsAsync(Banner banner, IEnumerable<int> placementIds)
     {
-        var requestedPlacementIds = placementIds.Distinct().ToList();
+        var requestedPlacementIds = NormalizePlacementIds(placementIds);
         if (requestedPlacementIds.Count == 0)
             throw new ArgumentException("At least one Placement is required.");
 
@@ -166,11 +189,13 @@ public class BannerService : IBannerService
 
         foreach (var placementId in placementIdsToAdd)
         {
-            banner.BannerPlacementMaps.Add(new BannerPlacementMap
+            var map = new BannerPlacementMap
             {
                 BannerId = banner.Id,
                 PlacementId = placementId,
-            });
+            };
+
+            await _unitOfWork.BannerPlacementMaps.AddAsync(map);
         }
     }
 }
