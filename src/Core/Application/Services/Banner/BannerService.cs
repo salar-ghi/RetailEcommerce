@@ -115,7 +115,47 @@ public class BannerService : IBannerService
         {
             banner.ImageUrl = oldImage;
         }
-        await _unitOfWork.Banners.UpdateAsync(banner);
+
+        await UpdateBannerPlacementMapsAsync(banner, dto.PlacementIds);
+
         await _unitOfWork.SaveChangesAsync();
+    }
+
+    private async Task UpdateBannerPlacementMapsAsync(Banner banner, IEnumerable<int> placementIds)
+    {
+        var requestedPlacementIds = placementIds.Distinct().ToList();
+        if (requestedPlacementIds.Count == 0)
+            throw new ArgumentException("At least one Placement is required.");
+
+        var placements = await _unitOfWork.BannerPlacements.GetAllByIdsAsync(requestedPlacementIds);
+        if (placements.Count != requestedPlacementIds.Count)
+            throw new Exception("Some placements not found.");
+
+        var requestedPlacementIdSet = requestedPlacementIds.ToHashSet();
+        var existingPlacementIdSet = banner.BannerPlacementMaps
+            .Select(map => map.PlacementId)
+            .ToHashSet();
+
+        var mapsToRemove = banner.BannerPlacementMaps
+            .Where(map => !requestedPlacementIdSet.Contains(map.PlacementId))
+            .ToList();
+
+        foreach (var map in mapsToRemove)
+        {
+            banner.BannerPlacementMaps.Remove(map);
+            await _unitOfWork.BannerPlacementMaps.DeleteAsync(map);
+        }
+
+        var placementIdsToAdd = requestedPlacementIds
+            .Where(placementId => !existingPlacementIdSet.Contains(placementId));
+
+        foreach (var placementId in placementIdsToAdd)
+        {
+            banner.BannerPlacementMaps.Add(new BannerPlacementMap
+            {
+                BannerId = banner.Id,
+                PlacementId = placementId,
+            });
+        }
     }
 }
