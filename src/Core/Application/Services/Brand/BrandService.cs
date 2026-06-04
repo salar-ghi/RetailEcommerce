@@ -88,7 +88,11 @@ public class BrandService
         if (!string.IsNullOrWhiteSpace(brandDto.Logo) &&
             brandDto.Logo.StartsWith("data:image", StringComparison.OrdinalIgnoreCase))
         {
-            brandDto.Logo = await _imageHelper.SaveBase64Image(brandDto.Logo, subFolder, "brand");
+            brandDto.Logo = await _imageHelper.SaveBase64ImageIfChanged(
+                brandDto.Logo,
+                brand.ImageUrl,
+                subFolder,
+                "brand");
         }
         else if (string.IsNullOrWhiteSpace(brandDto.Logo))
         {

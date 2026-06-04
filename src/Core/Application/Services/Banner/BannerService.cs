@@ -125,9 +125,9 @@ public class BannerService : IBannerService
 
         const string subFolder = "images/banners";
         if (!string.IsNullOrEmpty(dto.ImageUrl) &&
-            dto.ImageUrl.StartsWith("data:image"))
+            dto.ImageUrl.StartsWith("data:image", StringComparison.OrdinalIgnoreCase))
         {
-            banner.ImageUrl = await _imageHelper.SaveBase64Image(dto.ImageUrl, subFolder, "banner");
+            banner.ImageUrl = await _imageHelper.SaveBase64ImageIfChanged(dto.ImageUrl, oldImage, subFolder, "banner");
         }
         else
         {

@@ -100,13 +100,21 @@ public class CategoryService
             throw new ArgumentException($"Category with name '{categoryDto.Name}' already exists.");
         }
 
-        string imagePath = null;
         const string subFolder = "images/categories";
-        if (!string.IsNullOrWhiteSpace(categoryDto.Image))
+        if (!string.IsNullOrWhiteSpace(categoryDto.Image) &&
+            categoryDto.Image.StartsWith("data:image", StringComparison.OrdinalIgnoreCase))
         {
-            imagePath = await _imageHelper.SaveBase64Image(categoryDto.Image, subFolder, "category");
+            categoryDto.Image = await _imageHelper.SaveBase64ImageIfChanged(
+                categoryDto.Image,
+                category.ImageUrl,
+                subFolder,
+                "category");
         }
-        categoryDto.Image = imagePath;
+        else if (string.IsNullOrWhiteSpace(categoryDto.Image))
+        {
+            categoryDto.Image = category.ImageUrl;
+        }
+
         _mapper.Map(categoryDto, category);        
         await _unitOfWork.Categories.UpdateAsync(category);
         await _unitOfWork.SaveChangesAsync();
