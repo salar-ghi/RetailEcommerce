@@ -126,8 +126,7 @@ public class BannerService : IBannerService
 
         var oldImage = banner.ImageUrl;
 
-        _mapper.Map(dto, banner);
-        banner.Description = dto.Description;
+        ApplyBannerUpdates(banner, dto);
         banner.ImageUrl = await ResolveBannerImageUrlAsync(dto.ImageUrl, oldImage);
 
         await UpdateBannerPlacementMapsAsync(banner, requestedPlacementIds);
@@ -136,8 +135,23 @@ public class BannerService : IBannerService
         await DeleteReplacedBannerImageAsync(oldImage, banner.ImageUrl, banner.Id);
     }
 
+    private static void ApplyBannerUpdates(Banner banner, UpdateBannerDto dto)
+    {
+        banner.Name = dto.Name;
+        banner.Description = dto.Description;
+        banner.AltText = dto.AltText;
+        banner.Link = dto.Link;
+        banner.CallToActionText = dto.CallToActionText;
+        banner.Type = dto.Type;
+        banner.Size = dto.Size;
+        banner.StartDate = dto.StartDate;
+        banner.EndDate = dto.EndDate;
+        banner.IsActive = dto.IsActive;
+        banner.Priority = dto.Priority;
+        banner.ModifiedTime = DateTime.UtcNow;
+    }
 
-    private async Task<string> ResolveBannerImageUrlAsync(string? requestedImageUrl, string oldImageUrl)
+    private async Task<string> ResolveBannerImageUrlAsync(string? requestedImageUrl, string? oldImageUrl)
     {
         const string subFolder = "images/banners";
 
@@ -151,7 +165,7 @@ public class BannerService : IBannerService
                 "banner");
         }
 
-        return oldImageUrl;
+        return oldImageUrl ?? string.Empty;
     }
 
     private async Task DeleteReplacedBannerImageAsync(string? oldImageUrl, string? newImageUrl, int bannerId)
