@@ -64,6 +64,17 @@ public class BannerRepository : Repository<Banner, int>, IBannerRepository
             .FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
     }
 
+
+    public async Task<bool> IsImageUrlUsedByAnotherBannerAsync(string imageUrl, int bannerId)
+    {
+        return await _context.Banners
+            .AsNoTracking()
+            .AnyAsync(b =>
+                b.Id != bannerId &&
+                !b.IsDeleted &&
+                b.ImageUrl == imageUrl);
+    }
+
     public async Task<IEnumerable<Banner>> SearchAsync(string? name, BannerType? type)
     {
         var query = _context.Banners

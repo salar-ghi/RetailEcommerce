@@ -78,7 +78,12 @@ public class BannerService : IBannerService
         var banner = await _unitOfWork.Banners.GetByIdWithPlacesAsync(id);
         if (banner == null)
             throw new KeyNotFoundException($"Banner with id {id} was not found.");
-        return _mapper.Map<BannerDto>(banner);
+
+        var dto = _mapper.Map<BannerDto>(banner);
+        if (!string.IsNullOrWhiteSpace(dto.ImageUrl))
+            dto.ImageUrl = await _imageHelper.GetImageBase64(dto.ImageUrl);
+
+        return dto;
     }
 
     public async Task<IEnumerable<BannerDto>> GetActiveAsync()
@@ -122,21 +127,45 @@ public class BannerService : IBannerService
         var oldImage = banner.ImageUrl;
 
         _mapper.Map(dto, banner);
-
-        const string subFolder = "images/banners";
-        if (!string.IsNullOrEmpty(dto.ImageUrl) &&
-            dto.ImageUrl.StartsWith("data:image", StringComparison.OrdinalIgnoreCase))
-        {
-            banner.ImageUrl = await _imageHelper.SaveBase64ImageIfChanged(dto.ImageUrl, oldImage, subFolder, "banner");
-        }
-        else
-        {
-            banner.ImageUrl = oldImage;
-        }
+        banner.Description = dto.Description;
+        banner.ImageUrl = await ResolveBannerImageUrlAsync(dto.ImageUrl, oldImage);
 
         await UpdateBannerPlacementMapsAsync(banner, requestedPlacementIds);
 
         await _unitOfWork.SaveChangesAsync();
+        await DeleteReplacedBannerImageAsync(oldImage, banner.ImageUrl, banner.Id);
+    }
+
+
+    private async Task<string> ResolveBannerImageUrlAsync(string? requestedImageUrl, string oldImageUrl)
+    {
+        const string subFolder = "images/banners";
+
+        if (!string.IsNullOrWhiteSpace(requestedImageUrl) &&
+            requestedImageUrl.StartsWith("data:image", StringComparison.OrdinalIgnoreCase))
+        {
+            return await _imageHelper.SaveBase64ImageIfChanged(
+                requestedImageUrl,
+                oldImageUrl,
+                subFolder,
+                "banner");
+        }
+
+        return oldImageUrl;
+    }
+
+    private async Task DeleteReplacedBannerImageAsync(string? oldImageUrl, string? newImageUrl, int bannerId)
+    {
+        if (string.IsNullOrWhiteSpace(oldImageUrl) ||
+            string.Equals(oldImageUrl, newImageUrl, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        if (await _unitOfWork.Banners.IsImageUrlUsedByAnotherBannerAsync(oldImageUrl, bannerId))
+            return;
+
+        await _imageHelper.DeleteImageAsync(oldImageUrl);
     }
 
     private static List<int> NormalizePlacementIds(IEnumerable<int>? placementIds)
