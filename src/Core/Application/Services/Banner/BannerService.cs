@@ -109,9 +109,6 @@ public class BannerService : IBannerService
         if (!string.IsNullOrEmpty(dto.ImageUrl) &&
             dto.ImageUrl.StartsWith("data:image"))
         {
-            //if (!string.IsNullOrEmpty(oldImage))
-            //    _imageHelper.DeleteImage(banner.ImageUrl);
-
             banner.ImageUrl = await _imageHelper.SaveBase64Image(dto.ImageUrl, subFolder, "banner");
         }
         else
