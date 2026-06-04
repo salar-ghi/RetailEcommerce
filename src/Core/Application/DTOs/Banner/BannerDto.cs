@@ -46,3 +46,8 @@ public class CreateBannerDto
 }
 
 public class UpdateBannerDto : CreateBannerDto { public int Id { get; set; } }
+
+public class UpdateBannerStatusDto
+{
+    public bool IsActive { get; set; }
+}

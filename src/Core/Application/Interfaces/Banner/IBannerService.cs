@@ -8,5 +8,6 @@ public interface IBannerService
     Task<IEnumerable<BannerDto>> GetByPlacementAsync(BannerPageCode placementKey);
     Task<int> CreateAsync(CreateBannerDto dto);
     Task UpdateAsync(UpdateBannerDto dto);
+    Task<BannerDto> UpdateStatusAsync(int id, bool isActive);
     Task DeleteAsync(int id);
 }
