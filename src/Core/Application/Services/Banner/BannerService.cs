@@ -111,7 +111,7 @@ public class BannerService : IBannerService
 
     public async Task UpdateAsync(UpdateBannerDto dto)
     {
-        var banner = await _unitOfWork.Banners.GetByIdWithPlacesAsync(dto.Id);
+        var banner = await _unitOfWork.Banners.GetByIdWithAllPlacementMapsAsync(dto.Id);
         if (banner == null)
             throw new KeyNotFoundException($"Banner with id {dto.Id} was not found.");
 
@@ -170,25 +170,35 @@ public class BannerService : IBannerService
             throw new Exception("Some placements not found.");
 
         var requestedPlacementIdSet = requestedPlacementIds.ToHashSet();
-        var existingPlacementIdSet = banner.BannerPlacementMaps
+        var existingActivePlacementIdSet = banner.BannerPlacementMaps
+            .Where(map => !map.IsDeleted)
             .Select(map => map.PlacementId)
             .ToHashSet();
 
         var mapsToRemove = banner.BannerPlacementMaps
-            .Where(map => !requestedPlacementIdSet.Contains(map.PlacementId))
+            .Where(map => !map.IsDeleted && !requestedPlacementIdSet.Contains(map.PlacementId))
             .ToList();
 
         foreach (var map in mapsToRemove)
         {
-            banner.BannerPlacementMaps.Remove(map);
             await _unitOfWork.BannerPlacementMaps.DeleteAsync(map);
         }
 
         var placementIdsToAdd = requestedPlacementIds
-            .Where(placementId => !existingPlacementIdSet.Contains(placementId));
+            .Where(placementId => !existingActivePlacementIdSet.Contains(placementId));
 
         foreach (var placementId in placementIdsToAdd)
         {
+            var deletedMap = banner.BannerPlacementMaps
+                .FirstOrDefault(map => map.IsDeleted && map.PlacementId == placementId);
+
+            if (deletedMap is not null)
+            {
+                deletedMap.IsDeleted = false;
+                await _unitOfWork.BannerPlacementMaps.UpdateAsync(deletedMap);
+                continue;
+            }
+
             var map = new BannerPlacementMap
             {
                 BannerId = banner.Id,
