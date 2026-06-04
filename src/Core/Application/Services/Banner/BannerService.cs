@@ -93,6 +93,21 @@ public class BannerService : IBannerService
         return _mapper.Map<IEnumerable<BannerDto>>(banners);
     }
 
+    public async Task<BannerDto> UpdateStatusAsync(int id, bool isActive)
+    {
+        var banner = await _unitOfWork.Banners.GetByIdWithPlacesAsync(id);
+        if (banner == null)
+            throw new KeyNotFoundException($"Banner with id {id} was not found.");
+
+        banner.IsActive = isActive;
+        banner.ModifiedTime = DateTime.UtcNow;
+
+        await _unitOfWork.Banners.UpdateAsync(banner);
+        await _unitOfWork.SaveChangesAsync();
+
+        return _mapper.Map<BannerDto>(banner);
+    }
+
     public async Task UpdateAsync(UpdateBannerDto dto)
     {
         var banner = await _unitOfWork.Banners.GetByIdWithPlacesAsync(dto.Id);

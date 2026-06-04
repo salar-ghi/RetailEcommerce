@@ -84,6 +84,15 @@ public class BannerController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id }, id);
     }
 
+    [HttpPatch("{id}/status")]
+    public async Task<ActionResult<BannerDto>> UpdateStatus(int id, [FromBody] UpdateBannerStatusDto dto)
+    {
+        if (id == 0) return BadRequest();
+
+        var banner = await _bannerService.UpdateStatusAsync(id, dto.IsActive);
+        return Ok(banner);
+    }
+
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, UpdateBannerDto dto)
     {
