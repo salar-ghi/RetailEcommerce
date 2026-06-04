@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.Persistence;
+namespace Infrastructure.Persistence;
 
 using Application.Helper;
 using Domain.Enums;
@@ -115,7 +115,7 @@ public class DatabaseSeeder
     private async Task SeedCategoryAsync(CategorySeedItem categorySeed, int? parentId = null)
     {
         var category = await _context.Categories
-            .FirstOrDefaultAsync(c => c.Name == categorySeed.Name && c.ParentId == parentId);
+            .FirstOrDefaultAsync(c => c.Name == categorySeed.Name && !c.IsDeleted);
 
         if (category is null)
         {
