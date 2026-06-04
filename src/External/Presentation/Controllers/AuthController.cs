@@ -1,4 +1,4 @@
-﻿namespace Presentation.Controllers;
+namespace Presentation.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -19,9 +19,17 @@ public class AuthController : ControllerBase
         var result = await _userService.RegisterAsync(model);
         if (!result.IsSuccess)
         {
-            return BadRequest(result.Error);
+            return BadRequest(new ApiErrorResponse
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                ErrorCode = ErrorCodes.BadRequest,
+                Message = result.Error,
+                TraceId = HttpContext.TraceIdentifier,
+                Path = HttpContext.Request.Path
+            });
         }
-        return Ok(new { result.Value });
+
+        return Ok(ApiResponse<object>.Ok(new { result.Value }, "Signup completed successfully.", HttpContext.TraceIdentifier));
     }
 
     [HttpPost("login")]
@@ -30,11 +38,18 @@ public class AuthController : ControllerBase
         var result = await _userService.AuthenticateAsync(model);
         if (!result.IsSuccess)
         {
-            return Unauthorized(result.ErrorMessage); // Returns 401 with message (omit message in prod for security if desired)
+            return Unauthorized(new ApiErrorResponse
+            {
+                StatusCode = StatusCodes.Status401Unauthorized,
+                ErrorCode = ErrorCodes.Unauthorized,
+                Message = result.ErrorMessage,
+                TraceId = HttpContext.TraceIdentifier,
+                Path = HttpContext.Request.Path
+            });
         }
 
         //return Ok(new { Token = result.JwtToken, RefreshToken = result.RefreshToken });
-        return Ok(new { Token = result.JwtToken });
+        return Ok(ApiResponse<object>.Ok(new { Token = result.JwtToken }, "Login completed successfully.", HttpContext.TraceIdentifier));
     }
 
     //[HttpPost("refresh")]

@@ -1,4 +1,4 @@
-﻿global using Domain;
+global using Domain;
 global using Domain.Common;
 global using Domain.Entities;
 global using System.Text.Json;
@@ -25,3 +25,5 @@ global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Caching.Distributed;
 global using Microsoft.EntityFrameworkCore.Diagnostics;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+global using Microsoft.Extensions.Logging;

@@ -1,107 +1,102 @@
-﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp;
 using System.Text.RegularExpressions;
 
 namespace Presentation.Services;
 
 public class ImageService
 {
+    private static readonly Regex DataUrlRegex = new(
+        @"^data:(?<mime>image\/(jpeg|png|gif|webp));base64,(?<data>.+)$",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
     private readonly IWebHostEnvironment _env;
+
     public ImageService(IWebHostEnvironment env)
     {
         _env = env;
     }
-    public async Task<string> SaveBase64Image(string dataUrl, string subFolder)
+
+    public async Task<string?> SaveBase64Image(string? dataUrl, string subFolder)
     {
-        try
-        {
-
         if (string.IsNullOrWhiteSpace(dataUrl))
+        {
             return null;
+        }
 
+        if (string.IsNullOrWhiteSpace(subFolder))
+        {
+            throw new ArgumentException("Image subfolder is required.", nameof(subFolder));
+        }
 
-        // data:[mime];base64,xxx
-        var match = Regex.Match(dataUrl, @"^data:(?<mime>image\/(jpeg|png|gif));base64,(?<data>.+)$");
-        //var match = Regex.Match(dataUrl, @"data:(?<type>.+?);base64,(?<data>.+)");
+        var match = DataUrlRegex.Match(dataUrl);
         if (!match.Success)
-            throw new ArgumentException("Invalid image base64 format");
+        {
+            throw new ArgumentException("Invalid image base64 format. Supported formats are jpeg, png, gif, and webp.", nameof(dataUrl));
+        }
 
-        //var mimeType = match.Groups["type"].Value;
-        var mimeType = match.Groups["mime"].Value;
+        var mimeType = match.Groups["mime"].Value.ToLowerInvariant();
         var base64 = match.Groups["data"].Value;
 
         var extension = mimeType switch
         {
             "image/webp" => ".webp",
             "image/jpeg" => ".jpg",
-            //"image/jpg" => ".jpg",
             "image/png" => ".png",
             "image/gif" => ".gif",
-            _ => ".bin"
+            _ => throw new ArgumentException("Unsupported image type.", nameof(dataUrl))
         };
 
-        //var bytes = Convert.FromBase64String(base64);
         byte[] imageBytes;
         try
         {
             imageBytes = Convert.FromBase64String(base64);
         }
-        catch (FormatException)
+        catch (FormatException exception)
         {
-            throw new ArgumentException("Invalid base64 string.");
+            throw new ArgumentException("Invalid base64 string.", nameof(dataUrl), exception);
         }
-        
+
         using var image = Image.Load(imageBytes);
 
         var fileName = $"category-{Guid.NewGuid()}{extension}";
-        //string folderPath = Path.Combine(_env.WebRootPath, subFolder);
-        string folderPath = Path.Combine(_env.ContentRootPath, subFolder);
-        if (!Directory.Exists(folderPath))
-        {
-            Directory.CreateDirectory(folderPath);
-        }
-        string filePath = Path.Combine(folderPath, fileName);
+        var folderPath = Path.Combine(_env.ContentRootPath, subFolder);
+        Directory.CreateDirectory(folderPath);
 
-        await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+        var filePath = Path.Combine(folderPath, fileName);
+        await File.WriteAllBytesAsync(filePath, imageBytes);
 
-        // return relative path for the client, e.g. "images/categories/xyz.jpg"
-        var relativePath = Path.Combine(subFolder, fileName).Replace("\\", "/");
-        return relativePath;
-
-        }
-        catch (Exception ex)
-        {
-            throw ex;
-        }
+        return Path.Combine(subFolder, fileName).Replace("\\", "/");
     }
 
-
-
-    public async Task<string> GetImageBase64(string imageUrl)
+    public async Task<string?> GetImageBase64(string imageUrl)
     {
-        string relativePath = imageUrl.TrimStart('/');
-        string filePath = Path.Combine(_env.ContentRootPath, relativePath);
+        if (string.IsNullOrWhiteSpace(imageUrl))
+        {
+            return null;
+        }
+
+        var relativePath = imageUrl.TrimStart('/');
+        var filePath = Path.Combine(_env.ContentRootPath, relativePath);
 
         if (!File.Exists(filePath))
+        {
             return null;
+        }
 
         var bytes = await File.ReadAllBytesAsync(filePath);
         var base64 = Convert.ToBase64String(bytes);
 
-        // choose correct mime based on extension
         var ext = Path.GetExtension(filePath).ToLowerInvariant();
         var mime = ext switch
         {
             ".webp" => "webp",
-            ".jpg"  => "jpeg",
+            ".jpg" => "jpeg",
             ".jpeg" => "jpeg",
-            ".png"  => "png",
-            ".gif"  => "gif",
+            ".png" => "png",
+            ".gif" => "gif",
             _ => "octet-stream"
         };
 
-        return $"data:{mime};base64,{base64}";
+        return $"data:image/{mime};base64,{base64}";
     }
-
-
-
 }
