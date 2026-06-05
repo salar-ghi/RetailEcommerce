@@ -30,8 +30,10 @@ public class SupplierService
         if (supplier == null || supplier.IsDeleted) throw new KeyNotFoundException($"Supplier with ID {request.Id} not found.");
 
         //supplier.Status = request.IsApproved ? SupplierStatus.Approved : SupplierStatus.Rejected;
+        var approverUserId = GetRequiredCurrentUserId();
+
         supplier.Status = SupplierStatus.Approved;
-        supplier.ApprovedByUserId = _currentUserService.UserId;
+        supplier.ApprovedByUserId = approverUserId;
         supplier.ApprovalDate ??= DateTime.UtcNow;
         
         await _unitOfWork.Suppliers.UpdateAsync(supplier);
@@ -49,7 +51,7 @@ public class SupplierService
 
         if (isApproved)
         {
-            supplier.ApprovedByUserId = _currentUserService.UserId;
+            supplier.ApprovedByUserId = GetRequiredCurrentUserId();
             supplier.ApprovalDate ??= DateTime.UtcNow;
         }
 
@@ -181,4 +183,14 @@ public class SupplierService
         var suppliers = await _unitOfWork.Suppliers.SearchByContactInfoAsync(contactInfo);
         return _mapper.Map<IEnumerable<SupplierDto>>(suppliers);
     }
+    private string GetRequiredCurrentUserId()
+    {
+        if (!string.IsNullOrWhiteSpace(_currentUserService.UserId))
+        {
+            return _currentUserService.UserId;
+        }
+
+        throw new UnauthorizedAccessException("You must be logged in to approve a supplier.");
+    }
+
 }

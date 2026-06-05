@@ -8,7 +8,11 @@ public class CurrentUserService : ICurrentUserService
     {
         _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     }
-    public string UserId => _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    public string UserId => _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue(JwtRegisteredClaimNames.Sub)
+        ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue("sub")
+        ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue("userId")
+        ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue("uid");
 
     public IEnumerable<Claim> Claims => _httpContextAccessor.HttpContext?.User?.Claims ?? Enumerable.Empty<Claim>();
 

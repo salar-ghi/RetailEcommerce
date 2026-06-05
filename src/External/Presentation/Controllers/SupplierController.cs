@@ -28,6 +28,7 @@ public class SupplierController : ControllerBase
     }
 
     //[HttpPost("approve")]
+    [Authorize]
     [HttpPut("suppliers/{id}/approve")]
     public async Task<ActionResult<SupplierDto>> ApproveSupplier([FromRoute] int id)
     {
@@ -40,6 +41,7 @@ public class SupplierController : ControllerBase
         return Ok(supplier);
     }
 
+    [Authorize]
     [HttpPut("suppliers/{id}/status")]
     public async Task<ActionResult<SupplierDto>> ToggleSupplierStatus([FromRoute] int id, [FromBody] ToggleSupplierStatusDto request)
     {
