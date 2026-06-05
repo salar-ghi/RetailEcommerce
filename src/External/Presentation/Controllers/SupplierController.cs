@@ -75,7 +75,7 @@ public class SupplierController : ControllerBase
         {
             return BadRequest(result.Error);
         }
-        return Ok(new { result.Value });
+        return Ok(result.Value);
     }
 
     [HttpPost("register-new")]
@@ -92,9 +92,22 @@ public class SupplierController : ControllerBase
     [HttpPut("suppliers/{id}")]
     public async Task<IActionResult> UpdateSupplier(int id, UpdateSupplierStatusDto supplierDto)
     {
-        if (id != supplierDto.Id) return BadRequest();
+        if (supplierDto is null)
+        {
+            return BadRequest(new ApiErrorResponse
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                ErrorCode = ErrorCodes.ValidationFailed,
+                Message = "Supplier update payload is required.",
+                TraceId = HttpContext.TraceIdentifier,
+                Path = HttpContext.Request.Path
+            });
+        }
+
+        supplierDto.Id = id;
         await _supplierService.UpdateSupplierAsync(supplierDto);
-        return NoContent();
+        var supplier = await _supplierService.GetSupplierByIdAsync(id);
+        return Ok(supplier);
     }
 
     [HttpDelete("suppliers/{id}")]

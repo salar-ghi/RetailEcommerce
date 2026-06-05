@@ -74,11 +74,11 @@ public class SupplierService
         return _mapper.Map<SupplierDto>(supplier);
     }
 
-    public async Task<Result<string>> CreateSupplierAsync(SupplierRegistrationDto supplierDto)
+    public async Task<Result<SupplierDto>> CreateSupplierAsync(SupplierRegistrationDto supplierDto)
     {
         var existedSupplier = await _unitOfWork.Suppliers.GetSingleAsync(s => s.Info == supplierDto.ContactInfo && !s.IsDeleted);
         if (existedSupplier != null)
-            return Result<string>.Failure("تامین کننده با شماره تلفن مشابه موجود میباشد");
+            return Result<SupplierDto>.Failure("تامین کننده با شماره تلفن مشابه موجود میباشد");
 
         //User user = null;
         var user = (await _unitOfWork.Users.GetByPhonenumberAsync(supplierDto.ContactInfo));
@@ -107,7 +107,8 @@ public class SupplierService
         }
 
         CreateSuplier:
-        var supplier = _mapper.Map<Supplier>(supplierDto);        
+        var supplier = _mapper.Map<Supplier>(supplierDto);
+        NormalizeSupplierOptionalFields(supplier);
         supplier.UserId = user.Id;
 
         await _unitOfWork.Suppliers.AddAsync(supplier);
@@ -116,7 +117,7 @@ public class SupplierService
         await _unitOfWork.UserRoles.AddAsync(new UserRole { UserId = user.Id, RoleId = supplierRole.Id });
         await _unitOfWork.SaveChangesAsync();
 
-        return Result<string>.Success("تامین کننده مورد نظر با موفقیت ثبت گردید");
+        return Result<SupplierDto>.Success(_mapper.Map<SupplierDto>(supplier));
     }
 
     public async Task<Result<string>> RegisterSupplierAsync(SupplierRegistrationDto supplierDto)
@@ -134,6 +135,7 @@ public class SupplierService
             return Result<string>.Failure("تامین کننده با شماره تلفن مشابه موجود میباشد");
         
         var supplier = _mapper.Map<Supplier>(supplierDto);
+        NormalizeSupplierOptionalFields(supplier);
         supplier.UserId = user.Id;
         await _unitOfWork.Suppliers.AddAsync(supplier);
 
@@ -148,20 +150,25 @@ public class SupplierService
     {
         var supplier = await _unitOfWork.Suppliers.GetByIdAsync(supplierDto.Id);
         if (supplier == null) throw new KeyNotFoundException($"Supplier with ID {supplierDto.Id} not found.");
-        _mapper.Map(supplierDto, supplier);
-
         if (supplierDto.Status.HasValue)
             supplier.Status = supplierDto.Status.Value;
 
-        if (!string.IsNullOrEmpty(supplierDto.Phone))
-            supplier.Phone = supplierDto.Phone;
-        if (!string.IsNullOrEmpty(supplierDto.ContactInfo))
+        if (supplierDto.Name is not null)
+            supplier.Name = supplierDto.Name;
+        if (supplierDto.ContactInfo is not null)
             supplier.Info = supplierDto.ContactInfo;
         if (supplierDto.Email is not null)
             supplier.Email = supplierDto.Email;
-        if (supplierDto.Name is not null)
-            supplier.Name = supplierDto.Name;
+        if (supplierDto.Phone is not null)
+            supplier.Phone = supplierDto.Phone;
+        if (supplierDto.Address is not null)
+            supplier.Address = supplierDto.Address;
+        if (supplierDto.Website is not null)
+            supplier.Website = supplierDto.Website;
+        if (supplierDto.Description is not null)
+            supplier.Description = supplierDto.Description;
 
+        NormalizeSupplierOptionalFields(supplier);
         supplier.ModifiedTime = DateTime.UtcNow;
 
         await _unitOfWork.Suppliers.UpdateAsync(supplier);
@@ -189,6 +196,15 @@ public class SupplierService
         var suppliers = await _unitOfWork.Suppliers.SearchByContactInfoAsync(contactInfo);
         return _mapper.Map<IEnumerable<SupplierDto>>(suppliers);
     }
+    private static void NormalizeSupplierOptionalFields(Supplier supplier)
+    {
+        supplier.Email ??= string.Empty;
+        supplier.Phone ??= string.Empty;
+        supplier.Address ??= string.Empty;
+        supplier.Website ??= string.Empty;
+        supplier.Description ??= string.Empty;
+    }
+
     private string GetRequiredCurrentUserId()
     {
         if (!string.IsNullOrWhiteSpace(_currentUserService.UserId))

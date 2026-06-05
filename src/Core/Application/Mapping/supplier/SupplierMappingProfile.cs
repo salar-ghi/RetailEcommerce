@@ -16,6 +16,8 @@ public class SupplierMappingProfile : Profile
             .ForMember(dest => dest.Info, opt => opt.MapFrom(src => src.ContactInfo))
             .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Phone))
             .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+            .ForMember(dest => dest.Website, opt => opt.MapFrom(src => src.Website))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
             .ReverseMap();
 
 
@@ -24,6 +26,9 @@ public class SupplierMappingProfile : Profile
             .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
             .ForMember(dest => dest.Info, opt => opt.MapFrom(src => src.ContactInfo))
             .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Phone))
+            .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+            .ForMember(dest => dest.Website, opt => opt.MapFrom(src => src.Website))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
             .ForMember(dest => dest.Status, opt => opt.Condition(src => src.Status.HasValue))
             .ReverseMap();
 
