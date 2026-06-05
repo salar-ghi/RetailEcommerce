@@ -111,6 +111,7 @@ public static class DependencyInjection
         services.AddScoped<ProductTagService>();
         services.AddScoped<ProductUnitPriceService>();
         services.AddScoped<IInventoryService, InventoryService>();
+        services.AddScoped<IFinanceService, FinanceService>();
 
         services.AddScoped<BrandService>();
         services.AddScoped<CategoryService>();
