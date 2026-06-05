@@ -41,10 +41,21 @@ public class SupplierController : ControllerBase
         return Ok(supplier);
     }
 
-    [Authorize]
     [HttpPut("suppliers/{id}/status")]
     public async Task<ActionResult<SupplierDto>> ToggleSupplierStatus([FromRoute] int id, [FromBody] ToggleSupplierStatusDto request)
     {
+        if (request is null)
+        {
+            return BadRequest(new ApiErrorResponse
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                ErrorCode = ErrorCodes.ValidationFailed,
+                Message = "Supplier status payload is required.",
+                TraceId = HttpContext.TraceIdentifier,
+                Path = HttpContext.Request.Path
+            });
+        }
+
         var supplier = await _supplierService.ToggleSupplierStatusAsync(id, request.IsApproved);
         return Ok(supplier);
     }
