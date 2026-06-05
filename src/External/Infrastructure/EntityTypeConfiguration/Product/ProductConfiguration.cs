@@ -243,7 +243,11 @@ public class TagConfiguration : IEntityTypeConfiguration<Tag>
         builder.HasKey(t => t.Id);
         builder.Property(t => t.Id).ValueGeneratedOnAdd();
         builder.Property(t => t.Name).IsRequired().HasMaxLength(50);
-        builder.Property(t => t.Color).HasMaxLength(50);
+        builder.Property(t => t.Description).HasMaxLength(500);
+        builder.Property(t => t.Color).IsRequired().HasMaxLength(50);
+        builder.HasIndex(t => t.Name)
+               .IsUnique()
+               .HasFilter("[IsDeleted] = 0");
     }
 }
 
