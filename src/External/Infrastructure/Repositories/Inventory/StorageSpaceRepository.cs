@@ -8,9 +8,9 @@ public class StorageSpaceRepository : Repository<StorageSpace, int>, IStorageSpa
     {
         searchTerm ??= string.Empty;
         return await _context.Set<StorageSpace>()
-            .Include(s => s.Zones)
-            .Include(s => s.Shelves)
-            .Where(s => s.Name.Contains(searchTerm) || (s.Code ?? string.Empty).Contains(searchTerm) || (s.Address ?? string.Empty).Contains(searchTerm))
+            .Include(s => s.Zones.Where(z => !z.IsDeleted))
+            .Include(s => s.Shelves.Where(sh => !sh.IsDeleted && (sh.Zone == null || !sh.Zone.IsDeleted)))
+            .Where(s => !s.IsDeleted && (s.Name.Contains(searchTerm) || (s.Code ?? string.Empty).Contains(searchTerm) || (s.Address ?? string.Empty).Contains(searchTerm)))
             .AsNoTracking()
             .ToListAsync();
     }

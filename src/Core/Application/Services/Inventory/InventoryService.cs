@@ -12,9 +12,9 @@ public class InventoryService : IInventoryService
     public async Task<InventorySummaryDto> GetSummaryAsync()
     {
         var stocks = await _unitOfWork.ProductStocks.GetAllAsync();
-        var spaces = await _unitOfWork.StorageSpaces.GetAllAsync();
-        var zones = await _unitOfWork.StorageZones.GetAllAsync();
-        var shelves = await _unitOfWork.Shelves.GetAllAsync();
+        var spaces = await _unitOfWork.StorageSpaces.GetAllAsync(space => !space.IsDeleted);
+        var zones = await _unitOfWork.StorageZones.GetAllAsync(zone => !zone.IsDeleted && !zone.Space.IsDeleted);
+        var shelves = await _unitOfWork.Shelves.GetAllAsync(shelf => !shelf.IsDeleted && !shelf.Space.IsDeleted && (shelf.Zone == null || !shelf.Zone.IsDeleted));
 
         return new InventorySummaryDto
         {
@@ -30,13 +30,20 @@ public class InventoryService : IInventoryService
 
     public async Task<IEnumerable<StorageSpaceDto>> GetSpacesAsync()
     {
-        var spaces = await _unitOfWork.StorageSpaces.GetAllAsync(q => q.Include(s => s.Zones).Include(s => s.Shelves));
+        var spaces = await _unitOfWork.StorageSpaces.GetAllAsync(q => q
+            .Where(s => !s.IsDeleted)
+            .Include(s => s.Zones.Where(z => !z.IsDeleted))
+            .Include(s => s.Shelves.Where(sh => !sh.IsDeleted && (sh.Zone == null || !sh.Zone.IsDeleted))));
         return spaces.Select(MapSpace);
     }
 
     public async Task<StorageSpaceDto> GetSpaceByIdAsync(int id)
     {
-        var space = await _unitOfWork.StorageSpaces.GetByIdAsync(id, q => q.Include(s => s.Zones).Include(s => s.Shelves));
+        var space = await _unitOfWork.StorageSpaces
+            .GetAll(space => space.Id == id && !space.IsDeleted)
+            .Include(s => s.Zones.Where(z => !z.IsDeleted))
+            .Include(s => s.Shelves.Where(sh => !sh.IsDeleted && (sh.Zone == null || !sh.Zone.IsDeleted)))
+            .FirstOrDefaultAsync();
         return space == null ? throw new KeyNotFoundException($"Storage space with ID {id} not found.") : MapSpace(space);
     }
 
@@ -61,7 +68,7 @@ public class InventoryService : IInventoryService
     public async Task UpdateSpaceAsync(int id, CreateStorageSpaceDto dto)
     {
         var space = await _unitOfWork.StorageSpaces.GetByIdAsync(id);
-        if (space == null) throw new KeyNotFoundException($"Storage space with ID {id} not found.");
+        if (space == null || space.IsDeleted) throw new KeyNotFoundException($"Storage space with ID {id} not found.");
         space.Name = dto.Name;
         space.Type = ParseSpaceType(dto.Type);
         space.Code = dto.Code;
@@ -84,7 +91,10 @@ public class InventoryService : IInventoryService
     {
         var zones = spaceId.HasValue
             ? await _unitOfWork.StorageZones.GetBySpaceIdAsync(spaceId.Value)
-            : await _unitOfWork.StorageZones.GetAllAsync(q => q.Include(z => z.Space).Include(z => z.Shelves));
+            : await _unitOfWork.StorageZones.GetAllAsync(q => q
+                .Where(z => !z.IsDeleted && !z.Space.IsDeleted)
+                .Include(z => z.Space)
+                .Include(z => z.Shelves.Where(s => !s.IsDeleted)));
         return zones.Select(MapZone);
     }
 
@@ -108,7 +118,7 @@ public class InventoryService : IInventoryService
     {
         await EnsureSpaceExists(dto.SpaceId);
         var zone = await _unitOfWork.StorageZones.GetByIdAsync(id);
-        if (zone == null) throw new KeyNotFoundException($"Storage zone with ID {id} not found.");
+        if (zone == null || zone.IsDeleted) throw new KeyNotFoundException($"Storage zone with ID {id} not found.");
         zone.SpaceId = dto.SpaceId;
         zone.Name = dto.Name;
         zone.Code = dto.Code;
@@ -133,7 +143,10 @@ public class InventoryService : IInventoryService
         else if (spaceId.HasValue)
             shelves = await _unitOfWork.Shelves.GetBySpaceIdAsync(spaceId.Value);
         else
-            shelves = await _unitOfWork.Shelves.GetAllAsync(q => q.Include(s => s.Space).Include(s => s.Zone));
+            shelves = await _unitOfWork.Shelves.GetAllAsync(q => q
+                .Where(s => !s.IsDeleted && !s.Space.IsDeleted && (s.Zone == null || !s.Zone.IsDeleted))
+                .Include(s => s.Space)
+                .Include(s => s.Zone));
 
         return shelves.Select(MapShelf);
     }
@@ -163,7 +176,7 @@ public class InventoryService : IInventoryService
     {
         await ValidateShelfLocation(dto.SpaceId, dto.ZoneId);
         var shelf = await _unitOfWork.Shelves.GetByIdAsync(id);
-        if (shelf == null) throw new KeyNotFoundException($"Shelf with ID {id} not found.");
+        if (shelf == null || shelf.IsDeleted) throw new KeyNotFoundException($"Shelf with ID {id} not found.");
         shelf.SpaceId = dto.SpaceId;
         shelf.ZoneId = dto.ZoneId;
         shelf.Code = dto.Code;
@@ -281,7 +294,7 @@ public class InventoryService : IInventoryService
     private async Task EnsureSpaceExists(int spaceId)
     {
         var space = await _unitOfWork.StorageSpaces.GetByIdAsync(spaceId);
-        if (space == null) throw new KeyNotFoundException($"Storage space with ID {spaceId} not found.");
+        if (space == null || space.IsDeleted) throw new KeyNotFoundException($"Storage space with ID {spaceId} not found.");
     }
 
     private async Task ValidateShelfLocation(int spaceId, int? zoneId)
@@ -289,7 +302,7 @@ public class InventoryService : IInventoryService
         await EnsureSpaceExists(spaceId);
         if (!zoneId.HasValue) return;
         var zone = await _unitOfWork.StorageZones.GetByIdAsync(zoneId.Value);
-        if (zone == null) throw new KeyNotFoundException($"Storage zone with ID {zoneId.Value} not found.");
+        if (zone == null || zone.IsDeleted) throw new KeyNotFoundException($"Storage zone with ID {zoneId.Value} not found.");
         if (zone.SpaceId != spaceId) throw new InvalidOperationException("Selected zone does not belong to selected storage space.");
     }
 
@@ -298,14 +311,14 @@ public class InventoryService : IInventoryService
         if (shelfId.HasValue)
         {
             var shelf = await _unitOfWork.Shelves.GetByIdAsync(shelfId.Value);
-            if (shelf == null) throw new KeyNotFoundException($"Shelf with ID {shelfId.Value} not found.");
+            if (shelf == null || shelf.IsDeleted) throw new KeyNotFoundException($"Shelf with ID {shelfId.Value} not found.");
             if (spaceId.HasValue && shelf.SpaceId != spaceId.Value) throw new InvalidOperationException("Selected shelf does not belong to selected storage space.");
             if (zoneId.HasValue && shelf.ZoneId != zoneId.Value) throw new InvalidOperationException("Selected shelf does not belong to selected zone.");
         }
         else if (zoneId.HasValue)
         {
             var zone = await _unitOfWork.StorageZones.GetByIdAsync(zoneId.Value);
-            if (zone == null) throw new KeyNotFoundException($"Storage zone with ID {zoneId.Value} not found.");
+            if (zone == null || zone.IsDeleted) throw new KeyNotFoundException($"Storage zone with ID {zoneId.Value} not found.");
             if (spaceId.HasValue && zone.SpaceId != spaceId.Value) throw new InvalidOperationException("Selected zone does not belong to selected storage space.");
         }
         else if (spaceId.HasValue)
@@ -345,8 +358,8 @@ public class InventoryService : IInventoryService
         Capacity = space.Capacity,
         Used = space.Used,
         IsActive = space.IsActive,
-        ZoneCount = space.Zones?.Count ?? 0,
-        ShelfCount = space.Shelves?.Count ?? 0
+        ZoneCount = space.Zones?.Count(z => !z.IsDeleted) ?? 0,
+        ShelfCount = space.Shelves?.Count(shelf => !shelf.IsDeleted && (shelf.Zone == null || !shelf.Zone.IsDeleted)) ?? 0
     };
 
     private static StorageZoneDto MapZone(StorageZone zone) => new()
@@ -358,7 +371,7 @@ public class InventoryService : IInventoryService
         Code = zone.Code,
         Description = zone.Description,
         IsActive = zone.IsActive,
-        ShelfCount = zone.Shelves?.Count ?? 0
+        ShelfCount = zone.Shelves?.Count(shelf => !shelf.IsDeleted) ?? 0
     };
 
     private static ShelfDto MapShelf(Shelf shelf) => new()
