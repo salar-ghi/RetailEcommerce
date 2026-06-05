@@ -40,6 +40,13 @@ public class SupplierController : ControllerBase
         return Ok(supplier);
     }
 
+    [HttpPut("suppliers/{id}/status")]
+    public async Task<ActionResult<SupplierDto>> ToggleSupplierStatus([FromRoute] int id, [FromBody] ToggleSupplierStatusDto request)
+    {
+        var supplier = await _supplierService.ToggleSupplierStatusAsync(id, request.IsApproved);
+        return Ok(supplier);
+    }
+
     [HttpGet("suppliers/{id}")]
     public async Task<IActionResult> GetSupplierById(int id)
     {

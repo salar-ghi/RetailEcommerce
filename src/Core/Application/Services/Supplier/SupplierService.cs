@@ -32,9 +32,30 @@ public class SupplierService
         //supplier.Status = request.IsApproved ? SupplierStatus.Approved : SupplierStatus.Rejected;
         supplier.Status = SupplierStatus.Approved;
         supplier.ApprovedByUserId = _currentUserService.UserId;
+        supplier.ApprovalDate ??= DateTime.UtcNow;
         
         await _unitOfWork.Suppliers.UpdateAsync(supplier);
         await _unitOfWork.SaveChangesAsync();
+        return _mapper.Map<SupplierDto>(supplier);
+    }
+
+    public async Task<SupplierDto> ToggleSupplierStatusAsync(int supplierId, bool isApproved)
+    {
+        var supplier = await _unitOfWork.Suppliers.GetByIdAsync(supplierId);
+        if (supplier == null || supplier.IsDeleted) throw new KeyNotFoundException($"Supplier with ID {supplierId} not found.");
+
+        supplier.Status = isApproved ? SupplierStatus.Approved : SupplierStatus.Inactive;
+        supplier.ModifiedTime = DateTime.UtcNow;
+
+        if (isApproved)
+        {
+            supplier.ApprovedByUserId = _currentUserService.UserId;
+            supplier.ApprovalDate ??= DateTime.UtcNow;
+        }
+
+        await _unitOfWork.Suppliers.UpdateAsync(supplier);
+        await _unitOfWork.SaveChangesAsync();
+
         return _mapper.Map<SupplierDto>(supplier);
     }
 

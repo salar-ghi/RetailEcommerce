@@ -6,6 +6,7 @@ public class SupplierMappingProfile : Profile
     {
         CreateMap<Supplier, SupplierDto>()
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+            .ForMember(dest => dest.IsApproved, opt => opt.MapFrom(src => src.Status == SupplierStatus.Approved))
             .ForMember(dest => dest.ContactInfo, opt => opt.MapFrom(src => src.Info))
             .ReverseMap();
 
