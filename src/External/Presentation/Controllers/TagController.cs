@@ -5,6 +5,7 @@
 public class TagController : ControllerBase
 {
     private readonly TagService _tagService;
+
     public TagController(TagService tagService)
     {
         _tagService = tagService;
@@ -18,7 +19,7 @@ public class TagController : ControllerBase
         return Ok(tags);
     }
 
-    [HttpGet("tags/{id}")]
+    [HttpGet("tags/{id:int}")]
     public async Task<IActionResult> GetTagById(int id)
     {
         var tag = await _tagService.GetTagByIdAsync(id);
@@ -26,21 +27,20 @@ public class TagController : ControllerBase
     }
 
     [HttpPost("tags")]
-    public async Task<IActionResult> AddTag(TagDto tagDto)
+    public async Task<IActionResult> AddTag([FromBody] CreateTagDto tagDto)
     {
-        await _tagService.AddTagAsync(tagDto);
-        return CreatedAtAction(nameof(GetTagById), new { id = tagDto.Id }, tagDto);
+        var createdTag = await _tagService.AddTagAsync(tagDto);
+        return CreatedAtAction(nameof(GetTagById), new { id = createdTag.Id }, createdTag);
     }
 
-    [HttpPut("tags/{id}")]
-    public async Task<IActionResult> UpdateTag(int id, TagDto tagDto)
+    [HttpPut("tags/{id:int}")]
+    public async Task<IActionResult> UpdateTag(int id, [FromBody] UpdateTagDto tagDto)
     {
-        if (id != tagDto.Id) return BadRequest();
-        await _tagService.UpdateTagAsync(tagDto);
-        return NoContent();
+        var updatedTag = await _tagService.UpdateTagAsync(id, tagDto);
+        return Ok(updatedTag);
     }
 
-    [HttpDelete("tags/{id}")]
+    [HttpDelete("tags/{id:int}")]
     public async Task<IActionResult> DeleteTag(int id)
     {
         await _tagService.DeleteTagAsync(id);
@@ -48,10 +48,9 @@ public class TagController : ControllerBase
     }
 
     [HttpGet("tags/search/name")]
-    public async Task<IActionResult> SearchTagsByName(string name)
+    public async Task<IActionResult> SearchTagsByName([FromQuery] string name)
     {
         var tags = await _tagService.SearchTagsByNameAsync(name);
         return Ok(tags);
     }
-
 }
