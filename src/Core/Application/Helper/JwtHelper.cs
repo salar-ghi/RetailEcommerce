@@ -1,4 +1,4 @@
-﻿namespace Application.Helper;
+namespace Application.Helper;
 
 
 public class JwtHelper
@@ -24,7 +24,7 @@ public class JwtHelper
             }),
             Issuer = _jwtSettings.Issuer,
             Audience = _jwtSettings.Audience,
-            Expires = DateTime.UtcNow.AddMinutes(60),
+            Expires = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);

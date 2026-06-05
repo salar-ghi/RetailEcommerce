@@ -1,4 +1,4 @@
-﻿namespace Application.Helper;
+namespace Application.Helper;
 
 public class JwtTokenGenerator : IJwtTokenGenerator
 {
@@ -30,7 +30,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
             issuer: _jwtSettings.Issuer,
             audience: _jwtSettings.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(30),
+            expires: DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

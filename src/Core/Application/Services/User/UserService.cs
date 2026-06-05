@@ -8,17 +8,19 @@ public class UserService : IUserService
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly ICurrentUserService _currentUserService;
+    private readonly JwtSettings _jwtSettings;
     private readonly IMapper _mapper;
 
     public UserService(IUnitOfWork unitOfWork, IMapper mapper,
         IPasswordHasher passwordHasher, ICurrentUserService currentUserService,
-        IJwtTokenGenerator jwtTokenGenerator)
+        IJwtTokenGenerator jwtTokenGenerator, IOptions<JwtSettings> jwtSettings)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _passwordHasher = passwordHasher;
         _jwtTokenGenerator = jwtTokenGenerator;
         _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
+        _jwtSettings = jwtSettings?.Value ?? throw new ArgumentNullException(nameof(jwtSettings));
     }
 
     public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
@@ -171,7 +173,7 @@ public class UserService : IUserService
         var refreshToken = GenerateRandomRefreshToken();
 
         user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays);
         user.LastLoginTime = DateTime.UtcNow;
 
         await _unitOfWork.Users.UpdateAsync(user);
@@ -192,7 +194,8 @@ public class UserService : IUserService
     public async Task<string> GenerateRefreshTokenAsync(User user)
     {
         user.RefreshToken = GenerateRandomRefreshToken();
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Expires in 7 days
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays);
+        await _unitOfWork.Users.UpdateAsync(user);
         await _unitOfWork.SaveChangesAsync();
         return user.RefreshToken;
     }
