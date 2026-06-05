@@ -6,10 +6,12 @@ public class AuthController : ControllerBase
 {
 
     private readonly IUserService _userService;
+    private readonly IJwtTokenGenerator _jwtTokenGenerator;
 
-    public AuthController(IUserService userService)
+    public AuthController(IUserService userService, IJwtTokenGenerator jwtTokenGenerator)
     {
         _userService = userService;
+        _jwtTokenGenerator = jwtTokenGenerator;
     }
 
 
@@ -48,21 +50,39 @@ public class AuthController : ControllerBase
             });
         }
 
-        //return Ok(new { Token = result.JwtToken, RefreshToken = result.RefreshToken });
-        return Ok(ApiResponse<object>.Ok(new { Token = result.JwtToken }, "Login completed successfully.", HttpContext.TraceIdentifier));
+        return Ok(ApiResponse<object>.Ok(new { Token = result.JwtToken, RefreshToken = result.RefreshToken }, "Login completed successfully.", HttpContext.TraceIdentifier));
     }
 
-    //[HttpPost("refresh")]
-    //public async Task<IActionResult> Refresh([FromBody] RefreshModel model)
-    //{
-    //    var user = await _userService.ValidateRefreshTokenAsync(model.RefreshToken);
-    //    if (user == null)
-    //    {
-    //        return Unauthorized(new { Message = "Invalid refresh token" });
-    //    }
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh([FromBody] RefreshModel model)
+    {
+        if (model == null || string.IsNullOrWhiteSpace(model.RefreshToken))
+        {
+            return BadRequest(new ApiErrorResponse
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                ErrorCode = ErrorCodes.BadRequest,
+                Message = "Refresh token is required.",
+                TraceId = HttpContext.TraceIdentifier,
+                Path = HttpContext.Request.Path
+            });
+        }
 
-    //    var newToken = _jwtHelper.GenerateToken(user);
-    //    var newRefreshToken = await _userService.GenerateRefreshTokenAsync(user);
-    //    return Ok(new { Token = newToken, RefreshToken = newRefreshToken });
-    //}
+        var user = await _userService.ValidateRefreshTokenAsync(model.RefreshToken);
+        if (user == null)
+        {
+            return Unauthorized(new ApiErrorResponse
+            {
+                StatusCode = StatusCodes.Status401Unauthorized,
+                ErrorCode = ErrorCodes.Unauthorized,
+                Message = "Invalid or expired refresh token.",
+                TraceId = HttpContext.TraceIdentifier,
+                Path = HttpContext.Request.Path
+            });
+        }
+
+        var newToken = _jwtTokenGenerator.GenerateJwtToken(user);
+        var newRefreshToken = await _userService.GenerateRefreshTokenAsync(user);
+        return Ok(ApiResponse<object>.Ok(new { Token = newToken, RefreshToken = newRefreshToken }, "Session refreshed successfully.", HttpContext.TraceIdentifier));
+    }
 }
