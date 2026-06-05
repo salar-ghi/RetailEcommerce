@@ -51,7 +51,13 @@ public class SupplierService
 
         if (isApproved)
         {
-            supplier.ApprovedByUserId = GetRequiredCurrentUserId();
+            var approverUserId = _currentUserService.UserId;
+
+            if (!string.IsNullOrWhiteSpace(approverUserId))
+            {
+                supplier.ApprovedByUserId = approverUserId;
+            }
+
             supplier.ApprovalDate ??= DateTime.UtcNow;
         }
 
