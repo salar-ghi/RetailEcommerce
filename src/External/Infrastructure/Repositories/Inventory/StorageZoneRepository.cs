@@ -8,8 +8,8 @@ public class StorageZoneRepository : Repository<StorageZone, int>, IStorageZoneR
     {
         return await _context.Set<StorageZone>()
             .Include(z => z.Space)
-            .Include(z => z.Shelves)
-            .Where(z => z.SpaceId == spaceId)
+            .Include(z => z.Shelves.Where(s => !s.IsDeleted))
+            .Where(z => z.SpaceId == spaceId && !z.IsDeleted && !z.Space.IsDeleted)
             .AsNoTracking()
             .ToListAsync();
     }
