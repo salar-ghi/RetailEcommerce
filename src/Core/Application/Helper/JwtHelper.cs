@@ -17,9 +17,13 @@ public class JwtHelper
         {
             Subject = new ClaimsIdentity(new[]
             {
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                 new Claim(ClaimTypes.Name, user.Username),
                 //new Claim(ClaimTypes.Role, user.Role)
             }),
+            Issuer = _jwtSettings.Issuer,
+            Audience = _jwtSettings.Audience,
             Expires = DateTime.UtcNow.AddMinutes(60),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
