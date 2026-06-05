@@ -48,6 +48,20 @@ public class AppDbContext : DbContext
     public DbSet<OrderPromotion> OrderPromotion { get; set; }
     public DbSet<ProductPromotion> ProductPromotion { get; set; }
     public DbSet<Payment> Payments { get; set; }
+    public DbSet<FinanceTenant> FinanceTenants { get; set; }
+    public DbSet<FinanceBranch> FinanceBranches { get; set; }
+    public DbSet<CostCenter> CostCenters { get; set; }
+    public DbSet<ChartOfAccount> ChartOfAccounts { get; set; }
+    public DbSet<FinanceAccount> FinanceAccounts { get; set; }
+    public DbSet<AccountingPeriod> AccountingPeriods { get; set; }
+    public DbSet<JournalEntry> JournalEntries { get; set; }
+    public DbSet<JournalEntryLine> JournalEntryLines { get; set; }
+    public DbSet<FinancialTransaction> FinancialTransactions { get; set; }
+    public DbSet<RecurringFinancialObligation> RecurringFinancialObligations { get; set; }
+    public DbSet<PayrollRun> PayrollRuns { get; set; }
+    public DbSet<PayrollLine> PayrollLines { get; set; }
+    public DbSet<FinancialApprovalLog> FinancialApprovalLogs { get; set; }
+    public DbSet<FinancialAuditLog> FinancialAuditLogs { get; set; }
 
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
@@ -83,6 +97,20 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new BasketConfiguration());
         modelBuilder.ApplyConfiguration(new BasketItemConfiguration());
         modelBuilder.ApplyConfiguration(new PaymentConfiguration());
+        modelBuilder.ApplyConfiguration(new FinanceTenantConfiguration());
+        modelBuilder.ApplyConfiguration(new FinanceBranchConfiguration());
+        modelBuilder.ApplyConfiguration(new CostCenterConfiguration());
+        modelBuilder.ApplyConfiguration(new ChartOfAccountConfiguration());
+        modelBuilder.ApplyConfiguration(new FinanceAccountConfiguration());
+        modelBuilder.ApplyConfiguration(new AccountingPeriodConfiguration());
+        modelBuilder.ApplyConfiguration(new JournalEntryConfiguration());
+        modelBuilder.ApplyConfiguration(new JournalEntryLineConfiguration());
+        modelBuilder.ApplyConfiguration(new FinancialTransactionConfiguration());
+        modelBuilder.ApplyConfiguration(new RecurringFinancialObligationConfiguration());
+        modelBuilder.ApplyConfiguration(new PayrollRunConfiguration());
+        modelBuilder.ApplyConfiguration(new PayrollLineConfiguration());
+        modelBuilder.ApplyConfiguration(new FinancialApprovalLogConfiguration());
+        modelBuilder.ApplyConfiguration(new FinancialAuditLogConfiguration());
 
         modelBuilder.ApplyConfiguration(new PromotionConfiguration());
         modelBuilder.ApplyConfiguration(new PromotionConditionConfiguration());
