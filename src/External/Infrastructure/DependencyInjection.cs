@@ -1,4 +1,5 @@
 ﻿using Infrastructure.Persistence;
+using Infrastructure.Services;
 
 namespace Infrastructure;
 public static class DependencyInjection
