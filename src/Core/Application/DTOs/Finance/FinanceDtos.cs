@@ -68,7 +68,7 @@ public sealed class FinancialTransactionDto
     public bool IsAutomated { get; set; }
 }
 
-public sealed class CreateFinancialTransactionDto
+public class CreateFinancialTransactionDto
 {
     public string TenantId { get; set; } = FinanceDefaults.TenantId;
     public FinanceSourceDocumentType SourceDocumentType { get; set; } = FinanceSourceDocumentType.ManualJournal;

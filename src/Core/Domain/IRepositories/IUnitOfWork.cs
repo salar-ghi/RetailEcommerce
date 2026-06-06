@@ -36,6 +36,7 @@ public interface IUnitOfWork : IDisposable
 
     IPromotionRepository Promotions { get; }
     IPaymentRepository Payments { get; }
+    IFinanceRepository Finance { get; }
 
     Task<int> SaveChangesAsync();
 }
