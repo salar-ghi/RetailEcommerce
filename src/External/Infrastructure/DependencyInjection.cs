@@ -1,5 +1,4 @@
-﻿using Infrastructure.Services;
-using Infrastructure.Persistence;
+﻿using Infrastructure.Persistence;
 
 namespace Infrastructure;
 public static class DependencyInjection
@@ -83,6 +82,7 @@ public static class DependencyInjection
         services.AddScoped<IOrderItemRepository, OrderItemRepository>();
         services.AddScoped<IPromotionRepository, PromotionRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
+        services.AddScoped<IFinanceRepository, FinanceRepository>();
         services.AddScoped<IBannerRepository, BannerRepository>();
         services.AddScoped<IBannerPlacementRepository, BannerPlacementRepository>();
         services.AddScoped<IBannerPlacementMapRepository, BannerPlacementMapRepository>();

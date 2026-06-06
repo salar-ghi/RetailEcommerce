@@ -44,6 +44,7 @@ public class UnitOfWork : IUnitOfWork
         OrderItems = new OrderItemRepository(context);
         Promotions = new PromotionRepository(context);
         Payments = new PaymentRepository(context);
+        Finance = new FinanceRepository(context);
     }
 
     public ICategoryRepository Categories { get; }
@@ -78,6 +79,7 @@ public class UnitOfWork : IUnitOfWork
 
     public IPromotionRepository Promotions { get; }
     public IPaymentRepository Payments { get; }
+    public IFinanceRepository Finance { get; }
 
     public async Task<int> SaveChangesAsync()
     {
