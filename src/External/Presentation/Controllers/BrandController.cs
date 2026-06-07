@@ -38,8 +38,8 @@ public class BrandController : ControllerBase
     {
         if (id ==  null || id is 0) return BadRequest();
         brandDto.Id = id.Value;
-        await _brandService.UpdateBrandAsync(brandDto);
-        return NoContent();
+        var updatedBrand = await _brandService.UpdateBrandAsync(brandDto);
+        return Ok(updatedBrand);
     }
 
     [HttpDelete("brands/{id}")]

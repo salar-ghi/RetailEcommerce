@@ -30,6 +30,20 @@ public class BrandRepository : Repository<Brand, int>, IBrandRepository
             .ToListAsync();
     }
 
+    public async Task<Brand?> GetByIdWithCategoryAsync(int id, bool asNoTracking = false)
+    {
+        IQueryable<Brand> query = _context.Brands
+            .Include(brand => brand.BrandCategories)
+            .ThenInclude(brandCategory => brandCategory.Category);
+
+        if (asNoTracking)
+        {
+            query = query.AsNoTracking();
+        }
+
+        return await query.FirstOrDefaultAsync(brand => brand.Id == id && !brand.IsDeleted);
+    }
+
     public async Task<bool> ExistsByNameAsync(string normalizedName, int? excludedId = null)
     {
         return await _context.Brands
