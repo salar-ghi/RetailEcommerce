@@ -34,7 +34,7 @@ public class BrandService
 
     public async Task<BrandDto> GetBrandByIdAsync(int id)
     {
-        var brand = await _unitOfWork.Brands.GetByIdAsync(id);
+        var brand = await GetBrandWithCategoriesAsync(id, asNoTracking: true);
         if (brand == null) throw new KeyNotFoundException($"Brand with ID {id} not found.");
         return _mapper.Map<BrandDto>(brand);
     }
@@ -72,11 +72,9 @@ public class BrandService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task UpdateBrandAsync(BrandUpdateDto brandDto)
+    public async Task<BrandDto> UpdateBrandAsync(BrandUpdateDto brandDto)
     {
-        var brand = await _unitOfWork.Brands.GetByIdAsync(
-            brandDto.Id,
-            query => query.Include(brand => brand.BrandCategories));
+        var brand = await GetBrandWithCategoriesAsync(brandDto.Id);
         if (brand == null) throw new KeyNotFoundException($"Brand with ID {brandDto.Id} not found.");
 
         brandDto.Name = NormalizeName(brandDto.Name, nameof(brandDto.Name));
@@ -103,8 +101,12 @@ public class BrandService
 
         _mapper.Map(brandDto, brand);
         UpdateBrandCategories(brand, brandDto);
-        await _unitOfWork.Brands.UpdateAsync(brand);
         await _unitOfWork.SaveChangesAsync();
+
+        var updatedBrand = await GetBrandWithCategoriesAsync(brandDto.Id, asNoTracking: true)
+            ?? throw new KeyNotFoundException($"Brand with ID {brandDto.Id} not found.");
+
+        return _mapper.Map<BrandDto>(updatedBrand);
     }
 
     public async Task DeleteBrandAsync(int id)
@@ -136,7 +138,7 @@ public class BrandService
             return;
         }
 
-        var requestedCategoryIds = brandDto.CategoryIds?.Count > 0
+        var requestedCategoryIds = brandDto.CategoryIds is not null
             ? brandDto.CategoryIds
             : brandDto.Categories?.Select(category => category.Id) ?? [];
         var requestedCategoryIdSet = requestedCategoryIds
@@ -164,6 +166,11 @@ public class BrandService
                 CategoryId = categoryId
             });
         }
+    }
+
+    private async Task<Brand?> GetBrandWithCategoriesAsync(int id, bool asNoTracking = false)
+    {
+        return await _unitOfWork.Brands.GetByIdWithCategoryAsync(id, asNoTracking);
     }
 
     private static string NormalizeName(string name, string parameterName)
