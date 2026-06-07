@@ -4,6 +4,8 @@ public class Discount : BaseModel<int>
 {
     public DiscountType Type { get; set; }
     public decimal Value { get; set; } // e.g., 10 for 10% or $5
+    public int? MaxUsage { get; set; }
+    public int UsedCount { get; set; }
     public int PromotionId { get; set; }
     public Promotion Promotion { get; set; }
 }

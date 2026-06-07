@@ -8,7 +8,8 @@ public class Promotion : BaseModel<int>
 
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
-    public bool IsActive => DateTime.UtcNow >= StartDate && DateTime.UtcNow <= EndDate;
+    public bool IsEnabled { get; set; } = true;
+    public bool IsActive => IsEnabled && DateTime.UtcNow >= StartDate && DateTime.UtcNow <= EndDate;
     public PromotionScope Scope { get; set; }
     public ICollection<PromotionCondition> Conditions { get; set; } = new List<PromotionCondition>();
     public ICollection<Discount> Discounts { get; set; } = new List<Discount>();
