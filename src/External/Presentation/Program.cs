@@ -1,3 +1,4 @@
+using Application.Common.Json;
 using Infrastructure.Persistence;
 using Microsoft.OpenApi;
 using Presentation.Services;
@@ -42,6 +43,7 @@ builder.Services
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+        options.JsonSerializerOptions.Converters.Add(new NullableDateTimeJsonConverter());
     });
 
 // Add CORS (example configuration)
