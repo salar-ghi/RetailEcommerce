@@ -3,5 +3,7 @@
 public interface IPromotionRepository : IRepository<Promotion, int>
 {
     Task<IEnumerable<Promotion>> GetActivePromotionsAsync();
-    Task<Promotion> GetPromotionWithDetailsAsync(int promotionId);
+    Task<IEnumerable<Promotion>> GetPromotionsWithDetailsAsync();
+    Task<Promotion> GetPromotionWithDetailsAsync(int promotionId, bool asNoTracking = true);
+    Task<Promotion> GetPromotionByCodeAsync(string code, bool asNoTracking = true);
 }

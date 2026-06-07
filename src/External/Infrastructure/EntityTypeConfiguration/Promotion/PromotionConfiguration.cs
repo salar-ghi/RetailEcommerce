@@ -32,6 +32,10 @@ public class PromotionConfiguration : IEntityTypeConfiguration<Promotion>
             .IsRequired()
             .HasConversion<string>(); // Store enum as string in DB
 
+        builder.Property(p => p.IsEnabled)
+            .IsRequired()
+            .HasDefaultValue(true);
+
         // Ignore computed property
         builder.Ignore(p => p.IsActive);
 
@@ -111,7 +115,13 @@ public class DiscountConfiguration : IEntityTypeConfiguration<Discount>
 
         builder.Property(d => d.Value)
             .IsRequired()
-            .HasColumnType("decimal(18,2)"); 
+            .HasColumnType("decimal(18,2)");
+
+        builder.Property(d => d.MaxUsage);
+
+        builder.Property(d => d.UsedCount)
+            .IsRequired()
+            .HasDefaultValue(0);
 
         builder.Property(d => d.PromotionId)
             .IsRequired();

@@ -658,12 +658,20 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("ModifiedTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("MaxUsage")
+                        .HasColumnType("int");
+
                     b.Property<int>("PromotionId")
                         .HasColumnType("int");
 
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UsedCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<decimal>("Value")
                         .HasColumnType("decimal(18,2)");
@@ -2331,6 +2339,11 @@ namespace Infrastructure.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("ModifiedBy")
                         .IsRequired()
