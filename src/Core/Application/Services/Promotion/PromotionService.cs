@@ -55,16 +55,16 @@ public class PromotionService : IPromotionService
     {
         ValidateCreateRequest(request);
 
-        var existingPromotion = await _unitOfWork.Promotions.GetPromotionByCodeAsync(request.Code);
-        if (existingPromotion != null)
+        var normalizedCode = NormalizeCode(request.Code);
+        if (await _unitOfWork.Promotions.PromotionCodeExistsAsync(normalizedCode))
         {
-            throw new InvalidOperationException($"Discount code '{request.Code}' already exists.");
+            throw new InvalidOperationException($"Discount code '{normalizedCode}' already exists.");
         }
 
         var promotion = new Promotion
         {
-            Code = NormalizeCode(request.Code),
-            Name = NormalizeCode(request.Code),
+            Code = normalizedCode,
+            Name = normalizedCode,
             Description = request.Description ?? string.Empty,
             StartDate = NormalizeDate(request.StartDate),
             EndDate = NormalizeDate(request.EndDate),
