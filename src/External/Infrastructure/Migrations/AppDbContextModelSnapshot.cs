@@ -2366,6 +2366,9 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Code")
+                        .HasDatabaseName("IX_Promotions_PromotionCode");
+
                     b.ToTable("Promotions", (string)null);
                 });
 

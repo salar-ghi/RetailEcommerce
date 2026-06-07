@@ -26,9 +26,16 @@ public class PromotionRepository : Repository<Promotion, int>, IPromotionReposit
 
     public async Task<Promotion> GetPromotionByCodeAsync(string code, bool asNoTracking = true)
     {
-        var normalizedCode = code?.Trim().ToUpperInvariant();
+        var normalizedCode = NormalizeCode(code);
         return await QueryWithDetails(asNoTracking)
-            .FirstOrDefaultAsync(p => p.Code.ToUpper() == normalizedCode);
+            .FirstOrDefaultAsync(p => p.Code == normalizedCode);
+    }
+
+    public async Task<bool> PromotionCodeExistsAsync(string code)
+    {
+        var normalizedCode = NormalizeCode(code);
+        return !string.IsNullOrWhiteSpace(normalizedCode)
+            && await _context.Promotions.AsNoTracking().AnyAsync(p => p.Code == normalizedCode);
     }
 
     private IQueryable<Promotion> QueryWithDetails(bool asNoTracking)
@@ -38,8 +45,10 @@ public class PromotionRepository : Repository<Promotion, int>, IPromotionReposit
             .Include(p => p.Discounts)
             .Include(p => p.Products)
             .Include(p => p.Categories)
-            .AsQueryable();
+            .AsSplitQuery();
 
         return asNoTracking ? query.AsNoTracking() : query.AsTracking();
     }
+
+    private static string NormalizeCode(string code) => code?.Trim().ToUpperInvariant();
 }

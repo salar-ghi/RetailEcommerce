@@ -13,6 +13,9 @@ public class PromotionConfiguration : IEntityTypeConfiguration<Promotion>
             .HasMaxLength(50)
             .HasColumnName("PromotionCode"); // Custom column name for clarity
 
+        builder.HasIndex(p => p.Code)
+            .HasDatabaseName("IX_Promotions_PromotionCode");
+
         builder.Property(p => p.Name)
             .IsRequired()
             .HasMaxLength(100);
