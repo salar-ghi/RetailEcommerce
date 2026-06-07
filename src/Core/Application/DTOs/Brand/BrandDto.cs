@@ -28,4 +28,8 @@ public record BrandUpdateDto
     public string Description { get; set; } = string.Empty;
     public string? Logo { get; set; }
     public DateTime ModifiedBy { get; set; } = DateTime.Now;
+    public List<BrandCategories>? Categories { get; set; }
+
+    [JsonPropertyName("categoryIds")]
+    public List<int>? CategoryIds { get; set; }
 }

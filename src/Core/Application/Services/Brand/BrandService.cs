@@ -74,7 +74,9 @@ public class BrandService
 
     public async Task UpdateBrandAsync(BrandUpdateDto brandDto)
     {
-        var brand = await _unitOfWork.Brands.GetByIdAsync(brandDto.Id);
+        var brand = await _unitOfWork.Brands.GetByIdAsync(
+            brandDto.Id,
+            query => query.Include(brand => brand.BrandCategories));
         if (brand == null) throw new KeyNotFoundException($"Brand with ID {brandDto.Id} not found.");
 
         brandDto.Name = NormalizeName(brandDto.Name, nameof(brandDto.Name));
@@ -100,6 +102,7 @@ public class BrandService
         }
 
         _mapper.Map(brandDto, brand);
+        UpdateBrandCategories(brand, brandDto);
         await _unitOfWork.Brands.UpdateAsync(brand);
         await _unitOfWork.SaveChangesAsync();
     }
@@ -124,6 +127,43 @@ public class BrandService
     {
         var brands = await _unitOfWork.Brands.SearchByDescriptionAsync(description);
         return _mapper.Map<IEnumerable<BrandDto>>(brands);
+    }
+
+    private static void UpdateBrandCategories(Brand brand, BrandUpdateDto brandDto)
+    {
+        if (brandDto.CategoryIds == null && brandDto.Categories == null)
+        {
+            return;
+        }
+
+        var requestedCategoryIds = brandDto.CategoryIds?.Count > 0
+            ? brandDto.CategoryIds
+            : brandDto.Categories?.Select(category => category.Id) ?? [];
+        var requestedCategoryIdSet = requestedCategoryIds
+            .Distinct()
+            .ToHashSet();
+
+        var categoriesToRemove = brand.BrandCategories
+            .Where(brandCategory => !requestedCategoryIdSet.Contains(brandCategory.CategoryId))
+            .ToList();
+
+        foreach (var categoryToRemove in categoriesToRemove)
+        {
+            brand.BrandCategories.Remove(categoryToRemove);
+        }
+
+        var existingCategoryIds = brand.BrandCategories
+            .Select(brandCategory => brandCategory.CategoryId)
+            .ToHashSet();
+
+        foreach (var categoryId in requestedCategoryIdSet.Where(categoryId => !existingCategoryIds.Contains(categoryId)))
+        {
+            brand.BrandCategories.Add(new BrandCategory
+            {
+                BrandId = brand.Id,
+                CategoryId = categoryId
+            });
+        }
     }
 
     private static string NormalizeName(string name, string parameterName)
