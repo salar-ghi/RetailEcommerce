@@ -17,7 +17,10 @@ public interface IInventoryService
     Task UpdateShelfAsync(int id, CreateShelfDto dto);
     Task DeleteShelfAsync(int id);
     Task<IEnumerable<InventoryStockDto>> GetStockAsync(long? productId = null, int? spaceId = null, int? zoneId = null, int? shelfId = null);
-    Task<InventoryStockDto> RegisterInputAsync(InventoryInputDto dto);
+    Task<StockInputDto> RegisterInputAsync(InventoryInputDto dto);
+    Task<IEnumerable<StockInputDto>> GetInputsAsync(long? productId = null, int? supplierId = null, DateTime? from = null, DateTime? to = null);
+    Task<IEnumerable<StockInputDto>> GetRecentInputsAsync(int limit = 10);
+    Task<IEnumerable<StockInputDto>> GetExpiringInputsAsync(int days = 30);
     Task ReserveAsync(long stockId, int quantity);
     Task ReleaseReservationAsync(long stockId, int quantity);
 }

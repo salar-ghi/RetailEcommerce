@@ -72,6 +72,11 @@ public class ProductInventoryBatchConfiguration : IEntityTypeConfiguration<Produ
         builder.Property(pa => pa.CostPrice).HasPrecision(18, 2);
         builder.Property(pa => pa.SellingPrice).HasPrecision(18, 2);
 
+        builder.HasOne(pa => pa.Supplier)
+            .WithMany()
+            .HasForeignKey(pa => pa.SupplierId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasOne(pa => pa.Product)
             .WithMany(p => p.Batches)
             .HasForeignKey(pa => pa.ProductId)

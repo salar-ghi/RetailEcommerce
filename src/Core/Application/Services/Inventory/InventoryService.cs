@@ -214,8 +214,9 @@ public class InventoryService : IInventoryService
         return stocks.Select(MapStock);
     }
 
-    public async Task<InventoryStockDto> RegisterInputAsync(InventoryInputDto dto)
+    public async Task<StockInputDto> RegisterInputAsync(InventoryInputDto dto)
     {
+        if (dto.Quantity <= 0) throw new ArgumentException("Quantity must be positive.");
         await ValidateStockLocation(dto.SpaceId, dto.ZoneId, dto.ShelfId);
         var product = await _unitOfWork.Products.GetByIdAsync(dto.ProductId);
         if (product == null) throw new KeyNotFoundException($"Product with ID {dto.ProductId} not found.");
@@ -226,11 +227,28 @@ public class InventoryService : IInventoryService
 
         var resolvedSpaceId = dto.SpaceId ?? shelf?.SpaceId;
         var resolvedZoneId = dto.ZoneId ?? shelf?.ZoneId;
+        var receivedDate = dto.ReceivedDate ?? DateTime.UtcNow;
+        var salePrice = dto.SalePrice ?? dto.SellingPrice ?? 0m;
+
+        var batch = new ProductInventoryBatch
+        {
+            ProductId = dto.ProductId,
+            BatchNumber = string.IsNullOrWhiteSpace(dto.BatchNumber) ? $"B-{dto.ProductId}-{receivedDate:yyyyMMddHHmmss}" : dto.BatchNumber,
+            CostPrice = dto.CostPrice ?? 0m,
+            SellingPrice = salePrice,
+            Currency = string.IsNullOrWhiteSpace(dto.Currency) ? "IRR" : dto.Currency,
+            EffectiveDate = receivedDate,
+            ExpiryDate = dto.ExpiryDate,
+            Quantity = dto.Quantity,
+            SoldQuantity = 0,
+            Notes = dto.Notes,
+            SupplierId = dto.SupplierId
+        };
 
         var stock = new ProductStock
         {
             ProductId = dto.ProductId,
-            ProductInventoryBatchId = dto.ProductInventoryBatchId,
+            ProductInventoryBatch = batch,
             ProductVariantOptionId = dto.ProductVariantOptionId,
             Sku = dto.Sku,
             Quantity = dto.Quantity,
@@ -267,7 +285,37 @@ public class InventoryService : IInventoryService
         }
 
         await _unitOfWork.SaveChangesAsync();
-        return MapStock(stock);
+        stock.Product = product;
+        return MapInput(stock);
+    }
+
+    public async Task<IEnumerable<StockInputDto>> GetInputsAsync(long? productId = null, int? supplierId = null, DateTime? from = null, DateTime? to = null)
+    {
+        var query = BuildInputsQuery();
+        if (productId.HasValue) query = query.Where(s => s.ProductId == productId.Value);
+        if (supplierId.HasValue) query = query.Where(s => s.ProductInventoryBatch.SupplierId == supplierId.Value);
+        if (from.HasValue) query = query.Where(s => s.ProductInventoryBatch.EffectiveDate >= from.Value);
+        if (to.HasValue) query = query.Where(s => s.ProductInventoryBatch.EffectiveDate <= to.Value);
+        return await query.OrderByDescending(s => s.ProductInventoryBatch.EffectiveDate).ThenByDescending(s => s.Id).Select(s => MapInput(s)).ToListAsync();
+    }
+
+    public async Task<IEnumerable<StockInputDto>> GetRecentInputsAsync(int limit = 10)
+    {
+        limit = Math.Clamp(limit, 1, 200);
+        return await BuildInputsQuery().OrderByDescending(s => s.ProductInventoryBatch.EffectiveDate).ThenByDescending(s => s.Id).Take(limit).Select(s => MapInput(s)).ToListAsync();
+    }
+
+    public async Task<IEnumerable<StockInputDto>> GetExpiringInputsAsync(int days = 30)
+    {
+        days = Math.Clamp(days, 1, 3650);
+        var today = DateTime.UtcNow.Date;
+        var until = today.AddDays(days);
+        return await BuildInputsQuery()
+            .Where(s => s.ProductInventoryBatch.ExpiryDate.HasValue && s.ProductInventoryBatch.ExpiryDate.Value.Date >= today && s.ProductInventoryBatch.ExpiryDate.Value.Date <= until)
+            .OrderBy(s => s.ProductInventoryBatch.ExpiryDate)
+            .ThenBy(s => s.ProductInventoryBatch.EffectiveDate)
+            .Select(s => MapInput(s))
+            .ToListAsync();
     }
 
     public async Task ReserveAsync(long stockId, int quantity)
@@ -389,6 +437,40 @@ public class InventoryService : IInventoryService
         Capacity = shelf.Capacity,
         Used = shelf.Used,
         IsActive = shelf.IsActive
+    };
+
+    private IQueryable<ProductStock> BuildInputsQuery() => _unitOfWork.ProductStocks.GetAll()
+        .Where(s => s.ProductInventoryBatchId != null && s.ProductInventoryBatch != null)
+        .Include(s => s.Product)
+        .Include(s => s.ProductInventoryBatch)
+            .ThenInclude(b => b.Supplier)
+        .Include(s => s.Space)
+        .Include(s => s.Zone)
+        .Include(s => s.Shelf);
+
+    private static StockInputDto MapInput(ProductStock stock) => new()
+    {
+        Id = stock.ProductInventoryBatchId ?? stock.Id,
+        ProductId = stock.ProductId,
+        ProductName = stock.Product?.Name,
+        BatchNumber = stock.ProductInventoryBatch?.BatchNumber,
+        Quantity = stock.ProductInventoryBatch?.Quantity ?? stock.Quantity,
+        SoldQuantity = stock.ProductInventoryBatch?.SoldQuantity ?? 0,
+        CostPrice = stock.ProductInventoryBatch?.CostPrice ?? 0m,
+        SalePrice = stock.ProductInventoryBatch?.SellingPrice ?? 0m,
+        Currency = stock.ProductInventoryBatch?.Currency,
+        SupplierId = stock.ProductInventoryBatch?.SupplierId,
+        SupplierName = stock.ProductInventoryBatch?.Supplier?.Name,
+        SpaceId = stock.SpaceId,
+        SpaceName = stock.Space?.Name,
+        ZoneId = stock.ZoneId,
+        ZoneName = stock.Zone?.Name,
+        ShelfId = stock.ShelfId,
+        ShelfCode = stock.Shelf?.Code,
+        ReceivedDate = stock.ProductInventoryBatch?.EffectiveDate ?? stock.CreatedTime,
+        ExpiryDate = stock.ProductInventoryBatch?.ExpiryDate,
+        Notes = stock.ProductInventoryBatch?.Notes ?? stock.LocationNote,
+        CreatedAt = stock.ProductInventoryBatch?.CreatedTime ?? stock.CreatedTime
     };
 
     private static InventoryStockDto MapStock(ProductStock stock) => new()

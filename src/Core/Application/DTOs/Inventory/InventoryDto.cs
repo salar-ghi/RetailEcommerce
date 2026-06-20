@@ -117,9 +117,37 @@ public class InventoryInputDto : CreateInventoryStockDto
     public string BatchNumber { get; set; }
     public decimal? CostPrice { get; set; }
     public decimal? SellingPrice { get; set; }
+    public decimal? SalePrice { get; set; }
     public string Currency { get; set; }
+    public int? SupplierId { get; set; }
+    public DateTime? ReceivedDate { get; set; }
     public DateTime? ExpiryDate { get; set; }
     public string Notes { get; set; }
+}
+
+public class StockInputDto
+{
+    public long Id { get; set; }
+    public long ProductId { get; set; }
+    public string ProductName { get; set; }
+    public string BatchNumber { get; set; }
+    public int Quantity { get; set; }
+    public int SoldQuantity { get; set; }
+    public decimal CostPrice { get; set; }
+    public decimal SalePrice { get; set; }
+    public string Currency { get; set; }
+    public int? SupplierId { get; set; }
+    public string SupplierName { get; set; }
+    public int? SpaceId { get; set; }
+    public string SpaceName { get; set; }
+    public int? ZoneId { get; set; }
+    public string ZoneName { get; set; }
+    public int? ShelfId { get; set; }
+    public string ShelfCode { get; set; }
+    public DateTime ReceivedDate { get; set; }
+    public DateTime? ExpiryDate { get; set; }
+    public string Notes { get; set; }
+    public DateTime CreatedAt { get; set; }
 }
 
 public class InventorySummaryDto
