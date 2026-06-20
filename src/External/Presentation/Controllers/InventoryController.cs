@@ -114,6 +114,28 @@ public class InventoryController : ControllerBase
         return Ok(await _inventoryService.GetStockAsync(productId, spaceId, zoneId, shelfId));
     }
 
+    [HttpGet("inputs")]
+    public async Task<IActionResult> GetInputs(
+        [FromQuery] long? productId,
+        [FromQuery] int? supplierId,
+        [FromQuery] DateTime? from,
+        [FromQuery] DateTime? to)
+    {
+        return Ok(await _inventoryService.GetInputsAsync(productId, supplierId, from, to));
+    }
+
+    [HttpGet("inputs/recent")]
+    public async Task<IActionResult> GetRecentInputs([FromQuery] int limit = 10)
+    {
+        return Ok(await _inventoryService.GetRecentInputsAsync(limit));
+    }
+
+    [HttpGet("inputs/expiring")]
+    public async Task<IActionResult> GetExpiringInputs([FromQuery] int days = 30)
+    {
+        return Ok(await _inventoryService.GetExpiringInputsAsync(days));
+    }
+
     [HttpPost("inputs")]
     public async Task<IActionResult> RegisterInput(InventoryInputDto dto)
     {
