@@ -36,10 +36,9 @@ public class BrandRepository : Repository<Brand, int>, IBrandRepository
             .Include(brand => brand.BrandCategories)
             .ThenInclude(brandCategory => brandCategory.Category);
 
-        if (asNoTracking)
-        {
-            query = query.AsNoTracking();
-        }
+        query = asNoTracking
+            ? query.AsNoTracking()
+            : query.AsTracking();
 
         return await query.FirstOrDefaultAsync(brand => brand.Id == id && !brand.IsDeleted);
     }
