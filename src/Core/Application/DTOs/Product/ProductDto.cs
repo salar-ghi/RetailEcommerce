@@ -22,6 +22,8 @@ public class ProductDto
     public List<BatchDto> Prices { get; set; }
     public List<AttributeDto> Attributes { get; set; }
     public List<string> Tags { get; set; }
+    public string? PricingStrategy { get; set; }
+    public SalesUnitConfigDto? SalesUnit { get; set; }
 }
 
 public class BatchDto
@@ -133,4 +135,16 @@ public class CreateProductRequest
     public List<PriceDto>? Prices { get; set; }
     public List<AttributeDto>? Attributes { get; set; }
     public List<VariantDto>? Variants { get; set; }
+
+    public string? PricingStrategy { get; set; }              // fifo | latest | average
+    public SalesUnitConfigDto? SalesUnit { get; set; }        // piece/weight/both mode
+}
+
+public class SalesUnitConfigDto
+{
+    public string Mode { get; set; }                             // piece | weight | both
+    public string? WeightUnit { get; set; }                      // gram | kilogram | mithqal | ounce | pound
+    public decimal? PricePerWeightUnit { get; set; }
+    public decimal? PackWeight { get; set; }
+    public string? PackLabel { get; set; }
 }

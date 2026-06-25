@@ -27,15 +27,23 @@ public class ProductMappingProfile : Profile
             .ForMember(dest => dest.CoverImage, 
                 opt => opt.MapFrom(src => src.Images.OrderByDescending(i => i.IsPrimary).Select(i => i.ImageUrl).FirstOrDefault()))
 
-            //.ForMember(dest => dest.CoverImage,
-            //    opt => opt.MapFrom(src =>
-            //        src.Images.Any()
-            //            ? (src.Images.FirstOrDefault(i => i.IsPrimary) ?? src.Images.First()).ImageUrl
-            //            : null))
-
+            .ForMember(d => d.SalesUnit, opt => opt.MapFrom(s => new SalesUnitConfigDto
+            {
+                Mode = s.SalesUnitMode,
+                WeightUnit = s.SalesUnitWeightUnit,
+                PricePerWeightUnit = s.SalesUnitPricePerWeightUnit,
+                PackWeight = s.SalesUnitPackWeight,
+                PackLabel = s.SalesUnitPackLabel
+            }))
+            .ForMember(d => d.PricingStrategy, opt => opt.MapFrom(s => s.PricingStrategy))
             .ForMember(dest => dest.Tags,
                 opt => opt.MapFrom(src => src.Tags.Select(pt => pt.Tag.Name).ToList()));
 
+        CreateMap<CreateProductRequest, Product>()
+            .ForMember(d => d.SalesUnitMode, opt => opt.MapFrom(s => s.SalesUnit.Mode))
+            .ForMember(d => d.SalesUnitWeightUnit, opt => opt.MapFrom(s => s.SalesUnit.WeightUnit))
+            // ... map other fields ...
+            .ForMember(d => d.PricingStrategy, opt => opt.MapFrom(s => s.PricingStrategy ?? "fifo"));
 
         CreateMap<ProductDimensions, DimensionDto>();
 

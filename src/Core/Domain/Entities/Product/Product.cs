@@ -30,4 +30,12 @@ public class Product : BaseModel<long>
     public ICollection<ProductTag> Tags { get; set; } = new List<ProductTag>();
     public ICollection<ProductSupplier> Suppliers { get; set; } = new List<ProductSupplier>();
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+
+
+    public string? PricingStrategy { get; set; }                 // fifo | latest | average
+    public string? SalesUnitMode { get; set; }                   // piece | weight | both
+    public string? SalesUnitWeightUnit { get; set; }
+    public decimal? SalesUnitPricePerWeightUnit { get; set; }
+    public decimal? SalesUnitPackWeight { get; set; }
+    public string? SalesUnitPackLabel { get; set; }
 }

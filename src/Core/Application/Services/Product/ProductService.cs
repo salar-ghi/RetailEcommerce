@@ -80,6 +80,18 @@ public class ProductService : IProductService
             IsActive = true,
         };
 
+        product.PricingStrategy = dto.PricingStrategy ?? "fifo";
+
+        // Handle SalesUnitConfig
+        if (dto.SalesUnit != null)
+        {
+            product.SalesUnitMode = dto.SalesUnit.Mode;
+            product.SalesUnitWeightUnit = dto.SalesUnit.WeightUnit;
+            product.SalesUnitPricePerWeightUnit = dto.SalesUnit.PricePerWeightUnit;
+            product.SalesUnitPackWeight = dto.SalesUnit.PackWeight;
+            product.SalesUnitPackLabel = dto.SalesUnit.PackLabel;
+        }
+
         if (Enum.TryParse<ProductStatus>(dto.Status, true, out var status))
             product.Status = status;
         else
@@ -206,9 +218,9 @@ public class ProductService : IProductService
                 {
                     definition.Options.Add(new ProductVariantOption
                     {
-                        Value = opt.Name ?? opt.Value,
+                        DisplayValue = opt.Name ?? opt.Value,
+                        ActualValue = opt.Value,
                         DisplayOrder = 0,
-                        OptionValue = opt.Value,
                         PriceAdjustment = opt.PriceAdjustment,
                         StockQuantity = opt.StockQuantity,
                         Sku = opt.Sku,

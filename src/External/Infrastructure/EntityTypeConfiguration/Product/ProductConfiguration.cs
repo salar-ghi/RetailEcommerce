@@ -108,8 +108,8 @@ public class ProductVariantOptionConfiguration : IEntityTypeConfiguration<Produc
         builder.HasKey(pa => pa.Id);
         builder.Property(pa => pa.Id).ValueGeneratedOnAdd();
 
-        builder.Property(pa => pa.Value).IsRequired().HasMaxLength(200);
-        builder.Property(pa => pa.OptionValue).IsRequired().HasMaxLength(200);
+        builder.Property(pa => pa.DisplayValue).IsRequired().HasMaxLength(200);
+        builder.Property(pa => pa.ActualValue).IsRequired().HasMaxLength(200);
         builder.Property(pa => pa.Sku).HasMaxLength(100);
         builder.Property(pa => pa.PriceAdjustment).HasColumnType("decimal(18,2)");
 
