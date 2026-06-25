@@ -94,9 +94,16 @@ public class BannerService : IBannerService
 
     public async Task<IEnumerable<BannerDto>> GetByPlacementAsync(BannerPageCode placementKey)
     {
-        var banners = await _unitOfWork.Banners
+        var bannerQuery = await _unitOfWork.Banners
             .GetActiveBannersByPlacementAsync(placementKey);
-        return _mapper.Map<IEnumerable<BannerDto>>(banners);
+        var banners = _mapper.Map<IEnumerable<BannerDto>>(bannerQuery);
+        foreach (var dto in banners)
+        {
+            if (string.IsNullOrEmpty(dto.ImageUrl))
+                continue;
+            dto.ImageUrl = await _imageHelper.GetImageBase64(dto.ImageUrl);
+        }
+        return banners;
     }
 
     public async Task<BannerDto> UpdateStatusAsync(int id, bool isActive)

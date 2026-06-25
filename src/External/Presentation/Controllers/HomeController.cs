@@ -6,6 +6,7 @@ public class HomeController : ControllerBase
 {
     private const int SectionProductCount = 10;
     private const string DigitalCategoryName = "کالای دیجیتال";
+    private const string MobileCategoryName = "گوشی موبایل";
     private const string PerfumeCategoryName = "عطر و ادکلن";
     private const string SportTravelCategoryName = "ورزش و سفر";
     private const string CoffeeDrinkCategoryName = "قهوه و نوشیدنی";
@@ -29,6 +30,7 @@ public class HomeController : ControllerBase
         var bottomBanners = await _bannerService.GetByPlacementAsync(BannerPageCode.HOME_BOTTOM);
         var allProducts = (await _productService.GetAllProductsAsync()).ToList();
         var digitalProducts = ProductsByCategory(allProducts, DigitalCategoryName).ToList();
+        var mobileProducts = ProductsByCategory(allProducts, MobileCategoryName).ToList();
 
         var model = new HomeIndexDto(
             HeroBanners: topBanners.Select(ToHomeBanner).ToList(),
@@ -46,16 +48,16 @@ public class HomeController : ControllerBase
                         .ToList()),
                 new(
                     Id: 2,
-                    Title: "جدیدترین کالای دیجیتال",
-                    ViewAllLink: CategoryLink(DigitalCategoryName),
+                    Title: "موبایل",
+                    ViewAllLink: CategoryLink(MobileCategoryName),
                     Variant: "default",
-                    Products: digitalProducts
+                    Products: mobileProducts
                         .OrderByDescending(product => product.Id)
                         .Take(SectionProductCount)
                         .Select(product => ToHomeProduct(product, isNew: true))
                         .ToList()),
                 new(
-                    Id: 3,
+                    Id: 2,
                     Title: "محصولات تخفیف‌دار",
                     ViewAllLink: "/offers",
                     Variant: "special",
@@ -66,6 +68,7 @@ public class HomeController : ControllerBase
                         .Take(SectionProductCount)
                         .Select(item => ToHomeProduct(item.Product, item.Discount))
                         .ToList()),
+                //CategoryCarousel(3, "موبایل", MobileCategoryName, allProducts),
                 CategoryCarousel(4, "عطر و ادکلن", PerfumeCategoryName, allProducts),
                 CategoryCarousel(5, "ورزش و سفر", SportTravelCategoryName, allProducts),
                 CategoryCarousel(6, "قهوه و نوشیدنی", CoffeeDrinkCategoryName, allProducts)
