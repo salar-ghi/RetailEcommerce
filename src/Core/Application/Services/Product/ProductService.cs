@@ -171,7 +171,7 @@ public class ProductService : IProductService
         product.CategoryId = dto.CategoryId;
         product.BrandId = dto.BrandId;
         product.IsActive = !string.Equals(dto.Status, "inactive", StringComparison.OrdinalIgnoreCase);
-        product.PricingStrategy = dto.PricingStrategy ?? "fifo";
+        product.PricingStrategy = NormalizePricingStrategy(dto.PricingStrategy);
         product.SalesUnitMode = dto.SalesUnit?.Mode;
         product.SalesUnitWeightUnit = dto.SalesUnit?.WeightUnit;
         product.SalesUnitPricePerWeightUnit = dto.SalesUnit?.PricePerWeightUnit;
@@ -183,6 +183,17 @@ public class ProductService : IProductService
         product.SpaceId = resolvedLocation.SpaceId;
         product.ZoneId = resolvedLocation.ZoneId;
         product.ShelfId = resolvedLocation.ShelfId;
+    }
+
+
+    private static string NormalizePricingStrategy(string? pricingStrategy)
+    {
+        return pricingStrategy?.Trim().ToLowerInvariant() switch
+        {
+            "latest" => "latest",
+            "average" => "average",
+            _ => "fifo"
+        };
     }
 
     private static void ApplyDimensions(Product product, DimensionDto? dimensions)
