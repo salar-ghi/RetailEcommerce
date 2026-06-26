@@ -6,7 +6,7 @@ public class HomeController : ControllerBase
 {
     private const int SectionProductCount = 10;
     private const string DigitalCategoryName = "کالای دیجیتال";
-    private const string MobileCategoryName = "گوشی موبایل";
+    private const string MobileCategoryName = "موبایل";
     private const string PerfumeCategoryName = "عطر و ادکلن";
     private const string SportTravelCategoryName = "ورزش و سفر";
     private const string CoffeeDrinkCategoryName = "قهوه و نوشیدنی";
