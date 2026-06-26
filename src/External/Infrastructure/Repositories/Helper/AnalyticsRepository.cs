@@ -97,7 +97,7 @@ public class AnalyticsRepository : IAnalyticsRepository
                 ProductName = p.Name,
                 CategoryName = p.Category.Name,
                 BrandName = p.Brand.Name,
-                TotalQuantitySold = p.OrderItems.Sum(oi => (int?)oi.Quantity) ?? 0,
+                TotalQuantitySold = p.OrderItems.Sum(oi => (decimal?)oi.Quantity) ?? 0,
                 TotalRevenue = p.OrderItems.Sum(oi => (decimal?)(oi.Quantity * oi.UnitPrice)) ?? 0,
                 OrderCount = p.OrderItems.Select(oi => oi.OrderId).Distinct().Count()
             })
@@ -119,7 +119,7 @@ public class AnalyticsRepository : IAnalyticsRepository
                 ProductName = p.Name,
                 CategoryName = p.Category.Name,
                 BrandName = p.Brand.Name,
-                TotalQuantitySold = p.OrderItems.Sum(oi => (int?)oi.Quantity) ?? 0,
+                TotalQuantitySold = p.OrderItems.Sum(oi => (decimal?)oi.Quantity) ?? 0,
                 TotalRevenue = p.OrderItems.Sum(oi => (decimal?)(oi.Quantity * oi.UnitPrice)) ?? 0,
                 OrderCount = p.OrderItems.Select(oi => oi.OrderId).Distinct().Count()
             })

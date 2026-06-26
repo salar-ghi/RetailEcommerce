@@ -8,7 +8,11 @@ public class Order : BaseModel<string>
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
     public decimal DiscountAmount { get; set; } = 0m;
     public decimal TotalAmount => Items.Sum(item => item.Quantity * item.UnitPrice) - DiscountAmount;
-    public int TotalItems => Items.Sum(item => item.Quantity);
+    public decimal TotalItems => Items.Sum(item => item.Quantity);
+    public decimal SubtotalAmount => Items.Sum(item => item.Subtotal);
+    public decimal FinalAmount => TotalAmount;
+    public string Notes { get; set; }
+    public OrderSource Source { get; set; } = OrderSource.Storefront;
     public ShippingAddress ShippingAddress { get; set; } = new ShippingAddress();
 
     [Timestamp]
