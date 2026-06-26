@@ -7,7 +7,7 @@ public interface IProductService
     Task<IEnumerable<ProductDto>> GetProductsByCategory(string categoryName);
 
     Task<Product> AddProductAsync(CreateProductRequest dto);
-    Task UpdateProductAsync(ProductDto productDto);
+    Task<Product> UpdateProductAsync(int id, UpdateProductRequest dto);
     Task DeleteProductAsync(int id);
     Task<IEnumerable<ProductDto>> SearchProductsByNameAsync(string name, int page = 1, int pageSize = 10);
     Task<IEnumerable<ProductDto>> SearchProductsByPriceRangeAsync(decimal minPrice, decimal maxPrice);

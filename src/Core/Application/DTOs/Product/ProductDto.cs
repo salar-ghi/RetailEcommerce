@@ -11,6 +11,12 @@ public class ProductDto
     public string Description { get; set; }
     public string Status { get; set; }
     public string Availability { get; set; }
+    public string? LegacyStatus { get; set; }
+    public int CategoryId { get; set; }
+    public int BrandId { get; set; }
+    public int SupplierId { get; set; }
+    public string? Location { get; set; }
+    public int? ReorderLevel { get; set; }
     public decimal Price { get; set; }
     public int StockQuantity { get; set; }
     public string CategoryName { get; set; }
@@ -19,8 +25,10 @@ public class ProductDto
     public List<string> Images { get; set; }
     public string CoverImage { get; set; }
     public DimensionDto Dimensions { get; set; }
+    public StockDto Stock { get; set; }
     public List<BatchDto> Prices { get; set; }
     public List<AttributeDto> Attributes { get; set; }
+    public List<VariantDto> Variants { get; set; }
     public List<string> Tags { get; set; }
     public string? PricingStrategy { get; set; }
     public SalesUnitConfigDto? SalesUnit { get; set; }
@@ -138,6 +146,10 @@ public class CreateProductRequest
 
     public string? PricingStrategy { get; set; }              // fifo | latest | average
     public SalesUnitConfigDto? SalesUnit { get; set; }        // piece/weight/both mode
+}
+
+public class UpdateProductRequest : CreateProductRequest
+{
 }
 
 public class SalesUnitConfigDto

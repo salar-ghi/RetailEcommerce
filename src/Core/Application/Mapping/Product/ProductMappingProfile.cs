@@ -5,66 +5,58 @@ public class ProductMappingProfile : Profile
     public ProductMappingProfile()
     {
         CreateMap<Product, ProductDto>()
-            .ForMember(dest => dest.Status, 
-                opt => opt.MapFrom(src => src.Status.HasValue ? src.Status.Value.ToString().ToLower() : null))
-            .ForMember(dest => dest.Availability,
-                opt => opt.MapFrom(src => src.Availability.ToString().ToLower()))  // not nullable
-            .ForMember(dest => dest.Price,
-                opt => opt.MapFrom(src =>
-                    src.Batches.Any() ? (decimal?)src.Batches.First().SellingPrice : 0))
-            .ForMember(dest => dest.StockQuantity,
-                opt => opt.MapFrom(src => src.Batches.Sum(b => b.Quantity - b.SoldQuantity)))
-            .ForMember(dest => dest.CategoryName,
-                opt => opt.MapFrom(src => src.Category.Name))
-            .ForMember(dest => dest.BrandName,
-                opt => opt.MapFrom(src => src.Brand.Name))
-            .ForMember(dest => dest.SupplierName,
-                opt => opt.MapFrom(src =>
-                    src.Suppliers.Any() ? src.Suppliers.First().Supplier.Name : null))
-            .ForMember(dest => dest.Images,
-                opt => opt.MapFrom(src => src.Images.Select(i => i.ImageUrl).ToList()))
-
-            .ForMember(dest => dest.CoverImage, 
-                opt => opt.MapFrom(src => src.Images.OrderByDescending(i => i.IsPrimary).Select(i => i.ImageUrl).FirstOrDefault()))
-
-            .ForMember(d => d.SalesUnit, opt => opt.MapFrom(s => new SalesUnitConfigDto
+            .ForMember(d => d.Id, o => o.MapFrom(s => (int)s.Id))
+            .ForMember(d => d.Status, o => o.MapFrom(s => s.Status.HasValue ? s.Status.Value.ToString().ToLower() : null))
+            .ForMember(d => d.Availability, o => o.MapFrom(s => s.Availability.ToString().ToLower()))
+            .ForMember(d => d.LegacyStatus, o => o.MapFrom(s => s.Availability == ProductAvailability.Discontinued ? "discontinued" : s.IsActive ? "active" : null))
+            .ForMember(d => d.Price, o => o.MapFrom(s => s.Batches.Any() ? s.Batches.OrderByDescending(b => b.EffectiveDate).First().SellingPrice : 0))
+            .ForMember(d => d.StockQuantity, o => o.MapFrom(s => s.Stocks.Any() ? s.Stocks.Sum(st => st.Quantity - st.ReservedQuantity) : s.Batches.Sum(b => b.Quantity - b.SoldQuantity)))
+            .ForMember(d => d.CategoryName, o => o.MapFrom(s => s.Category != null ? s.Category.Name : null))
+            .ForMember(d => d.BrandName, o => o.MapFrom(s => s.Brand != null ? s.Brand.Name : null))
+            .ForMember(d => d.SupplierId, o => o.MapFrom(s => s.Suppliers.Any() ? s.Suppliers.First().SupplierId : 0))
+            .ForMember(d => d.SupplierName, o => o.MapFrom(s => s.Suppliers.Any() && s.Suppliers.First().Supplier != null ? s.Suppliers.First().Supplier.Name : null))
+            .ForMember(d => d.Images, o => o.MapFrom(s => s.Images.Select(i => i.ImageUrl).ToList()))
+            .ForMember(d => d.CoverImage, o => o.MapFrom(s => s.Images.OrderByDescending(i => i.IsPrimary).Select(i => i.ImageUrl).FirstOrDefault()))
+            .ForMember(d => d.Location, o => o.MapFrom(s => s.StorageLocationNote))
+            .ForMember(d => d.ReorderLevel, o => o.MapFrom(s => s.Stocks.Any() ? (int?)s.Stocks.First().ReorderThreshold : null))
+            .ForMember(d => d.Stock, o => o.MapFrom(s => s.Stocks.FirstOrDefault()))
+            .ForMember(d => d.Prices, o => o.MapFrom(s => s.Batches))
+            .ForMember(d => d.Variants, o => o.MapFrom(s => s.VariantDefinitions))
+            .ForMember(d => d.SalesUnit, o => o.MapFrom(s => string.IsNullOrWhiteSpace(s.SalesUnitMode) ? null : new SalesUnitConfigDto
             {
-                Mode = s.SalesUnitMode,
+                Mode = s.SalesUnitMode!,
                 WeightUnit = s.SalesUnitWeightUnit,
                 PricePerWeightUnit = s.SalesUnitPricePerWeightUnit,
                 PackWeight = s.SalesUnitPackWeight,
                 PackLabel = s.SalesUnitPackLabel
             }))
-            .ForMember(d => d.PricingStrategy, opt => opt.MapFrom(s => s.PricingStrategy))
-            .ForMember(dest => dest.Tags,
-                opt => opt.MapFrom(src => src.Tags.Select(pt => pt.Tag.Name).ToList()));
-
-        CreateMap<CreateProductRequest, Product>()
-            .ForMember(d => d.SalesUnitMode, opt => opt.MapFrom(s => s.SalesUnit.Mode))
-            .ForMember(d => d.SalesUnitWeightUnit, opt => opt.MapFrom(s => s.SalesUnit.WeightUnit))
-            // ... map other fields ...
-            .ForMember(d => d.PricingStrategy, opt => opt.MapFrom(s => s.PricingStrategy ?? "fifo"));
+            .ForMember(d => d.Tags, o => o.MapFrom(s => s.Tags.Select(pt => pt.Tag != null ? pt.Tag.Name : pt.TagId.ToString()).ToList()));
 
         CreateMap<ProductDimensions, DimensionDto>();
-
+        CreateMap<ProductStock, StockDto>()
+            .ForMember(d => d.SpaceName, o => o.MapFrom(s => s.Space != null ? s.Space.Name : null))
+            .ForMember(d => d.ZoneName, o => o.MapFrom(s => s.Zone != null ? s.Zone.Name : null))
+            .ForMember(d => d.ShelfCode, o => o.MapFrom(s => s.Shelf != null ? s.Shelf.Code : null))
+            .ForMember(d => d.WarehouseName, o => o.MapFrom(s => s.Warehouse != null ? s.Warehouse.Name : null))
+            .ForMember(d => d.Location, o => o.MapFrom(s => s.LocationNote))
+            .ForMember(d => d.QuantityUnit, o => o.MapFrom(_ => "piece"));
         CreateMap<ProductInventoryBatch, BatchDto>()
-            .ForMember(dest => dest.Amount,
-                opt => opt.MapFrom(src => src.SellingPrice))
-            .ForMember(dest => dest.Id,
-                opt => opt.MapFrom(src => (int?)src.Id)); // assuming id is long, convert
-
+            .ForMember(d => d.Id, o => o.MapFrom(s => (int)s.Id))
+            .ForMember(d => d.Amount, o => o.MapFrom(s => s.SellingPrice));
         CreateMap<ProductAttribute, AttributeDto>();
+        CreateMap<ProductVariantDefinition, VariantDto>();
+        CreateMap<ProductVariantOption, VariantOptionDto>()
+            .ForMember(d => d.Name, o => o.MapFrom(s => s.DisplayValue))
+            .ForMember(d => d.Value, o => o.MapFrom(s => s.ActualValue));
 
         CreateMap<ProductAttribute, ProductAttributeDto>().ReverseMap();
         CreateMap<ProductDimensions, ProductDimensionsDto>().ReverseMap();
         CreateMap<ProductReview, ProductReviewDto>().ReverseMap();
         CreateMap<ProductStock, ProductStockDto>().ReverseMap();
         CreateMap<ProductVariant, ProductVariantDto>().ReverseMap();
-
         CreateMap<ProductImage, ProductImageDto>().ReverseMap();
         CreateMap<ProductSupplier, ProductSupplierDto>().ReverseMap();
         CreateMap<ProductTag, ProductTagDto>().ReverseMap();
         CreateMap<ProductUnitPrice, ProductUnitPriceDto>().ReverseMap();
-
     }
 }

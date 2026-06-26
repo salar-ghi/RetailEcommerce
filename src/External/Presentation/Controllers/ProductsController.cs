@@ -57,16 +57,17 @@ public class ProductController : ControllerBase
     [HttpPost("products")]
     public async Task<IActionResult> CreateProduct(CreateProductRequest dto)
     {
-        await _productService.AddProductAsync(dto);
-        return Ok("Product created successfully");
+        var product = await _productService.AddProductAsync(dto);
+        var created = await _productService.GetProductByIdAsync((int)product.Id);
+        return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, created);
     }
 
     [HttpPut("products/{id}")]
-    public async Task<IActionResult> UpdateProduct(int id, ProductDto productDto)
+    public async Task<IActionResult> UpdateProduct(int id, UpdateProductRequest productDto)
     {
-        if (id != productDto.Id) return BadRequest();
-        await _productService.UpdateProductAsync(productDto);
-        return NoContent();
+        await _productService.UpdateProductAsync(id, productDto);
+        var updated = await _productService.GetProductByIdAsync(id);
+        return Ok(updated);
     }
 
     [HttpDelete("products/{id}")]
