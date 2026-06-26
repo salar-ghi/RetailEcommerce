@@ -1,15 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
-
-using Application.Interfaces;
-
-using Domain.Enums;
-
-// Presentation/Controllers/OrderController.cs
-using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -22,8 +13,37 @@ public class OrderController : ControllerBase
         _orderService = orderService;
     }
 
+    [HttpGet("orders")]
+    public async Task<ActionResult<IEnumerable<OrderDto>>> ListOrders()
+    {
+        var orders = await _orderService.ListOrdersAsync();
+        return Ok(orders);
+    }
+
+    [HttpPost("orders")]
+    public async Task<ActionResult<OrderDto>> CreateManualOrder([FromBody] CreateManualOrderRequest request)
+    {
+        var order = await _orderService.CreateManualOrderAsync(request);
+        return CreatedAtAction(nameof(GetOrderById), new { orderId = order.Id }, order);
+    }
+
+    [HttpPost("orders/{orderId}/returns")]
+    public async Task<IActionResult> CreateReturn(string orderId, [FromBody] CreateReturnRequest request)
+    {
+        request.OrderId = orderId;
+        await _orderService.CreateReturnAsync(request);
+        return NoContent();
+    }
+
+    [HttpGet("orders/{orderId}")]
+    public async Task<ActionResult<OrderDto>> GetOrderById(string orderId)
+    {
+        var order = await _orderService.GetOrderByIdAsync(orderId);
+        return Ok(order);
+    }
+
     [HttpPost("{userId}")]
-    public async Task<ActionResult<OrderDto>> CreateOrder(string userId, [FromBody] CreateOrderRequest request)
+    public async Task<ActionResult<OrderDto>> CreateOrder(string userId, [FromBody] CreateBasketOrderRequest request)
     {
         var order = await _orderService.CreateOrderFromBasketAsync(userId, request.ShippingAddress, request.PaymentMethod);
         return CreatedAtAction(nameof(GetOrder), new { userId, orderId = order.Id }, order);
@@ -58,10 +78,10 @@ public class OrderController : ControllerBase
     }
 }
 
-public class CreateOrderRequest
+public class CreateBasketOrderRequest
 {
-    public ShippingAddressDto ShippingAddress { get; set; }
-    public string PaymentMethod { get; set; }
+    public ShippingAddressDto ShippingAddress { get; set; } = new();
+    public string PaymentMethod { get; set; } = "OnlineGateway";
 }
 
 public class UpdateStatusRequest

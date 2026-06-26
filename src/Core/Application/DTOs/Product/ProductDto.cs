@@ -56,7 +56,7 @@ public class ProductSalesDto
     public string ProductName { get; set; }
     public string CategoryName { get; set; }
     public string BrandName { get; set; }
-    public int TotalQuantitySold { get; set; }
+    public decimal TotalQuantitySold { get; set; }
     public decimal TotalRevenue { get; set; }
     public int OrderCount { get; set; }
 }
@@ -76,7 +76,7 @@ public class RevenueSummaryDto
     public string Period { get; set; }
     public decimal TotalRevenue { get; set; }
     public int TotalOrders { get; set; }
-    public int TotalItemsSold { get; set; }
+    public decimal TotalItemsSold { get; set; }
 }
 
 public class ProductSalesDetailDto
@@ -86,7 +86,7 @@ public class ProductSalesDetailDto
     public string CategoryName { get; set; }
     public string BrandName { get; set; }
     public decimal CurrentPrice { get; set; }
-    public int TotalQuantitySold { get; set; }
+    public decimal TotalQuantitySold { get; set; }
     public decimal TotalRevenue { get; set; }
     public int OrderCount { get; set; }
     public decimal AverageRating { get; set; }

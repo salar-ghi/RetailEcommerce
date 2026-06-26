@@ -11,6 +11,8 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.CustomerId).IsRequired();
         builder.Property(o => o.Status).IsRequired();
         builder.Property(o => o.DiscountAmount).HasPrecision(18, 2).HasDefaultValue(0m);
+        builder.Property(o => o.Notes).HasMaxLength(1000);
+        builder.Property(o => o.Source).IsRequired();
         //builder.Property(o => o.ShippingAddress).IsRequired().HasMaxLength(500);
         //builder.Property(o => o.PaymentMethod).IsRequired();
         builder.Property(o => o.RowVersion).IsConcurrencyToken();
@@ -48,9 +50,14 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
 
         // Properties
         builder.Property(oi => oi.ProductId).IsRequired();
-        builder.Property(oi => oi.Quantity).IsRequired();
+        builder.Property(oi => oi.Quantity).HasPrecision(18, 3).IsRequired();
         builder.Property(oi => oi.UnitPrice).HasPrecision(18, 2).IsRequired();
         builder.Property(oi => oi.OrderId).IsRequired();
+        builder.Property(oi => oi.SaleUnit).HasMaxLength(20);
+        builder.Property(oi => oi.WeightUnit).HasMaxLength(20);
+        builder.Property(oi => oi.SpaceName).HasMaxLength(150);
+        builder.Property(oi => oi.ZoneName).HasMaxLength(150);
+        builder.Property(oi => oi.ShelfCode).HasMaxLength(80);
 
         builder.Property(oi => oi.DiscountedPrice)
             .HasColumnType("decimal(18,2)");

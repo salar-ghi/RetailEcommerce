@@ -49,7 +49,7 @@ public class PaymentService : IPaymentService
 
     private static FinancePaymentMethod MapPaymentMethod(PaymentMethod method) => method switch
     {
-        PaymentMethod.Cart => FinancePaymentMethod.Card,
+        PaymentMethod.Card => FinancePaymentMethod.Card,
         PaymentMethod.DigiPay => FinancePaymentMethod.Wallet,
         PaymentMethod.SnappPay => FinancePaymentMethod.Wallet,
         _ => FinancePaymentMethod.Cash

@@ -7,6 +7,9 @@ public class Payment : BaseModel<string>
     public PaymentMethod Method { get; set; }
     public DateTime PaymentDate { get; set; }
     public string TransactionId { get; set; }
+    public DateTime? DueDate { get; set; }
+    public string FinanceAccountId { get; set; }
+    public string BranchId { get; set; }
 
     public int? SupplierId { get; set; }
     public Supplier Supplier { get; set; }

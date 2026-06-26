@@ -11,6 +11,8 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         //builder.Property(p => p.PaymentMethod).HasMaxLength(50).IsRequired();
         builder.Property(p => p.Status).IsRequired();
         builder.Property(p => p.TransactionId).HasMaxLength(100);
+        builder.Property(p => p.FinanceAccountId).HasMaxLength(100);
+        builder.Property(p => p.BranchId).HasMaxLength(100);
         builder.Property(p => p.RowVersion).IsRowVersion();
 
         builder.HasOne(p => p.Order)

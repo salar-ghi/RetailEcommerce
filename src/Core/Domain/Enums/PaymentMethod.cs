@@ -2,8 +2,13 @@
 
 public enum PaymentMethod
 {
-    cache,
-    Cart,
+    Cash,
+    Card,
+    BankTransfer,
+    OnlineGateway,
+    Wallet,
+    Cheque,
+    Credit,
     DigiPay,
     SnappPay,
 }
