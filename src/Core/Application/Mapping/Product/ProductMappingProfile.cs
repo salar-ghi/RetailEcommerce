@@ -9,7 +9,8 @@ public class ProductMappingProfile : Profile
             .ForMember(d => d.Status, o => o.MapFrom(s => s.Status.HasValue ? s.Status.Value.ToString().ToLower() : null))
             .ForMember(d => d.Availability, o => o.MapFrom(s => s.Availability.ToString().ToLower()))
             .ForMember(d => d.LegacyStatus, o => o.MapFrom(s => s.Availability == ProductAvailability.Discontinued ? "discontinued" : s.IsActive ? "active" : null))
-            .ForMember(d => d.Price, o => o.MapFrom(s => s.Batches.Any() ? s.Batches.OrderByDescending(b => b.EffectiveDate).First().SellingPrice : 0))
+            .ForMember(d => d.Price, o => o.MapFrom(s => ResolveDisplayPrice(s)))
+            .ForMember(d => d.PricingStrategy, o => o.MapFrom(s => NormalizePricingStrategy(s.PricingStrategy)))
             .ForMember(d => d.StockQuantity, o => o.MapFrom(s => s.Stocks.Any() ? s.Stocks.Sum(st => st.Quantity - st.ReservedQuantity) : s.Batches.Sum(b => b.Quantity - b.SoldQuantity)))
             .ForMember(d => d.CategoryName, o => o.MapFrom(s => s.Category != null ? s.Category.Name : null))
             .ForMember(d => d.BrandName, o => o.MapFrom(s => s.Brand != null ? s.Brand.Name : null))
@@ -59,4 +60,61 @@ public class ProductMappingProfile : Profile
         CreateMap<ProductTag, ProductTagDto>().ReverseMap();
         CreateMap<ProductUnitPrice, ProductUnitPriceDto>().ReverseMap();
     }
+
+    private static string NormalizePricingStrategy(string? pricingStrategy)
+    {
+        return pricingStrategy?.Trim().ToLowerInvariant() switch
+        {
+            "latest" => "latest",
+            "average" => "average",
+            _ => "fifo"
+        };
+    }
+
+    private static decimal ResolveDisplayPrice(Product product)
+    {
+        if (!product.Batches.Any())
+            return 0;
+
+        var availableBatches = product.Batches
+            .Where(batch => batch.Quantity - batch.SoldQuantity > 0)
+            .ToList();
+        var batches = availableBatches.Any() ? availableBatches : product.Batches.ToList();
+
+        return NormalizePricingStrategy(product.PricingStrategy) switch
+        {
+            "latest" => batches
+                .OrderByDescending(batch => batch.EffectiveDate)
+                .ThenByDescending(batch => batch.Id)
+                .First()
+                .SellingPrice,
+            "average" => ResolveWeightedAveragePrice(batches),
+            _ => batches
+                .OrderBy(batch => batch.EffectiveDate)
+                .ThenBy(batch => batch.Id)
+                .First()
+                .SellingPrice
+        };
+    }
+
+    private static decimal ResolveWeightedAveragePrice(IEnumerable<ProductInventoryBatch> batches)
+    {
+        var weightedBatches = batches
+            .Select(batch => new
+            {
+                batch.SellingPrice,
+                Quantity = Math.Max(batch.Quantity - batch.SoldQuantity, 0)
+            })
+            .Where(batch => batch.Quantity > 0)
+            .ToList();
+
+        if (!weightedBatches.Any())
+            return batches.OrderByDescending(batch => batch.EffectiveDate).First().SellingPrice;
+
+        var totalQuantity = weightedBatches.Sum(batch => batch.Quantity);
+        var totalPrice = weightedBatches.Sum(batch => batch.SellingPrice * batch.Quantity);
+
+        return Math.Round(totalPrice / totalQuantity, 2, MidpointRounding.AwayFromZero);
+    }
+
 }
