@@ -37,13 +37,6 @@ public class UserService : IUserService
         return _mapper.Map<UserDto>(user);
     }
 
-    //public async Task AddUserAsync(UserDto userDto)
-    //{
-    //    var user = _mapper.Map<User>(userDto);
-    //    await _unitOfWork.Users.AddAsync(user);
-    //    await _unitOfWork.SaveChangesAsync();
-    //}
-
     public async Task<Result<string>> AddUserAsync(AddUserDto dto)
     {
         var existingUser = await _unitOfWork.Users.GetByAsync(u => u.PhoneNumber == dto.PhoneNumber);
@@ -152,10 +145,20 @@ public class UserService : IUserService
             IsActive = true,
             IsEmailConfirmed = false,
             TwoFactorEnabled = false,
-            Username = dto.PhoneNumber,
-            CreatedBy = "bdfb65f1-9024-4736-846d-df7de909f571",
-            ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571",
+            Username = dto.Username,
+            //CreatedBy = "bdfb65f1-9024-4736-846d-df7de909f571",
+            //ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571",
         };
+
+        var role = await _unitOfWork.Roles.SearchByNameAsync("Customer");
+        user.UserRoles.Add(new UserRole
+        {
+            UserId = user.Id,
+            RoleId = role.FirstOrDefault().Id ,
+            //CreatedBy = _currentUserService.UserId,
+            //ModifiedBy = _currentUserService.UserId,
+            //CreatedTime = DateTime.Now,
+        });
 
         await _unitOfWork.Users.AddAsync(user);
         await _unitOfWork.SaveChangesAsync();
@@ -164,7 +167,7 @@ public class UserService : IUserService
 
     public async Task<AuthResult> AuthenticateAsync(LoginDto dto)
     {
-        var user = await _unitOfWork.Users.GetByAsync(u => u.Username == dto.Username);
+        var user = await _unitOfWork.Users.GetByAsync(u => u.PhoneNumber == dto.PhoneNumber);
         if (user == null || !_passwordHasher.VerifyPassword(dto.Password, user.PasswordHash))
         {
             return AuthResult.Failure("Invalid credentials");
