@@ -56,7 +56,7 @@ public sealed class CreateOrderItemRequest
 public sealed class OrderPaymentSplitDto
 {
     public string? Id { get; set; }
-    public OrderPaymentMethodDto Method { get; set; }
+    public string Method { get; set; } = "cash";
     public decimal Amount { get; set; }
     public PaymentStatus Status { get; set; } = PaymentStatus.Completed;
     public string? GatewayTxnId { get; set; }
