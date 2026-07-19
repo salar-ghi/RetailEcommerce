@@ -27,6 +27,19 @@ public class OrderController : ControllerBase
         return CreatedAtAction(nameof(GetOrderById), new { orderId = order.Id }, order);
     }
 
+
+    [HttpPut("orders/{orderId}")]
+    public async Task<ActionResult<OrderDto>> UpdateManualOrder(string orderId, [FromBody] UpdateManualOrderRequest request)
+    {
+        if (!string.IsNullOrWhiteSpace(request.Status))
+        {
+            await _orderService.UpdateOrderStatusAsync(orderId, ParseClientOrderStatus(request.Status));
+        }
+
+        var order = await _orderService.GetOrderByIdAsync(orderId);
+        return Ok(order);
+    }
+
     [HttpPost("orders/{orderId}/returns")]
     public async Task<IActionResult> CreateReturn(string orderId, [FromBody] CreateReturnRequest request)
     {
@@ -76,6 +89,19 @@ public class OrderController : ControllerBase
         await _orderService.CancelOrderAsync(orderId);
         return NoContent();
     }
+
+    private static OrderStatus ParseClientOrderStatus(string status) => status.Trim().Replace("-", "_").ToLowerInvariant() switch
+    {
+        "pending" => OrderStatus.Pending,
+        "approved" => OrderStatus.Processing,
+        "processing" => OrderStatus.Processing,
+        "rejected" => OrderStatus.Rejected,
+        "shipped" => OrderStatus.Shipped,
+        "delivered" => OrderStatus.Delivered,
+        "completed" => OrderStatus.Completed,
+        "cancelled" => OrderStatus.Cancelled,
+        _ => throw new ArgumentException($"Unsupported order status '{status}'.")
+    };
 }
 
 public class CreateBasketOrderRequest
@@ -87,4 +113,9 @@ public class CreateBasketOrderRequest
 public class UpdateStatusRequest
 {
     public OrderStatus Status { get; set; }
+}
+
+public class UpdateManualOrderRequest
+{
+    public string? Status { get; set; }
 }

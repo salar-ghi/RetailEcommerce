@@ -50,7 +50,7 @@ public class OrderService : IOrderService
         var customerId = await ResolveCustomerAsync(request);
         var subtotal = request.Items.Sum(i => i.TotalPrice > 0 ? i.TotalPrice : i.Quantity * i.UnitPrice);
         var finalTotal = request.FinalTotal > 0 ? request.FinalTotal : subtotal - request.DiscountAmount;
-        var paid = request.Payments.Where(p => p.Method != OrderPaymentMethodDto.Credit).Sum(p => p.Amount);
+        var paid = request.Payments.Where(p => !IsCredit(p.Method)).Sum(p => p.Amount);
 
         var order = new Order
         {
@@ -120,17 +120,38 @@ public class OrderService : IOrderService
 
     private async Task SyncPaymentsToFinanceAsync(Order order, IEnumerable<OrderPaymentSplitDto> splits)
     {
-        foreach (var split in splits.Where(s => s.Method != OrderPaymentMethodDto.Credit && s.Status == PaymentStatus.Completed))
+        foreach (var split in splits.Where(s => !IsCredit(s.Method) && s.Status == PaymentStatus.Completed))
             await _financeService.RecordOrderPaymentAsync(new RecordOrderFinanceDto { OrderId = order.Id, FinanceAccountId = split.FinanceAccountId ?? "default-cash", BranchId = split.BranchId, PaymentMethod = MapFinanceMethod(split.Method), CounterpartyId = order.CustomerId, CounterpartyName = order.Customer?.FirstName });
     }
 
     private async Task SyncRefundsToFinanceAsync(Order order, CreateReturnRequest request)
     {
-        foreach (var refund in request.Refunds.Where(s => s.Method != OrderPaymentMethodDto.Credit))
+        foreach (var refund in request.Refunds.Where(s => !IsCredit(s.Method)))
             await _financeService.RecordOrderPaymentAsync(new RecordOrderFinanceDto { OrderId = order.Id, FinanceAccountId = refund.FinanceAccountId ?? "default-cash", BranchId = refund.BranchId, PaymentMethod = MapFinanceMethod(refund.Method), CounterpartyId = order.CustomerId, CounterpartyName = order.Customer?.FirstName });
     }
 
     private static PaymentMethod ParsePaymentMethod(string method) => Enum.TryParse<PaymentMethod>(method, true, out var parsed) ? parsed : PaymentMethod.OnlineGateway;
-    private static PaymentMethod MapPaymentMethod(OrderPaymentMethodDto method) => method switch { OrderPaymentMethodDto.Card => PaymentMethod.Card, OrderPaymentMethodDto.BankTransfer => PaymentMethod.BankTransfer, OrderPaymentMethodDto.OnlineGateway => PaymentMethod.OnlineGateway, OrderPaymentMethodDto.Wallet => PaymentMethod.Wallet, OrderPaymentMethodDto.Cheque => PaymentMethod.Cheque, OrderPaymentMethodDto.Credit => PaymentMethod.Credit, _ => PaymentMethod.Cash };
-    private static FinancePaymentMethod MapFinanceMethod(OrderPaymentMethodDto method) => method switch { OrderPaymentMethodDto.Card => FinancePaymentMethod.Card, OrderPaymentMethodDto.BankTransfer => FinancePaymentMethod.BankTransfer, OrderPaymentMethodDto.Wallet => FinancePaymentMethod.Wallet, _ => FinancePaymentMethod.Cash };
+    private static bool IsCredit(string? method) => NormalizePaymentMethod(method) == "credit";
+
+    private static PaymentMethod MapPaymentMethod(string? method) => NormalizePaymentMethod(method) switch
+    {
+        "card" => PaymentMethod.Card,
+        "bank_transfer" => PaymentMethod.BankTransfer,
+        "online_gateway" => PaymentMethod.OnlineGateway,
+        "wallet" => PaymentMethod.Wallet,
+        "cheque" => PaymentMethod.Cheque,
+        "credit" => PaymentMethod.Credit,
+        _ => PaymentMethod.Cash
+    };
+
+    private static FinancePaymentMethod MapFinanceMethod(string? method) => NormalizePaymentMethod(method) switch
+    {
+        "card" => FinancePaymentMethod.Card,
+        "bank_transfer" => FinancePaymentMethod.BankTransfer,
+        "online_gateway" => FinancePaymentMethod.OnlineGateway,
+        "wallet" => FinancePaymentMethod.Wallet,
+        _ => FinancePaymentMethod.Cash
+    };
+
+    private static string NormalizePaymentMethod(string? method) => (method ?? "cash").Trim().Replace("-", "_").ToLowerInvariant();
 }

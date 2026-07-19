@@ -7,16 +7,20 @@ public class OrderDto
     public string CustomerId { get; set; }
     public string Customer { get; set; }
     public string CustomerPhone { get; set; }
+    public string CustomerAddress { get; set; }
     public DateTime OrderDate { get; set; }
+    public string Date { get; set; }
     public string Status { get; set; }
     public decimal DiscountAmount { get; set; }
     public decimal TotalAmount { get; set; }
+    public decimal Total { get; set; }
     public decimal TotalItems { get; set; }
     public decimal FinalTotal { get; set; }
     public string Source { get; set; }
     public string Notes { get; set; }
     public ShippingAddressDto ShippingAddress { get; set; }
     public string PaymentMethod { get; set; }
+    public string PaymentStatus { get; set; }
     public DateTime? PaymentDate { get; set; }
     public DateTime? ShippingDate { get; set; }
     public List<OrderItemDto> Items { get; set; } = new List<OrderItemDto>();
