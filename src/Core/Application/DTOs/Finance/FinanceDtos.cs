@@ -11,6 +11,11 @@ public sealed class FinanceBranchDto
     public FinanceBranchType Type { get; set; }
     public string? City { get; set; }
     public string? ManagerUserId { get; set; }
+    public string? Manager
+    {
+        get => ManagerUserId;
+        set => ManagerUserId = value;
+    }
     public bool IsActive { get; set; }
 }
 
@@ -24,6 +29,11 @@ public sealed class FinanceAccountDto
     public FinanceAccountType Type { get; set; }
     public FinanceCurrency Currency { get; set; }
     public decimal CurrentBalance { get; set; }
+    public decimal Balance
+    {
+        get => CurrentBalance;
+        set => CurrentBalance = value;
+    }
     public string? BankName { get; set; }
     public bool IsActive { get; set; }
 }
@@ -50,19 +60,44 @@ public sealed class FinancialTransactionDto
     public FinancialTransactionStatus Status { get; set; }
     public FinanceSourceDocumentType SourceDocumentType { get; set; }
     public string? SourceDocumentId { get; set; }
+    public string? Reference
+    {
+        get => SourceDocumentId;
+        set => SourceDocumentId = value;
+    }
     public FinanceTransactionDirection Direction { get; set; }
     public decimal Amount { get; set; }
     public FinanceCurrency Currency { get; set; }
     public FinancePaymentMethod PaymentMethod { get; set; }
+    public FinancePaymentMethod Method
+    {
+        get => PaymentMethod;
+        set => PaymentMethod = value;
+    }
     public string FinanceAccountId { get; set; } = string.Empty;
+    public string AccountId
+    {
+        get => FinanceAccountId;
+        set => FinanceAccountId = value;
+    }
     public string? BranchId { get; set; }
     public string? CostCenterId { get; set; }
     public string? JournalEntryId { get; set; }
     public string? Category { get; set; }
     public string? CounterpartyId { get; set; }
     public string? CounterpartyName { get; set; }
+    public string? Counterparty
+    {
+        get => CounterpartyName;
+        set => CounterpartyName = value;
+    }
     public string? Description { get; set; }
     public DateTime TransactionDate { get; set; }
+    public DateTime Date
+    {
+        get => TransactionDate;
+        set => TransactionDate = value;
+    }
     public string? ApprovedBy { get; set; }
     public DateTime? ApprovedOn { get; set; }
     public bool IsAutomated { get; set; }
@@ -73,18 +108,43 @@ public class CreateFinancialTransactionDto
     public string TenantId { get; set; } = FinanceDefaults.TenantId;
     public FinanceSourceDocumentType SourceDocumentType { get; set; } = FinanceSourceDocumentType.ManualJournal;
     public string? SourceDocumentId { get; set; }
+    public string? Reference
+    {
+        get => SourceDocumentId;
+        set => SourceDocumentId = value;
+    }
     public FinanceTransactionDirection Direction { get; set; }
     public decimal Amount { get; set; }
     public FinanceCurrency Currency { get; set; } = FinanceCurrency.IRR;
     public FinancePaymentMethod PaymentMethod { get; set; } = FinancePaymentMethod.Cash;
+    public FinancePaymentMethod Method
+    {
+        get => PaymentMethod;
+        set => PaymentMethod = value;
+    }
     public string FinanceAccountId { get; set; } = string.Empty;
+    public string AccountId
+    {
+        get => FinanceAccountId;
+        set => FinanceAccountId = value;
+    }
     public string? BranchId { get; set; }
     public string? CostCenterId { get; set; }
     public string? Category { get; set; }
     public string? CounterpartyId { get; set; }
     public string? CounterpartyName { get; set; }
+    public string? Counterparty
+    {
+        get => CounterpartyName;
+        set => CounterpartyName = value;
+    }
     public string? Description { get; set; }
     public DateTime? TransactionDate { get; set; }
+    public DateTime? Date
+    {
+        get => TransactionDate;
+        set => TransactionDate = value;
+    }
     public bool AutoPost { get; set; } = true;
 }
 
@@ -96,6 +156,11 @@ public sealed class UpdateFinancialTransactionDto : CreateFinancialTransactionDt
 public sealed class ApprovalDecisionDto
 {
     public string ApproverUserId { get; set; } = string.Empty;
+    public string Approver
+    {
+        get => ApproverUserId;
+        set => ApproverUserId = value;
+    }
     public string? Note { get; set; }
 }
 
@@ -122,10 +187,20 @@ public sealed class RecurringBillDto
     public FinanceCurrency Currency { get; set; }
     public string? BranchId { get; set; }
     public string FinanceAccountId { get; set; } = string.Empty;
+    public string AccountId
+    {
+        get => FinanceAccountId;
+        set => FinanceAccountId = value;
+    }
     public RecurrenceCycle Cycle { get; set; }
     public DateTime NextDueDate { get; set; }
     public bool AutoPay { get; set; }
     public string? VendorName { get; set; }
+    public string? Vendor
+    {
+        get => VendorName;
+        set => VendorName = value;
+    }
     public bool IsActive { get; set; }
 }
 
@@ -144,7 +219,10 @@ public sealed class PayrollLineDto
     public decimal InsuranceWithheld { get; set; }
     public decimal NetPay { get; set; }
     public PayrollRunStatus Status { get; set; }
+    public FinanceCurrency Currency { get; set; } = FinanceCurrency.IRR;
+    public string? Period { get; set; }
 }
+
 
 public sealed class CashFlowPointDto
 {
@@ -161,6 +239,7 @@ public sealed class BranchPerformanceDto
     public decimal Income { get; set; }
     public decimal Expense { get; set; }
     public decimal Profit => Income - Expense;
+    public int Orders { get; set; }
 }
 
 public sealed class FinanceOverviewDto
@@ -172,6 +251,8 @@ public sealed class FinanceOverviewDto
     public int PendingApprovals { get; set; }
     public decimal PendingApprovalAmount { get; set; }
     public int ScheduledPayments { get; set; }
+    public int BranchCount { get; set; }
+    public FinanceCurrency Currency { get; set; } = FinanceCurrency.IRR;
 }
 
 public sealed class RecordOrderFinanceDto
@@ -179,6 +260,11 @@ public sealed class RecordOrderFinanceDto
     public string TenantId { get; set; } = FinanceDefaults.TenantId;
     public string OrderId { get; set; } = string.Empty;
     public string FinanceAccountId { get; set; } = string.Empty;
+    public string AccountId
+    {
+        get => FinanceAccountId;
+        set => FinanceAccountId = value;
+    }
     public string? BranchId { get; set; }
     public FinancePaymentMethod PaymentMethod { get; set; } = FinancePaymentMethod.OnlineGateway;
     public string? CounterpartyId { get; set; }
