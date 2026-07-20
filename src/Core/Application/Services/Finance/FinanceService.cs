@@ -305,7 +305,9 @@ public sealed class FinanceService : IFinanceService
             CashOnHand = await _unitOfWork.Finance.FinanceAccounts.Where(x => x.TenantId == tenantId && x.IsActive && !x.IsDeleted).SumAsync(x => x.CurrentBalance, cancellationToken),
             PendingApprovals = await pending.CountAsync(cancellationToken),
             PendingApprovalAmount = await pending.SumAsync(x => x.Amount, cancellationToken),
-            ScheduledPayments = await _unitOfWork.Finance.FinancialTransactions.CountAsync(x => x.TenantId == tenantId && x.Status == FinancialTransactionStatus.Scheduled && !x.IsDeleted, cancellationToken)
+            ScheduledPayments = await _unitOfWork.Finance.FinancialTransactions.CountAsync(x => x.TenantId == tenantId && x.Status == FinancialTransactionStatus.Scheduled && !x.IsDeleted, cancellationToken),
+            BranchCount = await _unitOfWork.Finance.FinanceBranches.CountAsync(x => x.TenantId == tenantId && x.IsActive && !x.IsDeleted, cancellationToken),
+            Currency = FinanceCurrency.IRR
         };
     }
 
