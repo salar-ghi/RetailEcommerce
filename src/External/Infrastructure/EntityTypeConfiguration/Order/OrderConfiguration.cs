@@ -54,10 +54,10 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
         builder.Property(oi => oi.UnitPrice).HasPrecision(18, 2).IsRequired();
         builder.Property(oi => oi.OrderId).IsRequired();
         builder.Property(oi => oi.SaleUnit).HasMaxLength(20);
-        builder.Property(oi => oi.WeightUnit).HasMaxLength(20);
-        builder.Property(oi => oi.SpaceName).HasMaxLength(150);
-        builder.Property(oi => oi.ZoneName).HasMaxLength(150);
-        builder.Property(oi => oi.ShelfCode).HasMaxLength(80);
+        builder.Property(oi => oi.WeightUnit).HasMaxLength(20).IsRequired(false);
+        builder.Property(oi => oi.SpaceName).HasMaxLength(150).IsRequired(false);
+        builder.Property(oi => oi.ZoneName).HasMaxLength(150).IsRequired(false);
+        builder.Property(oi => oi.ShelfCode).HasMaxLength(80).IsRequired(false);
 
         builder.Property(oi => oi.DiscountedPrice)
             .HasColumnType("decimal(18,2)");
