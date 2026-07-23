@@ -39,14 +39,17 @@ public class OrderService : IOrderService
 
         await _unitOfWork.Orders.AddAsync(order);
         await _unitOfWork.SaveChangesAsync();
-        await _cacheService.SetCachedDataAsync(order.Id, order, TimeSpan.FromHours(3));
+
+        var orderDto = _mapper.Map<OrderDto>(order);
+        await _cacheService.SetCachedDataAsync(order.Id, orderDto, TimeSpan.FromHours(3));
         await _basketService.ClearBasketAsync(userId);
-        return _mapper.Map<OrderDto>(order);
+        return orderDto;
     }
 
     public async Task<OrderDto> CreateManualOrderAsync(CreateManualOrderRequest request)
     {
-        if (request.Items.Count == 0) throw new InvalidOperationException("Cannot create an order without items.");
+        ValidateManualOrderRequest(request);
+
         var customerId = await ResolveCustomerAsync(request);
         var subtotal = request.Items.Sum(i => i.TotalPrice > 0 ? i.TotalPrice : i.Quantity * i.UnitPrice);
         var finalTotal = request.FinalTotal > 0 ? request.FinalTotal : subtotal - request.DiscountAmount;
@@ -69,8 +72,10 @@ public class OrderService : IOrderService
         await _unitOfWork.Orders.AddAsync(order);
         await _unitOfWork.SaveChangesAsync();
         await SyncPaymentsToFinanceAsync(order, request.Payments);
-        await _cacheService.SetCachedDataAsync(order.Id, order, TimeSpan.FromHours(3));
-        return _mapper.Map<OrderDto>(order);
+
+        var orderDto = _mapper.Map<OrderDto>(order);
+        await _cacheService.SetCachedDataAsync(order.Id, orderDto, TimeSpan.FromHours(3));
+        return orderDto;
     }
 
     public async Task<OrderDto> GetOrderByIdAsync(string orderId) => _mapper.Map<OrderDto>(await LoadOrderAsync(orderId));
@@ -90,7 +95,7 @@ public class OrderService : IOrderService
         var order = await LoadOrderAsync(orderId); order.Status = status;
         if (status == OrderStatus.Shipped) order.ShippingDate = DateTime.UtcNow;
         if (status is OrderStatus.Delivered or OrderStatus.Completed) order.PaymentDate ??= DateTime.UtcNow;
-        await _unitOfWork.Orders.UpdateAsync(order); await _unitOfWork.SaveChangesAsync(); await _cacheService.SetCachedDataAsync(order.Id, order, TimeSpan.FromHours(3));
+        await _unitOfWork.Orders.UpdateAsync(order); await _unitOfWork.SaveChangesAsync(); await _cacheService.SetCachedDataAsync(order.Id, _mapper.Map<OrderDto>(order), TimeSpan.FromHours(3));
     }
 
     public async Task CancelOrderAsync(string orderId)
@@ -109,6 +114,23 @@ public class OrderService : IOrderService
     }
 
     private async Task<Order> LoadOrderAsync(string orderId) => await _unitOfWork.Orders.GetByIdAsync(orderId, q => q.Include(o => o.Customer).Include(o => o.Items).ThenInclude(i => i.Product).Include(o => o.Payments)) ?? throw new KeyNotFoundException($"Order with ID {orderId} not found.");
+
+    private static void ValidateManualOrderRequest(CreateManualOrderRequest request)
+    {
+        if (request is null) throw new ArgumentNullException(nameof(request), "Order request body is required.");
+        if (request.Items is null || request.Items.Count == 0) throw new InvalidOperationException("Cannot create an order without items.");
+        if (request.Payments is null) throw new InvalidOperationException("Payments must be provided. Send an empty list when no payment was made yet.");
+
+        var invalidItemIndex = request.Items.FindIndex(i => i.ProductId <= 0 || i.Quantity <= 0 || i.UnitPrice < 0 || i.TotalPrice < 0);
+        if (invalidItemIndex >= 0)
+            throw new InvalidOperationException($"Order item #{invalidItemIndex + 1} is invalid. ProductId must be positive, Quantity must be greater than zero, and prices cannot be negative.");
+
+        if (request.DiscountAmount < 0) throw new InvalidOperationException("Discount amount cannot be negative.");
+        if (request.FinalTotal < 0) throw new InvalidOperationException("Final total cannot be negative.");
+
+        var invalidPaymentIndex = request.Payments.FindIndex(p => p.Amount < 0);
+        if (invalidPaymentIndex >= 0) throw new InvalidOperationException($"Payment #{invalidPaymentIndex + 1} is invalid. Payment amount cannot be negative.");
+    }
 
     private async Task<string> ResolveCustomerAsync(CreateManualOrderRequest request)
     {

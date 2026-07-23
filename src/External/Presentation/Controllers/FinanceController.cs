@@ -67,6 +67,7 @@ public sealed class FinanceController : ControllerBase
     }
 
     [HttpGet("approval-logs")]
+    [HttpGet("approvals/logs")]
     public async Task<ActionResult<IReadOnlyList<FinancialApprovalLogDto>>> GetApprovalLogs([FromQuery] string tenantId = FinanceDefaults.TenantId, CancellationToken cancellationToken = default)
         => Ok(await _financeService.GetApprovalLogsAsync(tenantId, cancellationToken));
 
@@ -79,14 +80,17 @@ public sealed class FinanceController : ControllerBase
         => Ok(await _financeService.GetPayrollAsync(tenantId, cancellationToken));
 
     [HttpGet("overview")]
+    [HttpGet("summary")]
     public async Task<ActionResult<FinanceOverviewDto>> GetOverview([FromQuery] string tenantId = FinanceDefaults.TenantId, [FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null, CancellationToken cancellationToken = default)
         => Ok(await _financeService.GetOverviewAsync(tenantId, from, to, cancellationToken));
 
     [HttpGet("reports/cash-flow")]
+    [HttpGet("cashflow")]
     public async Task<ActionResult<IReadOnlyList<CashFlowPointDto>>> GetCashFlow([FromQuery] string tenantId = FinanceDefaults.TenantId, [FromQuery] int days = 14, CancellationToken cancellationToken = default)
         => Ok(await _financeService.GetCashFlowAsync(tenantId, days, cancellationToken));
 
     [HttpGet("reports/branch-performance")]
+    [HttpGet("branch-performance")]
     public async Task<ActionResult<IReadOnlyList<BranchPerformanceDto>>> GetBranchPerformance([FromQuery] string tenantId = FinanceDefaults.TenantId, [FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null, CancellationToken cancellationToken = default)
         => Ok(await _financeService.GetBranchPerformanceAsync(tenantId, from, to, cancellationToken));
 
