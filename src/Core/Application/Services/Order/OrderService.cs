@@ -54,9 +54,13 @@ public class OrderService : IOrderService
 
         var order = new Order
         {
-            Id = Guid.NewGuid().ToString(), CustomerId = customerId, CreatedTime = DateTime.UtcNow,
+            Id = Guid.NewGuid().ToString(), 
+            CustomerId = customerId, 
+            CreatedTime = DateTime.UtcNow,
             Status = paid >= finalTotal ? OrderStatus.Processing : OrderStatus.Pending,
-            Source = OrderSource.AdminManual, DiscountAmount = request.DiscountAmount, Notes = request.Notes,
+            Source = OrderSource.AdminManual, 
+            DiscountAmount = request.DiscountAmount, 
+            Notes = request.Notes,
             ShippingAddress = request.ShippingAddress is not null ? _mapper.Map<ShippingAddress>(request.ShippingAddress) : new ShippingAddress { AddressLine1 = request.CustomerAddress },
             Items = request.Items.Select(i => new OrderItem { ProductId = i.ProductId, Quantity = i.Quantity, UnitPrice = i.UnitPrice, DiscountedPrice = 0, SaleUnit = i.SaleUnit, WeightUnit = i.WeightUnit, SpaceId = i.SpaceId, SpaceName = i.SpaceName, ZoneId = i.ZoneId, ZoneName = i.ZoneName, ShelfId = i.ShelfId, ShelfCode = i.ShelfCode }).ToList(),
             Payments = request.Payments.Select(p => new Payment { Id = Guid.NewGuid().ToString(), Amount = p.Amount, Method = MapPaymentMethod(p.Method), Status = p.Status, TransactionId = p.GatewayTxnId, DueDate = p.DueDate, FinanceAccountId = p.FinanceAccountId, BranchId = p.BranchId, PaymentDate = DateTime.UtcNow }).ToList()
