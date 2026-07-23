@@ -10,6 +10,6 @@ public class ShippingAddress
     public string Country { get; set; }
 
     public string OrderId { get; set; }
-    public Order Order { get; set; } = new Order();
+    public Order Order { get; set; }
 
 }
