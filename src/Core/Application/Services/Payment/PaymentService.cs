@@ -3,6 +3,7 @@
 public class PaymentService : IPaymentService
 {
     private const string DefaultBranchId = "default-branch";
+    private const string DefaultFinanceAccountId = "default-cash";
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IFinanceService _financeService;
@@ -19,6 +20,9 @@ public class PaymentService : IPaymentService
         var payment = _mapper.Map<Payment>(paymentDto);
         payment.Id = Guid.NewGuid().ToString();
         payment.BranchId = NormalizeBranchId(payment.BranchId);
+        payment.FinanceAccountId = NormalizeFinanceAccountId(payment.FinanceAccountId);
+        payment.TransactionId = NormalizeTransactionId(payment.TransactionId);
+        if (payment.PaymentDate == default) payment.PaymentDate = DateTime.UtcNow;
         payment.Amount = FinanceMoney.Normalize(payment.Amount, FinanceCurrency.IRR);
         await _unitOfWork.Payments.AddAsync(payment);
         await _unitOfWork.SaveChangesAsync();
@@ -28,7 +32,7 @@ public class PaymentService : IPaymentService
             await _financeService.RecordOrderPaymentAsync(new RecordOrderFinanceDto
             {
                 OrderId = payment.OrderId,
-                FinanceAccountId = "default-cash",
+                FinanceAccountId = payment.FinanceAccountId,
                 PaymentMethod = MapPaymentMethod(payment.Method),
                 BranchId = payment.BranchId,
                 CounterpartyName = payment.Supplier?.Name
@@ -51,6 +55,8 @@ public class PaymentService : IPaymentService
     }
 
     private static string NormalizeBranchId(string? branchId) => string.IsNullOrWhiteSpace(branchId) ? DefaultBranchId : branchId.Trim();
+    private static string NormalizeFinanceAccountId(string? financeAccountId) => string.IsNullOrWhiteSpace(financeAccountId) ? DefaultFinanceAccountId : financeAccountId.Trim();
+    private static string NormalizeTransactionId(string? transactionId) => string.IsNullOrWhiteSpace(transactionId) ? string.Empty : transactionId.Trim();
 
     private static FinancePaymentMethod MapPaymentMethod(PaymentMethod method) => method switch
     {
