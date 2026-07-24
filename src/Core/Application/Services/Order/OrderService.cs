@@ -34,7 +34,7 @@ public class OrderService : IOrderService
         {
             Id = Guid.NewGuid().ToString(), CustomerId = userId, CreatedTime = DateTime.UtcNow,
             Status = OrderStatus.Pending, Source = OrderSource.Storefront,
-            ShippingAddress = _mapper.Map<ShippingAddress>(shippingAddress),
+            ShippingAddress = CreateShippingAddress(shippingAddress),
             Items = basketDto.Items.Select(item => new OrderItem { ProductId = item.ProductId, Quantity = item.Quantity, UnitPrice = item.UnitPrice }).ToList(),
             Payments = new List<Payment> { new() { Id = Guid.NewGuid().ToString(), Amount = total, Method = method, Status = PaymentStatus.Pending, PaymentDate = DateTime.UtcNow, TransactionId = string.Empty, FinanceAccountId = DefaultFinanceAccountId, BranchId = DefaultBranchId } }
         };
@@ -66,7 +66,7 @@ public class OrderService : IOrderService
             Source = OrderSource.AdminManual, 
             DiscountAmount = request.DiscountAmount, 
             Notes = request.Notes,
-            ShippingAddress = request.ShippingAddress is not null ? _mapper.Map<ShippingAddress>(request.ShippingAddress) : new ShippingAddress { AddressLine1 = request.CustomerAddress },
+            ShippingAddress = CreateShippingAddress(request.ShippingAddress, request.CustomerAddress),
             Items = request.Items.Select(i => new OrderItem { ProductId = i.ProductId, Quantity = i.Quantity, UnitPrice = i.UnitPrice, DiscountedPrice = 0, SaleUnit = i.SaleUnit, WeightUnit = i.WeightUnit, SpaceId = i.SpaceId, SpaceName = i.SpaceName, ZoneId = i.ZoneId, ZoneName = i.ZoneName, ShelfId = i.ShelfId, ShelfCode = i.ShelfCode }).ToList(),
             Payments = request.Payments.Select(p => new Payment { Id = Guid.NewGuid().ToString(), Amount = p.Amount, Method = MapPaymentMethod(p.Method), Status = p.Status, TransactionId = NormalizeTransactionId(p.GatewayTxnId), DueDate = p.DueDate, FinanceAccountId = NormalizeFinanceAccountId(p.FinanceAccountId), BranchId = NormalizeBranchId(p.BranchId), PaymentDate = DateTime.UtcNow }).ToList()
         };
@@ -116,6 +116,24 @@ public class OrderService : IOrderService
     }
 
     private async Task<Order> LoadOrderAsync(string orderId) => await _unitOfWork.Orders.GetByIdAsync(orderId, q => q.Include(o => o.Customer).Include(o => o.Items).ThenInclude(i => i.Product).Include(o => o.Payments)) ?? throw new KeyNotFoundException($"Order with ID {orderId} not found.");
+
+    private ShippingAddress CreateShippingAddress(ShippingAddressDto? shippingAddress, string? fallbackAddressLine1 = null)
+    {
+        var address = shippingAddress is not null ? _mapper.Map<ShippingAddress>(shippingAddress) : new ShippingAddress();
+        address.AddressLine1 = NormalizeAddressPart(address.AddressLine1, fallbackAddressLine1);
+        address.Street = NormalizeAddressPart(address.Street);
+        address.City = NormalizeAddressPart(address.City);
+        address.State = NormalizeAddressPart(address.State);
+        address.PostalCode = NormalizeAddressPart(address.PostalCode);
+        address.Country = NormalizeAddressPart(address.Country);
+        return address;
+    }
+
+    private static string NormalizeAddressPart(string? value, string? fallback = null)
+    {
+        if (!string.IsNullOrWhiteSpace(value)) return value.Trim();
+        return string.IsNullOrWhiteSpace(fallback) ? string.Empty : fallback.Trim();
+    }
 
     private static void ValidateManualOrderRequest(CreateManualOrderRequest request)
     {
