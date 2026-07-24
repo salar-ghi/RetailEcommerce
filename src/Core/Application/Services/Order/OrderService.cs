@@ -2,6 +2,7 @@
 
 public class OrderService : IOrderService
 {
+    private const string DefaultBranchId = "default-branch";
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRedisCacheService _cacheService;
     private readonly IBasketService _basketService;
@@ -34,7 +35,7 @@ public class OrderService : IOrderService
             Status = OrderStatus.Pending, Source = OrderSource.Storefront,
             ShippingAddress = _mapper.Map<ShippingAddress>(shippingAddress),
             Items = basketDto.Items.Select(item => new OrderItem { ProductId = item.ProductId, Quantity = item.Quantity, UnitPrice = item.UnitPrice }).ToList(),
-            Payments = new List<Payment> { new() { Id = Guid.NewGuid().ToString(), Amount = total, Method = method, Status = PaymentStatus.Pending, PaymentDate = DateTime.UtcNow } }
+            Payments = new List<Payment> { new() { Id = Guid.NewGuid().ToString(), Amount = total, Method = method, Status = PaymentStatus.Pending, PaymentDate = DateTime.UtcNow, BranchId = DefaultBranchId } }
         };
 
         await _unitOfWork.Orders.AddAsync(order);
@@ -66,7 +67,7 @@ public class OrderService : IOrderService
             Notes = request.Notes,
             ShippingAddress = request.ShippingAddress is not null ? _mapper.Map<ShippingAddress>(request.ShippingAddress) : new ShippingAddress { AddressLine1 = request.CustomerAddress },
             Items = request.Items.Select(i => new OrderItem { ProductId = i.ProductId, Quantity = i.Quantity, UnitPrice = i.UnitPrice, DiscountedPrice = 0, SaleUnit = i.SaleUnit, WeightUnit = i.WeightUnit, SpaceId = i.SpaceId, SpaceName = i.SpaceName, ZoneId = i.ZoneId, ZoneName = i.ZoneName, ShelfId = i.ShelfId, ShelfCode = i.ShelfCode }).ToList(),
-            Payments = request.Payments.Select(p => new Payment { Id = Guid.NewGuid().ToString(), Amount = p.Amount, Method = MapPaymentMethod(p.Method), Status = p.Status, TransactionId = p.GatewayTxnId, DueDate = p.DueDate, FinanceAccountId = p.FinanceAccountId, BranchId = p.BranchId, PaymentDate = DateTime.UtcNow }).ToList()
+            Payments = request.Payments.Select(p => new Payment { Id = Guid.NewGuid().ToString(), Amount = p.Amount, Method = MapPaymentMethod(p.Method), Status = p.Status, TransactionId = p.GatewayTxnId, DueDate = p.DueDate, FinanceAccountId = p.FinanceAccountId, BranchId = NormalizeBranchId(p.BranchId), PaymentDate = DateTime.UtcNow }).ToList()
         };
 
         await _unitOfWork.Orders.AddAsync(order);
@@ -147,13 +148,13 @@ public class OrderService : IOrderService
     private async Task SyncPaymentsToFinanceAsync(Order order, IEnumerable<OrderPaymentSplitDto> splits)
     {
         foreach (var split in splits.Where(s => !IsCredit(s.Method) && s.Status == PaymentStatus.Completed))
-            await _financeService.RecordOrderPaymentAsync(new RecordOrderFinanceDto { OrderId = order.Id, FinanceAccountId = split.FinanceAccountId ?? "default-cash", BranchId = split.BranchId, PaymentMethod = MapFinanceMethod(split.Method), CounterpartyId = order.CustomerId, CounterpartyName = order.Customer?.FirstName });
+            await _financeService.RecordOrderPaymentAsync(new RecordOrderFinanceDto { OrderId = order.Id, FinanceAccountId = split.FinanceAccountId ?? "default-cash", BranchId = NormalizeBranchId(split.BranchId), PaymentMethod = MapFinanceMethod(split.Method), CounterpartyId = order.CustomerId, CounterpartyName = order.Customer?.FirstName });
     }
 
     private async Task SyncRefundsToFinanceAsync(Order order, CreateReturnRequest request)
     {
         foreach (var refund in request.Refunds.Where(s => !IsCredit(s.Method)))
-            await _financeService.RecordOrderPaymentAsync(new RecordOrderFinanceDto { OrderId = order.Id, FinanceAccountId = refund.FinanceAccountId ?? "default-cash", BranchId = refund.BranchId, PaymentMethod = MapFinanceMethod(refund.Method), CounterpartyId = order.CustomerId, CounterpartyName = order.Customer?.FirstName });
+            await _financeService.RecordOrderPaymentAsync(new RecordOrderFinanceDto { OrderId = order.Id, FinanceAccountId = refund.FinanceAccountId ?? "default-cash", BranchId = NormalizeBranchId(refund.BranchId), PaymentMethod = MapFinanceMethod(refund.Method), CounterpartyId = order.CustomerId, CounterpartyName = order.Customer?.FirstName });
     }
 
     private static PaymentMethod ParsePaymentMethod(string method) => Enum.TryParse<PaymentMethod>(method, true, out var parsed) ? parsed : PaymentMethod.OnlineGateway;
@@ -180,4 +181,5 @@ public class OrderService : IOrderService
     };
 
     private static string NormalizePaymentMethod(string? method) => (method ?? "cash").Trim().Replace("-", "_").ToLowerInvariant();
+    private static string NormalizeBranchId(string? branchId) => string.IsNullOrWhiteSpace(branchId) ? DefaultBranchId : branchId.Trim();
 }

@@ -2,6 +2,7 @@
 
 public class PaymentService : IPaymentService
 {
+    private const string DefaultBranchId = "default-branch";
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IFinanceService _financeService;
@@ -17,6 +18,7 @@ public class PaymentService : IPaymentService
     {
         var payment = _mapper.Map<Payment>(paymentDto);
         payment.Id = Guid.NewGuid().ToString();
+        payment.BranchId = NormalizeBranchId(payment.BranchId);
         payment.Amount = FinanceMoney.Normalize(payment.Amount, FinanceCurrency.IRR);
         await _unitOfWork.Payments.AddAsync(payment);
         await _unitOfWork.SaveChangesAsync();
@@ -28,6 +30,7 @@ public class PaymentService : IPaymentService
                 OrderId = payment.OrderId,
                 FinanceAccountId = "default-cash",
                 PaymentMethod = MapPaymentMethod(payment.Method),
+                BranchId = payment.BranchId,
                 CounterpartyName = payment.Supplier?.Name
             });
         }
@@ -46,6 +49,8 @@ public class PaymentService : IPaymentService
         var payments = await _unitOfWork.Payments.GetByOrderIdAsync(orderId);
         return _mapper.Map<IEnumerable<PaymentDto>>(payments);
     }
+
+    private static string NormalizeBranchId(string? branchId) => string.IsNullOrWhiteSpace(branchId) ? DefaultBranchId : branchId.Trim();
 
     private static FinancePaymentMethod MapPaymentMethod(PaymentMethod method) => method switch
     {
