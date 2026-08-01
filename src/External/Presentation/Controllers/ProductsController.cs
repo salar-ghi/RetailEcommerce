@@ -1,7 +1,4 @@
-﻿using Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
-
+﻿
 namespace Presentation.Controllers;
 
 [ApiController]
@@ -18,8 +15,6 @@ public class ProductController : ControllerBase
     private readonly ProductSupplierService _supplierService;
     private readonly ProductTagService _tagService;
     private readonly ProductUnitPriceService _unitPriceService;
-    private readonly AppDbContext _db;
-
     public ProductController(
         IProductService productService,
         ProductAttributeService attributeService,
@@ -30,8 +25,7 @@ public class ProductController : ControllerBase
         ProductImageService imageService,
         ProductSupplierService supplierService,
         ProductTagService tagService,
-        ProductUnitPriceService unitPriceService,
-        AppDbContext db)
+        ProductUnitPriceService unitPriceService)
     {
         _productService = productService;
         _attributeService = attributeService;
@@ -43,7 +37,6 @@ public class ProductController : ControllerBase
         _supplierService = supplierService;
         _tagService = tagService;
         _unitPriceService = unitPriceService;
-        _db = db;
     }
 
     // Product CRUD Operations
@@ -65,15 +58,14 @@ public class ProductController : ControllerBase
     public async Task<IActionResult> CreateProduct(CreateProductRequest dto)
     {
         var product = await _productService.AddProductAsync(dto);
-        var created = await _productService.GetProductByIdAsync((int)product.Id);
+        var created = await _productService.GetProductByIdAsync(product.Id);
         return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, created);
     }
 
     [HttpPut("products/{id}")]
     public async Task<IActionResult> UpdateProduct(int id, UpdateProductRequest productDto)
     {
-        await _productService.UpdateProductAsync(id, productDto);
-        var updated = await _productService.GetProductByIdAsync(id);
+        var updated = await _productService.UpdateProductAsync(id, productDto);
         return Ok(updated);
     }
 
@@ -88,62 +80,15 @@ public class ProductController : ControllerBase
     [HttpGet("products/{id:int}/attribute-values")]
     public async Task<IActionResult> GetProductAttributeValues(long id)
     {
-        var values = await _db.ProductAttributeValues
-            .Where(v => v.ProductId == id && !v.IsDeleted)
-            .Include(v => v.AttributeDefinition)
-            .OrderBy(v => v.AttributeDefinition.SortOrder)
-            .ToListAsync();
-
-        return Ok(values.Select(ToDto));
+        var values = await _productService.GetProductAttributeValuesAsync(id);
+        return Ok(values);
     }
 
     [HttpPut("products/{id:int}/attribute-values")]
     public async Task<IActionResult> SaveProductAttributeValues(long id, List<ProductAttributeValueDto> values)
     {
-        var product = await _db.Products
-            .Include(p => p.AttributeValues)
-            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
-        if (product is null) return NotFound();
-
-        product.AttributeValues.Clear();
-        foreach (var value in values.Where(v => v.AttributeDefinitionId > 0))
-        {
-            product.AttributeValues.Add(new ProductAttributeValue
-            {
-                AttributeDefinitionId = value.AttributeDefinitionId,
-                StringValue = value.StringValue,
-                IntValue = value.IntValue,
-                DecimalValue = value.DecimalValue,
-                BoolValue = value.BoolValue,
-                DateValue = value.DateValue,
-                AttributeOptionId = value.AttributeOptionId,
-                AttributeOptionIds = value.AttributeOptionIds == null ? null : JsonSerializer.Serialize(value.AttributeOptionIds)
-            });
-        }
-
-        await _db.SaveChangesAsync();
+        await _productService.SaveProductAttributeValuesAsync(id, values);
         return NoContent();
-    }
-
-    private static ProductAttributeValueDto ToDto(ProductAttributeValue value)
-    {
-        return new ProductAttributeValueDto
-        {
-            Id = value.Id,
-            ProductId = value.ProductId,
-            AttributeDefinitionId = value.AttributeDefinitionId,
-            AttributeCode = value.AttributeDefinition?.Code,
-            AttributeName = value.AttributeDefinition?.Name,
-            StringValue = value.StringValue,
-            IntValue = value.IntValue,
-            DecimalValue = value.DecimalValue,
-            BoolValue = value.BoolValue,
-            DateValue = value.DateValue,
-            AttributeOptionId = value.AttributeOptionId,
-            AttributeOptionIds = string.IsNullOrWhiteSpace(value.AttributeOptionIds)
-                ? []
-                : JsonSerializer.Deserialize<int[]>(value.AttributeOptionIds)
-        };
     }
 
     // Product Search Operations

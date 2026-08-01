@@ -131,4 +131,21 @@ public class ProductRepository : Repository<Product, long>, IProductRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<ProductAttributeValue>> GetAttributeValuesByProductIdAsync(long productId)
+    {
+        return await _context.ProductAttributeValues
+            .Where(value => value.ProductId == productId && !value.IsDeleted)
+            .Include(value => value.AttributeDefinition)
+            .OrderBy(value => value.AttributeDefinition.SortOrder)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<Product?> GetProductWithAttributeValuesAsync(long productId)
+    {
+        return await _context.Products
+            .Include(product => product.AttributeValues)
+            .FirstOrDefaultAsync(product => product.Id == productId && !product.IsDeleted);
+    }
+
 }
