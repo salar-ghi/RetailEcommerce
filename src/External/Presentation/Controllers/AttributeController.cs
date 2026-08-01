@@ -1,3 +1,4 @@
+using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,7 +24,7 @@ public class AttributeController : ControllerBase
             .OrderBy(a => a.SortOrder).ThenBy(a => a.Name)
             .ToListAsync();
 
-        return Ok(attributes);
+        return Ok(attributes.Select(ToDto));
     }
 
     [HttpGet("attributes/{id:int}")]
@@ -33,20 +34,21 @@ public class AttributeController : ControllerBase
             .Include(a => a.Options.Where(o => !o.IsDeleted))
             .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
 
-        return attribute is null ? NotFound() : Ok(attribute);
+        return attribute is null ? NotFound() : Ok(ToDto(attribute));
     }
 
     [HttpPost("attributes")]
-    public async Task<IActionResult> Create(AttributeDefinition attribute)
+    public async Task<IActionResult> Create(UpsertAttributeDefinitionDto request)
     {
+        var attribute = ToEntity(request);
         Normalize(attribute);
         _db.AttributeDefinitions.Add(attribute);
         await _db.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetById), new { id = attribute.Id }, attribute);
+        return CreatedAtAction(nameof(GetById), new { id = attribute.Id }, ToDto(attribute));
     }
 
     [HttpPut("attributes/{id:int}")]
-    public async Task<IActionResult> Update(int id, AttributeDefinition request)
+    public async Task<IActionResult> Update(int id, UpsertAttributeDefinitionDto request)
     {
         var attribute = await _db.AttributeDefinitions
             .Include(a => a.Options)
@@ -70,13 +72,18 @@ public class AttributeController : ControllerBase
         attribute.Options.Clear();
         foreach (var option in request.Options ?? [])
         {
-            option.Id = 0;
-            attribute.Options.Add(option);
+            attribute.Options.Add(new AttributeOption
+            {
+                Value = option.Value,
+                Label = option.Label,
+                SortOrder = option.SortOrder,
+                IsActive = option.IsActive
+            });
         }
 
         Normalize(attribute);
         await _db.SaveChangesAsync();
-        return Ok(attribute);
+        return Ok(ToDto(attribute));
     }
 
     [HttpDelete("attributes/{id:int}")]
@@ -88,6 +95,56 @@ public class AttributeController : ControllerBase
         await _db.SaveChangesAsync();
         return NoContent();
     }
+
+    private static AttributeDefinition ToEntity(UpsertAttributeDefinitionDto request) => new()
+    {
+        Code = request.Code,
+        Name = request.Name,
+        DataType = request.DataType,
+        Unit = request.Unit,
+        IsFilterable = request.IsFilterable,
+        IsSearchable = request.IsSearchable,
+        IsComparable = request.IsComparable,
+        IsRequired = request.IsRequired,
+        IsVariantAttribute = request.IsVariantAttribute,
+        SortOrder = request.SortOrder,
+        ValidationRegex = request.ValidationRegex,
+        MinValue = request.MinValue,
+        MaxValue = request.MaxValue,
+        Options = request.Options.Select(o => new AttributeOption
+        {
+            Value = o.Value,
+            Label = o.Label,
+            SortOrder = o.SortOrder,
+            IsActive = o.IsActive
+        }).ToList()
+    };
+
+    private static AttributeDefinitionDto ToDto(AttributeDefinition attribute) => new()
+    {
+        Id = attribute.Id,
+        Code = attribute.Code,
+        Name = attribute.Name,
+        DataType = attribute.DataType,
+        Unit = attribute.Unit,
+        IsFilterable = attribute.IsFilterable,
+        IsSearchable = attribute.IsSearchable,
+        IsComparable = attribute.IsComparable,
+        IsRequired = attribute.IsRequired,
+        IsVariantAttribute = attribute.IsVariantAttribute,
+        SortOrder = attribute.SortOrder,
+        ValidationRegex = attribute.ValidationRegex,
+        MinValue = attribute.MinValue,
+        MaxValue = attribute.MaxValue,
+        Options = attribute.Options?.Where(o => !o.IsDeleted).Select(o => new AttributeOptionDto
+        {
+            Id = o.Id,
+            Value = o.Value,
+            Label = o.Label,
+            SortOrder = o.SortOrder,
+            IsActive = o.IsActive
+        }).ToList() ?? new List<AttributeOptionDto>()
+    };
 
     private static void Normalize(AttributeDefinition attribute)
     {

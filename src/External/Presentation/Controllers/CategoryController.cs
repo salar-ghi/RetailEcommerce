@@ -1,4 +1,5 @@
 ﻿using Presentation.Services;
+using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -89,30 +90,40 @@ public class CategoryController : ControllerBase
             .ThenBy(ca => ca.AttributeDefinition.Name)
             .ToListAsync();
 
-        return Ok(attributes);
+        return Ok(attributes.Select(ToCategoryAttributeDefinitionDto));
     }
 
     [HttpPost("categories/{categoryId:int}/attributes")]
-    public async Task<IActionResult> AssignCategoryAttribute(int categoryId, CategoryAttributeDefinition request)
+    public async Task<IActionResult> AssignCategoryAttribute(int categoryId, AssignCategoryAttributeDefinitionDto request)
     {
+        var attributeExists = await _db.AttributeDefinitions.AnyAsync(a =>
+            a.Id == request.AttributeDefinitionId && !a.IsDeleted);
+        if (!attributeExists) return BadRequest("Attribute definition does not exist.");
+
         var exists = await _db.CategoryAttributeDefinitions.AnyAsync(ca =>
             ca.CategoryId == categoryId && ca.AttributeDefinitionId == request.AttributeDefinitionId && !ca.IsDeleted);
         if (exists) return Conflict("Attribute is already assigned to this category.");
 
-        request.Id = 0;
-        request.CategoryId = categoryId;
-        request.Category = null!;
-        request.AttributeDefinition = null!;
-        _db.CategoryAttributeDefinitions.Add(request);
+        var categoryAttribute = new CategoryAttributeDefinition
+        {
+            CategoryId = categoryId,
+            AttributeDefinitionId = request.AttributeDefinitionId,
+            IsRequired = request.IsRequired,
+            SortOrder = request.SortOrder,
+            IsVisibleOnProductPage = request.IsVisibleOnProductPage,
+            IsFilterable = request.IsFilterable
+        };
+
+        _db.CategoryAttributeDefinitions.Add(categoryAttribute);
         await _db.SaveChangesAsync();
 
-        await _db.Entry(request).Reference(ca => ca.AttributeDefinition).LoadAsync();
-        await _db.Entry(request.AttributeDefinition).Collection(a => a.Options).LoadAsync();
-        return CreatedAtAction(nameof(GetCategoryAttributeDefinitions), new { categoryId }, request);
+        await _db.Entry(categoryAttribute).Reference(ca => ca.AttributeDefinition).LoadAsync();
+        await _db.Entry(categoryAttribute.AttributeDefinition).Collection(a => a.Options).LoadAsync();
+        return CreatedAtAction(nameof(GetCategoryAttributeDefinitions), new { categoryId }, ToCategoryAttributeDefinitionDto(categoryAttribute));
     }
 
     [HttpPut("categories/{categoryId:int}/attributes/{id:int}")]
-    public async Task<IActionResult> UpdateCategoryAttributeDefinition(int categoryId, int id, CategoryAttributeDefinition request)
+    public async Task<IActionResult> UpdateCategoryAttributeDefinition(int categoryId, int id, UpdateCategoryAttributeDefinitionDto request)
     {
         var row = await _db.CategoryAttributeDefinitions
             .Include(ca => ca.AttributeDefinition)
@@ -125,7 +136,7 @@ public class CategoryController : ControllerBase
         row.IsVisibleOnProductPage = request.IsVisibleOnProductPage;
         row.IsFilterable = request.IsFilterable;
         await _db.SaveChangesAsync();
-        return Ok(row);
+        return Ok(ToCategoryAttributeDefinitionDto(row));
     }
 
     [HttpDelete("categories/{categoryId:int}/attributes/{id:int}")]
@@ -190,4 +201,43 @@ public class CategoryController : ControllerBase
         var attributes = await _categoryAttributeService.SearchAttributesByKeyAsync(key);
         return Ok(attributes);
     }
+
+    private static CategoryAttributeDefinitionDto ToCategoryAttributeDefinitionDto(CategoryAttributeDefinition categoryAttribute) => new()
+    {
+        Id = categoryAttribute.Id,
+        CategoryId = categoryAttribute.CategoryId,
+        AttributeDefinitionId = categoryAttribute.AttributeDefinitionId,
+        IsRequired = categoryAttribute.IsRequired,
+        SortOrder = categoryAttribute.SortOrder,
+        IsVisibleOnProductPage = categoryAttribute.IsVisibleOnProductPage,
+        IsFilterable = categoryAttribute.IsFilterable,
+        AttributeDefinition = categoryAttribute.AttributeDefinition is null ? null : new AttributeDefinitionDto
+        {
+            Id = categoryAttribute.AttributeDefinition.Id,
+            Code = categoryAttribute.AttributeDefinition.Code,
+            Name = categoryAttribute.AttributeDefinition.Name,
+            DataType = categoryAttribute.AttributeDefinition.DataType,
+            Unit = categoryAttribute.AttributeDefinition.Unit,
+            IsFilterable = categoryAttribute.AttributeDefinition.IsFilterable,
+            IsSearchable = categoryAttribute.AttributeDefinition.IsSearchable,
+            IsComparable = categoryAttribute.AttributeDefinition.IsComparable,
+            IsRequired = categoryAttribute.AttributeDefinition.IsRequired,
+            IsVariantAttribute = categoryAttribute.AttributeDefinition.IsVariantAttribute,
+            SortOrder = categoryAttribute.AttributeDefinition.SortOrder,
+            ValidationRegex = categoryAttribute.AttributeDefinition.ValidationRegex,
+            MinValue = categoryAttribute.AttributeDefinition.MinValue,
+            MaxValue = categoryAttribute.AttributeDefinition.MaxValue,
+            Options = categoryAttribute.AttributeDefinition.Options?
+                .Where(o => !o.IsDeleted)
+                .Select(o => new AttributeOptionDto
+                {
+                    Id = o.Id,
+                    Value = o.Value,
+                    Label = o.Label,
+                    SortOrder = o.SortOrder,
+                    IsActive = o.IsActive
+                }).ToList() ?? new List<AttributeOptionDto>()
+        }
+    };
+
 }
