@@ -60,6 +60,7 @@ public class ProductService : IProductService
         ReplaceBatches(product, dto.Prices, dto.Stock);
         ReplaceStock(product, dto.Stock, resolvedLocation);
         ReplaceAttributes(product, dto.Attributes);
+        ReplaceAttributeValues(product, dto.AttributeValues);
         ReplaceVariants(product, dto.Variants);
 
         await ApplyStorageUsageAsync(dto.Stock?.Quantity ?? 0, resolvedLocation);
@@ -79,6 +80,7 @@ public class ProductService : IProductService
             .Include(p => p.Batches)
             .Include(p => p.Stocks)
             .Include(p => p.Attributes)
+            .Include(p => p.AttributeValues).ThenInclude(v => v.AttributeDefinition)
             .Include(p => p.VariantDefinitions).ThenInclude(v => v.Options));
 
         if (product == null)
@@ -95,6 +97,7 @@ public class ProductService : IProductService
         ReplaceBatches(product, dto.Prices, dto.Stock);
         ReplaceStock(product, dto.Stock, resolvedLocation);
         ReplaceAttributes(product, dto.Attributes);
+        ReplaceAttributeValues(product, dto.AttributeValues);
         ReplaceVariants(product, dto.Variants);
 
         await ApplyStorageUsageAsync((dto.Stock?.Quantity ?? 0) - oldStockQuantity, resolvedLocation);
@@ -148,6 +151,7 @@ public class ProductService : IProductService
         .Include(p => p.Stocks).ThenInclude(st => st.Shelf)
         .Include(p => p.Stocks).ThenInclude(st => st.Warehouse)
         .Include(p => p.Attributes)
+        .Include(p => p.AttributeValues).ThenInclude(v => v.AttributeDefinition)
         .Include(p => p.Dimensions)
         .Include(p => p.Images)
         .Include(p => p.VariantDefinitions).ThenInclude(v => v.Options)
@@ -305,6 +309,28 @@ public class ProductService : IProductService
 
         foreach (var attr in attributes)
             product.Attributes.Add(new ProductAttribute { Key = attr.Key, Value = attr.Value });
+    }
+
+    private static void ReplaceAttributeValues(Product product, List<ProductAttributeValueDto>? values)
+    {
+        product.AttributeValues.Clear();
+        if (values == null)
+            return;
+
+        foreach (var value in values.Where(v => v.AttributeDefinitionId > 0))
+        {
+            product.AttributeValues.Add(new ProductAttributeValue
+            {
+                AttributeDefinitionId = value.AttributeDefinitionId,
+                StringValue = value.StringValue,
+                IntValue = value.IntValue,
+                DecimalValue = value.DecimalValue,
+                BoolValue = value.BoolValue,
+                DateValue = value.DateValue,
+                AttributeOptionId = value.AttributeOptionId,
+                AttributeOptionIds = value.AttributeOptionIds == null ? null : System.Text.Json.JsonSerializer.Serialize(value.AttributeOptionIds)
+            });
+        }
     }
 
     private static void ReplaceVariants(Product product, List<VariantDto>? variants)

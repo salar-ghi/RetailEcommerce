@@ -1,4 +1,6 @@
 ﻿using Presentation.Services;
+using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace Presentation.Controllers;
@@ -9,11 +11,14 @@ public class CategoryController : ControllerBase
 {
     private readonly CategoryService _categoryService;
     private readonly CategoryAttributeService _categoryAttributeService;
+    private readonly AppDbContext _db;
     public CategoryController(CategoryService categoryService,
-        CategoryAttributeService categoryAttributeService)
+        CategoryAttributeService categoryAttributeService,
+        AppDbContext db)
     {
         _categoryService = categoryService;
         _categoryAttributeService = categoryAttributeService;
+        _db = db;
     }
 
     [HttpGet("categories")]
@@ -69,6 +74,69 @@ public class CategoryController : ControllerBase
     {
         var categories = await _categoryService.SearchCategoriesByDescriptionAsync(description);
         return Ok(categories);
+    }
+
+
+    [HttpGet("categories/{categoryId:int}/attributes")]
+    public async Task<IActionResult> GetCategoryAttributeDefinitions(int categoryId)
+    {
+        var attributes = await _db.CategoryAttributeDefinitions
+            .Where(ca => ca.CategoryId == categoryId && !ca.IsDeleted)
+            .Include(ca => ca.AttributeDefinition)
+                .ThenInclude(a => a.Options.Where(o => !o.IsDeleted))
+            .OrderBy(ca => ca.SortOrder)
+            .ThenBy(ca => ca.AttributeDefinition.SortOrder)
+            .ThenBy(ca => ca.AttributeDefinition.Name)
+            .ToListAsync();
+
+        return Ok(attributes);
+    }
+
+    [HttpPost("categories/{categoryId:int}/attributes")]
+    public async Task<IActionResult> AssignCategoryAttribute(int categoryId, CategoryAttributeDefinition request)
+    {
+        var exists = await _db.CategoryAttributeDefinitions.AnyAsync(ca =>
+            ca.CategoryId == categoryId && ca.AttributeDefinitionId == request.AttributeDefinitionId && !ca.IsDeleted);
+        if (exists) return Conflict("Attribute is already assigned to this category.");
+
+        request.Id = 0;
+        request.CategoryId = categoryId;
+        request.Category = null!;
+        request.AttributeDefinition = null!;
+        _db.CategoryAttributeDefinitions.Add(request);
+        await _db.SaveChangesAsync();
+
+        await _db.Entry(request).Reference(ca => ca.AttributeDefinition).LoadAsync();
+        await _db.Entry(request.AttributeDefinition).Collection(a => a.Options).LoadAsync();
+        return CreatedAtAction(nameof(GetCategoryAttributeDefinitions), new { categoryId }, request);
+    }
+
+    [HttpPut("categories/{categoryId:int}/attributes/{id:int}")]
+    public async Task<IActionResult> UpdateCategoryAttributeDefinition(int categoryId, int id, CategoryAttributeDefinition request)
+    {
+        var row = await _db.CategoryAttributeDefinitions
+            .Include(ca => ca.AttributeDefinition)
+            .ThenInclude(a => a.Options.Where(o => !o.IsDeleted))
+            .FirstOrDefaultAsync(ca => ca.Id == id && ca.CategoryId == categoryId && !ca.IsDeleted);
+        if (row is null) return NotFound();
+
+        row.IsRequired = request.IsRequired;
+        row.SortOrder = request.SortOrder;
+        row.IsVisibleOnProductPage = request.IsVisibleOnProductPage;
+        row.IsFilterable = request.IsFilterable;
+        await _db.SaveChangesAsync();
+        return Ok(row);
+    }
+
+    [HttpDelete("categories/{categoryId:int}/attributes/{id:int}")]
+    public async Task<IActionResult> RemoveCategoryAttributeDefinition(int categoryId, int id)
+    {
+        var row = await _db.CategoryAttributeDefinitions
+            .FirstOrDefaultAsync(ca => ca.Id == id && ca.CategoryId == categoryId && !ca.IsDeleted);
+        if (row is null) return NotFound();
+        row.IsDeleted = true;
+        await _db.SaveChangesAsync();
+        return NoContent();
     }
 
 

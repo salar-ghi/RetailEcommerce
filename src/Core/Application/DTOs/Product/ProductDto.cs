@@ -28,6 +28,7 @@ public class ProductDto
     public StockDto Stock { get; set; }
     public List<BatchDto> Prices { get; set; }
     public List<AttributeDto> Attributes { get; set; }
+    public List<ProductAttributeValueDto> AttributeValues { get; set; } = new();
     public List<VariantDto> Variants { get; set; }
     public List<string> Tags { get; set; }
     public string? PricingStrategy { get; set; }
@@ -142,6 +143,7 @@ public class CreateProductRequest
     public StockDto? Stock { get; set; }
     public List<PriceDto>? Prices { get; set; }
     public List<AttributeDto>? Attributes { get; set; }
+    public List<ProductAttributeValueDto>? AttributeValues { get; set; }
     public List<VariantDto>? Variants { get; set; }
 
     public string? PricingStrategy { get; set; }              // fifo | latest | average
