@@ -47,7 +47,7 @@ public class ProductService : IProductService
         return _mapper.Map<List<ProductDto>>(products);
     }
 
-    public async Task<Product> AddProductAsync(CreateProductRequest dto)
+    public async Task<ProductDto> AddProductAsync(CreateProductRequest dto)
     {
         var product = new Product();
         var resolvedLocation = await ResolveStockLocationAsync(dto.Stock);
@@ -67,10 +67,10 @@ public class ProductService : IProductService
         await _unitOfWork.Products.AddAsync(product);
         await _unitOfWork.SaveChangesAsync();
 
-        return product;
+        return _mapper.Map<ProductDto>(product);
     }
 
-    public async Task<Product> UpdateProductAsync(int id, UpdateProductRequest dto)
+    public async Task<ProductDto> UpdateProductAsync(int id, UpdateProductRequest dto)
     {
         var product = await _unitOfWork.Products.GetByIdAsync(id, include: q => q
             .Include(p => p.Dimensions)
@@ -104,7 +104,7 @@ public class ProductService : IProductService
         await _unitOfWork.Products.UpdateAsync(product);
         await _unitOfWork.SaveChangesAsync();
 
-        return product;
+        return _mapper.Map<ProductDto>(product);
     }
 
     public async Task DeleteProductAsync(int id)
@@ -139,6 +139,23 @@ public class ProductService : IProductService
     {
         var products = await _unitOfWork.Products.GetProductsByCategoryAsync(categoryId);
         return _mapper.Map<IEnumerable<ProductDto>>(products);
+    }
+
+    public async Task<IEnumerable<ProductAttributeValueDto>> GetProductAttributeValuesAsync(long productId)
+    {
+        var values = await _unitOfWork.Products.GetAttributeValuesByProductIdAsync(productId);
+        return _mapper.Map<IEnumerable<ProductAttributeValueDto>>(values);
+    }
+
+    public async Task SaveProductAttributeValuesAsync(long productId, List<ProductAttributeValueDto> values)
+    {
+        var product = await _unitOfWork.Products.GetProductWithAttributeValuesAsync(productId);
+        if (product == null)
+            throw new KeyNotFoundException($"Product with ID {productId} not found.");
+
+        ReplaceAttributeValues(product, values);
+        await _unitOfWork.Products.UpdateAsync(product);
+        await _unitOfWork.SaveChangesAsync();
     }
 
     private static IQueryable<Product> ProductIncludes(IQueryable<Product> query) => query

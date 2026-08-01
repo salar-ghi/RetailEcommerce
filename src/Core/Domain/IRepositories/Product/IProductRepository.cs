@@ -9,5 +9,7 @@ public interface IProductRepository : IRepository<Product, long>
     Task<IEnumerable<Product>> GetProductsBySupplierAsync(int supplierId);
     Task<IEnumerable<Product>> GetProductsByTagAsync(int tagId);
     Task<IEnumerable<Product>> GetProductsByPriceRangeAsync(decimal minPrice, decimal maxPrice);
+    Task<IEnumerable<ProductAttributeValue>> GetAttributeValuesByProductIdAsync(long productId);
+    Task<Product?> GetProductWithAttributeValuesAsync(long productId);
 
 }
