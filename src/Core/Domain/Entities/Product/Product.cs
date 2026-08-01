@@ -24,6 +24,7 @@ public class Product : BaseModel<long>
     public ICollection<ProductStock> Stocks { get; set; } = new List<ProductStock>();
     public ICollection<ProductVariantDefinition> VariantDefinitions { get; set; } = new List<ProductVariantDefinition>();
     public ICollection<ProductAttribute> Attributes { get; set; } = new List<ProductAttribute>();
+    public ICollection<ProductAttributeValue> AttributeValues { get; set; } = new List<ProductAttributeValue>();
     public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
     public ICollection<ProductReview> Reviews { get; set; } = new List<ProductReview>();
     public virtual ICollection<BasketItem> BasketItems { get; set; } = new List<BasketItem>();

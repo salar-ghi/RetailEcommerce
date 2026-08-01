@@ -22,6 +22,7 @@ public class ProductMappingProfile : Profile
             .ForMember(d => d.ReorderLevel, o => o.MapFrom(s => s.Stocks.Any() ? (int?)s.Stocks.First().ReorderThreshold : null))
             .ForMember(d => d.Stock, o => o.MapFrom(s => s.Stocks.FirstOrDefault()))
             .ForMember(d => d.Prices, o => o.MapFrom(s => s.Batches))
+            .ForMember(d => d.AttributeValues, o => o.MapFrom(s => s.AttributeValues))
             .ForMember(d => d.Variants, o => o.MapFrom(s => s.VariantDefinitions))
             .ForMember(d => d.SalesUnit, o => o.MapFrom(s => string.IsNullOrWhiteSpace(s.SalesUnitMode) ? null : new SalesUnitConfigDto
             {
@@ -45,6 +46,10 @@ public class ProductMappingProfile : Profile
             .ForMember(d => d.Id, o => o.MapFrom(s => (int)s.Id))
             .ForMember(d => d.Amount, o => o.MapFrom(s => s.SellingPrice));
         CreateMap<ProductAttribute, AttributeDto>();
+        CreateMap<ProductAttributeValue, ProductAttributeValueDto>()
+            .ForMember(d => d.AttributeCode, o => o.MapFrom(s => s.AttributeDefinition != null ? s.AttributeDefinition.Code : null))
+            .ForMember(d => d.AttributeName, o => o.MapFrom(s => s.AttributeDefinition != null ? s.AttributeDefinition.Name : null))
+            .ForMember(d => d.AttributeOptionIds, o => o.MapFrom(s => string.IsNullOrWhiteSpace(s.AttributeOptionIds) ? Array.Empty<int>() : System.Text.Json.JsonSerializer.Deserialize<int[]>(s.AttributeOptionIds)));
         CreateMap<ProductVariantDefinition, VariantDto>();
         CreateMap<ProductVariantOption, VariantOptionDto>()
             .ForMember(d => d.Name, o => o.MapFrom(s => s.DisplayValue))

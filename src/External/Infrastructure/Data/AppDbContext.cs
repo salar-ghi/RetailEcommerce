@@ -8,7 +8,11 @@ public class AppDbContext : DbContext
     public DbSet<Brand> Brands { get; set; }
     public DbSet<Category> Categories { get; set; }
     public DbSet<BrandCategory> BrandCategories { get; set; }
-    public DbSet<Domain.Entities.CategoryAttribute> CategoryAttributes { get; set; }    
+    public DbSet<Domain.Entities.CategoryAttribute> CategoryAttributes { get; set; }
+    public DbSet<AttributeDefinition> AttributeDefinitions { get; set; }
+    public DbSet<AttributeOption> AttributeOptions { get; set; }
+    public DbSet<CategoryAttributeDefinition> CategoryAttributeDefinitions { get; set; }
+    public DbSet<ProductAttributeValue> ProductAttributeValues { get; set; }
     public DbSet<Banner> Banners { get; set; }
     public DbSet<BannerPlacement> BannerPlacement { get; set; }
 
@@ -72,6 +76,7 @@ public class AppDbContext : DbContext
 
         modelBuilder.ApplyConfiguration(new CategoryConfiguration());
         modelBuilder.ApplyConfiguration(new CategoryAttributeConfiguration());
+        ConfigureEavAttributes(modelBuilder);
         modelBuilder.ApplyConfiguration(new BannerConfiguration());
         modelBuilder.ApplyConfiguration(new BannerPlacementConfiguration());
         modelBuilder.ApplyConfiguration(new BrandConfiguration());
@@ -118,5 +123,45 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new ProductPromotionConfiguration());
         modelBuilder.ApplyConfiguration(new OrderPromotionConfiguration());
         modelBuilder.ApplyConfiguration(new CategoryPromotionConfiguration());
+    }
+
+    private static void ConfigureEavAttributes(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<AttributeDefinition>(builder =>
+        {
+            builder.HasKey(a => a.Id);
+            builder.Property(a => a.Code).IsRequired().HasMaxLength(100);
+            builder.Property(a => a.Name).IsRequired().HasMaxLength(200);
+            builder.Property(a => a.Unit).HasMaxLength(50);
+            builder.Property(a => a.ValidationRegex).HasMaxLength(500);
+            builder.HasIndex(a => a.Code).IsUnique().HasFilter("[IsDeleted] = 0");
+            builder.HasMany(a => a.Options).WithOne(o => o.AttributeDefinition).HasForeignKey(o => o.AttributeDefinitionId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AttributeOption>(builder =>
+        {
+            builder.HasKey(o => o.Id);
+            builder.Property(o => o.Value).IsRequired().HasMaxLength(200);
+            builder.Property(o => o.Label).HasMaxLength(200);
+        });
+
+        modelBuilder.Entity<CategoryAttributeDefinition>(builder =>
+        {
+            builder.HasKey(ca => ca.Id);
+            builder.HasIndex(ca => new { ca.CategoryId, ca.AttributeDefinitionId }).IsUnique().HasFilter("[IsDeleted] = 0");
+            builder.HasOne(ca => ca.Category).WithMany().HasForeignKey(ca => ca.CategoryId).OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(ca => ca.AttributeDefinition).WithMany().HasForeignKey(ca => ca.AttributeDefinitionId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ProductAttributeValue>(builder =>
+        {
+            builder.HasKey(v => v.Id);
+            builder.Property(v => v.StringValue).HasMaxLength(2000);
+            builder.Property(v => v.AttributeOptionIds).HasMaxLength(1000);
+            builder.HasIndex(v => new { v.ProductId, v.AttributeDefinitionId });
+            builder.HasOne(v => v.Product).WithMany().HasForeignKey(v => v.ProductId).OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(v => v.AttributeDefinition).WithMany().HasForeignKey(v => v.AttributeDefinitionId).OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(v => v.AttributeOption).WithMany().HasForeignKey(v => v.AttributeOptionId).OnDelete(DeleteBehavior.Restrict);
+        });
     }
 }
