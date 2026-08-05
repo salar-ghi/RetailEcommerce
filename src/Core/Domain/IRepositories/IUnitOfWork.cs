@@ -8,6 +8,7 @@ public interface IUnitOfWork : IDisposable
     IBannerPlacementRepository BannerPlacements { get; }
     IBannerPlacementMapRepository BannerPlacementMaps { get; }
     ICategoryAttributeRepository CategoryAttributes { get; }
+    ICategoryAttributeDefinitionRepository CategoryAttributeDefinitions { get; }
     IBrandRepository Brands { get; }
     IBasketRepository Baskets { get; }
     IBasketItemRepository BasketItems { get; }
