@@ -338,6 +338,7 @@ public class ProductService : IProductService
         {
             product.AttributeValues.Add(new ProductAttributeValue
             {
+                Product = product,
                 AttributeDefinitionId = value.AttributeDefinitionId,
                 StringValue = value.StringValue,
                 IntValue = value.IntValue,

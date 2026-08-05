@@ -159,7 +159,7 @@ public class AppDbContext : DbContext
             builder.Property(v => v.StringValue).HasMaxLength(2000);
             builder.Property(v => v.AttributeOptionIds).HasMaxLength(1000);
             builder.HasIndex(v => new { v.ProductId, v.AttributeDefinitionId });
-            builder.HasOne(v => v.Product).WithMany().HasForeignKey(v => v.ProductId).OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(v => v.Product).WithMany(p => p.AttributeValues).HasForeignKey(v => v.ProductId).OnDelete(DeleteBehavior.Cascade);
             builder.HasOne(v => v.AttributeDefinition).WithMany().HasForeignKey(v => v.AttributeDefinitionId).OnDelete(DeleteBehavior.Cascade);
             builder.HasOne(v => v.AttributeOption).WithMany().HasForeignKey(v => v.AttributeOptionId).OnDelete(DeleteBehavior.Restrict);
         });

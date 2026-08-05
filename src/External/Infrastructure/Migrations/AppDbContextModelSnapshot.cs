@@ -1993,8 +1993,6 @@ namespace Infrastructure.Migrations
                     b.Property<long>("ProductId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("ProductId1")
-                        .HasColumnType("bigint");
 
                     b.Property<string>("StringValue")
                         .HasMaxLength(2000)
@@ -2006,7 +2004,6 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("AttributeOptionId");
 
-                    b.HasIndex("ProductId1");
 
                     b.HasIndex("ProductId", "AttributeDefinitionId");
 
@@ -3928,14 +3925,10 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Domain.Entities.Product", "Product")
-                        .WithMany()
+                        .WithMany("AttributeValues")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("Domain.Entities.Product", null)
-                        .WithMany("AttributeValues")
-                        .HasForeignKey("ProductId1");
 
                     b.Navigation("AttributeDefinition");
 
