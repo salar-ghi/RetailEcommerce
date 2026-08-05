@@ -168,8 +168,8 @@ public class CategoryController : ControllerBase
     [HttpPost("category-attributes")]
     public async Task<IActionResult> AddCategoryAttribute(CategoryAttributeDto attributeDto)
     {
-        await _categoryAttributeService.AddAttributeAsync(attributeDto);
-        return CreatedAtAction(nameof(GetCategoryAttributeById), new { id = attributeDto.Id }, attributeDto);
+        var createdAttribute = await _categoryAttributeService.AddAttributeAsync(attributeDto);
+        return CreatedAtAction(nameof(GetCategoryAttributeById), new { id = createdAttribute.Id }, createdAttribute);
     }
 
     [HttpPut("category-attributes/{id}")]

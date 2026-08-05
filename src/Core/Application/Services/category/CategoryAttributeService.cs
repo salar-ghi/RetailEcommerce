@@ -24,11 +24,13 @@ public class CategoryAttributeService
         return _mapper.Map<CategoryAttributeDto>(attribute);
     }
 
-    public async Task AddAttributeAsync(CategoryAttributeDto attributeDto)
+    public async Task<CategoryAttributeDto> AddAttributeAsync(CategoryAttributeDto attributeDto)
     {
         var attribute = _mapper.Map<CategoryAttribute>(attributeDto);
         await _unitOfWork.CategoryAttributes.AddAsync(attribute);
         await _unitOfWork.SaveChangesAsync();
+
+        return _mapper.Map<CategoryAttributeDto>(attribute);
     }
 
     public async Task UpdateAttributeAsync(CategoryAttributeDto attributeDto)
@@ -43,11 +45,10 @@ public class CategoryAttributeService
     public async Task DeleteAttributeAsync(int id)
     {
         var attribute = await _unitOfWork.CategoryAttributes.GetByIdAsync(id);
-        if (attribute is not null)
-        {
-            await _unitOfWork.CategoryAttributes.DeleteAsync(attribute);
-            await _unitOfWork.SaveChangesAsync();
-        }
+        if (attribute is null) throw new KeyNotFoundException($"Attribute with ID {id} not found.");
+
+        await _unitOfWork.CategoryAttributes.DeleteAsync(attribute);
+        await _unitOfWork.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<CategoryAttributeDto>> SearchAttributesByCategoryIdAsync(int categoryId)
