@@ -7,7 +7,7 @@ public class CategoryAttributeRepository : Repository<CategoryAttribute, int>, I
     public async Task<IEnumerable<CategoryAttribute>> GetByCategoryIdAsync(int categoryId)
     {
         return await _context.CategoryAttributes
-            .Where(ca => ca.CategoryId == categoryId)
+            .Where(ca => ca.CategoryId == categoryId && !ca.IsDeleted)
             .AsNoTracking()
             .ToListAsync();
     }
@@ -15,7 +15,7 @@ public class CategoryAttributeRepository : Repository<CategoryAttribute, int>, I
     public async Task<IEnumerable<CategoryAttribute>> SearchByKeyAsync(string key)
     {
         return await _context.CategoryAttributes
-            .Where(ca => ca.Key.Contains(key))
+            .Where(ca => !ca.IsDeleted && ca.Key.Contains(key))
             .AsNoTracking()
             .ToListAsync();
     }

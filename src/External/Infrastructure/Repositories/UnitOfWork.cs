@@ -17,6 +17,7 @@ public class UnitOfWork : IUnitOfWork
         BannerPlacements = new BannerPlacementRepository(context);
         BannerPlacementMaps = new BannerPlacementMapRepository(context);
         CategoryAttributes = new CategoryAttributeRepository(context);
+        CategoryAttributeDefinitions = new CategoryAttributeDefinitionRepository(context);
         Brands = new BrandRepository(context);
         Suppliers = new SupplierRepository(context);
         Users = new UserRepository(context);
@@ -52,6 +53,7 @@ public class UnitOfWork : IUnitOfWork
     public IBannerPlacementRepository BannerPlacements { get; }
     public IBannerPlacementMapRepository BannerPlacementMaps { get; }
     public ICategoryAttributeRepository CategoryAttributes { get; }
+    public ICategoryAttributeDefinitionRepository CategoryAttributeDefinitions { get; }
     public IBrandRepository Brands { get; }
     public IBasketRepository Baskets { get; }
     public IBasketItemRepository BasketItems { get; }
