@@ -35,6 +35,8 @@ public class ProductService : IProductService
             throw new KeyNotFoundException($"Product with ID {id} not found.");
 
         var productDto = _mapper.Map<ProductDto>(product);
+        productDto.Attributes = BuildDisplayAttributes(product.AttributeValues);
+        productDto.AttributeValues = new List<ProductAttributeValueDto>();
         await ConvertProductImagesToBase64Async(productDto);
 
         return productDto;
@@ -83,7 +85,8 @@ public class ProductService : IProductService
             .Include(p => p.Batches)
             .Include(p => p.Stocks)
             .Include(p => p.Attributes)
-            .Include(p => p.AttributeValues).ThenInclude(v => v.AttributeDefinition)
+            .Include(p => p.AttributeValues).ThenInclude(v => v.AttributeDefinition).ThenInclude(d => d.Options)
+            .Include(p => p.AttributeValues).ThenInclude(v => v.AttributeOption)
             .Include(p => p.VariantDefinitions).ThenInclude(v => v.Options));
 
         if (product == null)
@@ -171,11 +174,85 @@ public class ProductService : IProductService
         .Include(p => p.Stocks).ThenInclude(st => st.Shelf)
         .Include(p => p.Stocks).ThenInclude(st => st.Warehouse)
         .Include(p => p.Attributes)
-        .Include(p => p.AttributeValues).ThenInclude(v => v.AttributeDefinition)
+        .Include(p => p.AttributeValues).ThenInclude(v => v.AttributeDefinition).ThenInclude(d => d.Options)
+        .Include(p => p.AttributeValues).ThenInclude(v => v.AttributeOption)
         .Include(p => p.Dimensions)
         .Include(p => p.Images)
         .Include(p => p.VariantDefinitions).ThenInclude(v => v.Options)
         .Include(p => p.Tags).ThenInclude(pt => pt.Tag);
+
+
+    private static List<AttributeDto> BuildDisplayAttributes(IEnumerable<ProductAttributeValue>? attributeValues)
+    {
+        return (attributeValues ?? Enumerable.Empty<ProductAttributeValue>())
+            .Where(value => value.AttributeDefinition != null)
+            .Select(value => new AttributeDto
+            {
+                Key = string.IsNullOrWhiteSpace(value.AttributeDefinition.Code)
+                    ? value.AttributeDefinitionId.ToString()
+                    : value.AttributeDefinition.Code,
+                Name = value.AttributeDefinition.Name,
+                Value = ResolveAttributeDisplayValue(value)
+            })
+            .Where(attribute => !string.IsNullOrWhiteSpace(attribute.Value))
+            .OrderBy(attribute => attribute.Name ?? attribute.Key)
+            .ThenBy(attribute => attribute.Key)
+            .ToList();
+    }
+
+    private static string? ResolveAttributeDisplayValue(ProductAttributeValue value)
+    {
+        return value.AttributeDefinition.DataType switch
+        {
+            AttributeDataType.Integer => value.IntValue?.ToString(),
+            AttributeDataType.Decimal => value.DecimalValue?.ToString(),
+            AttributeDataType.Boolean => value.BoolValue?.ToString().ToLowerInvariant(),
+            AttributeDataType.Date => value.DateValue?.ToString("yyyy-MM-dd"),
+            AttributeDataType.Select => ResolveSingleOptionValue(value),
+            AttributeDataType.MultiSelect => ResolveMultipleOptionValues(value),
+            _ => value.StringValue
+        };
+    }
+
+    private static string? ResolveSingleOptionValue(ProductAttributeValue value)
+    {
+        var option = value.AttributeOption
+            ?? value.AttributeDefinition.Options.FirstOrDefault(option => option.Id == value.AttributeOptionId);
+
+        return option?.Label ?? option?.Value ?? value.StringValue ?? value.AttributeOptionId?.ToString();
+    }
+
+    private static string? ResolveMultipleOptionValues(ProductAttributeValue value)
+    {
+        var optionIds = DeserializeAttributeOptionIds(value.AttributeOptionIds);
+        if (!optionIds.Any())
+            return value.StringValue;
+
+        var labels = value.AttributeDefinition.Options
+            .Where(option => optionIds.Contains(option.Id))
+            .OrderBy(option => option.SortOrder)
+            .ThenBy(option => option.Label ?? option.Value)
+            .Select(option => option.Label ?? option.Value)
+            .Where(label => !string.IsNullOrWhiteSpace(label))
+            .ToList();
+
+        return labels.Any() ? string.Join(", ", labels) : string.Join(", ", optionIds);
+    }
+
+    private static int[] DeserializeAttributeOptionIds(string? optionIds)
+    {
+        if (string.IsNullOrWhiteSpace(optionIds))
+            return Array.Empty<int>();
+
+        try
+        {
+            return JsonSerializer.Deserialize<int[]>(optionIds) ?? Array.Empty<int>();
+        }
+        catch (JsonException)
+        {
+            return Array.Empty<int>();
+        }
+    }
 
     private async Task ConvertProductImagesToBase64Async(ProductDto product)
     {

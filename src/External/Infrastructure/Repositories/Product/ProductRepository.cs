@@ -135,7 +135,8 @@ public class ProductRepository : Repository<Product, long>, IProductRepository
     {
         return await _context.ProductAttributeValues
             .Where(value => value.ProductId == productId && !value.IsDeleted)
-            .Include(value => value.AttributeDefinition)
+            .Include(value => value.AttributeDefinition).ThenInclude(definition => definition.Options)
+            .Include(value => value.AttributeOption)
             .OrderBy(value => value.AttributeDefinition.SortOrder)
             .AsNoTracking()
             .ToListAsync();
@@ -161,7 +162,8 @@ public class ProductRepository : Repository<Product, long>, IProductRepository
             .Include(product => product.Stocks).ThenInclude(stock => stock.Shelf)
             .Include(product => product.Stocks).ThenInclude(stock => stock.Warehouse)
             .Include(product => product.Attributes)
-            .Include(product => product.AttributeValues).ThenInclude(value => value.AttributeDefinition)
+            .Include(product => product.AttributeValues).ThenInclude(value => value.AttributeDefinition).ThenInclude(definition => definition.Options)
+            .Include(product => product.AttributeValues).ThenInclude(value => value.AttributeOption)
             .Include(product => product.Dimensions)
             .Include(product => product.Images)
             .Include(product => product.VariantDefinitions).ThenInclude(variant => variant.Options)

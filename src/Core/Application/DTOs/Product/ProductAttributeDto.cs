@@ -12,5 +12,6 @@ public class ProductAttributeDto
 public class AttributeDto
 {
     public string Key { get; set; }
+    public string? Name { get; set; }
     public string Value { get; set; }
 }
