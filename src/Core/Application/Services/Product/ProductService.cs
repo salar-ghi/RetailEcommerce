@@ -17,15 +17,7 @@ public class ProductService : IProductService
     {
         var products = await _unitOfWork.Products.GetAllAsync(include: ProductIncludes);
         var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
-
-        foreach (var dto in productDtos)
-        {
-            dto.Images = await ConvertStoredImagesToBase64Async(dto.Images);
-            if (!string.IsNullOrWhiteSpace(dto.CoverImage))
-                dto.CoverImage = await _imageHelper.GetImageBase64(dto.CoverImage);
-        }
-
-        return productDtos;
+        return await ConvertProductsImagesToBase64Async(productDtos);
     }
 
     public async Task<ProductDto> GetProductByIdAsync(int id)
@@ -49,7 +41,7 @@ public class ProductService : IProductService
             return Enumerable.Empty<ProductDto>();
 
         var products = await _unitOfWork.Products.GetProductsByCategoryAsync(category.Id);
-        return _mapper.Map<List<ProductDto>>(products);
+        return await ConvertProductsImagesToBase64Async(_mapper.Map<List<ProductDto>>(products));
     }
 
     public async Task<ProductDto> AddProductAsync(CreateProductRequest dto)
@@ -126,25 +118,25 @@ public class ProductService : IProductService
     public async Task<IEnumerable<ProductDto>> SearchProductsAsync(string searchTerm)
     {
         var products = await _unitOfWork.Products.SearchProductsAsync(searchTerm);
-        return _mapper.Map<IEnumerable<ProductDto>>(products);
+        return await ConvertProductsImagesToBase64Async(_mapper.Map<IEnumerable<ProductDto>>(products));
     }
 
     public async Task<IEnumerable<ProductDto>> SearchProductsByNameAsync(string name, int page = 1, int pageSize = 10)
     {
         var products = await _unitOfWork.Products.SearchByNameAsync(name);
-        return _mapper.Map<IEnumerable<ProductDto>>(products.Skip((page - 1) * pageSize).Take(pageSize));
+        return await ConvertProductsImagesToBase64Async(_mapper.Map<IEnumerable<ProductDto>>(products.Skip((page - 1) * pageSize).Take(pageSize)));
     }
 
     public async Task<IEnumerable<ProductDto>> SearchProductsByPriceRangeAsync(decimal minPrice, decimal maxPrice)
     {
         var products = await _unitOfWork.Products.GetProductsByPriceRangeAsync(minPrice, maxPrice);
-        return _mapper.Map<IEnumerable<ProductDto>>(products);
+        return await ConvertProductsImagesToBase64Async(_mapper.Map<IEnumerable<ProductDto>>(products));
     }
 
     public async Task<IEnumerable<ProductDto>> SearchProductsByCategoryAsync(int categoryId)
     {
         var products = await _unitOfWork.Products.GetProductsByCategoryAsync(categoryId);
-        return _mapper.Map<IEnumerable<ProductDto>>(products);
+        return await ConvertProductsImagesToBase64Async(_mapper.Map<IEnumerable<ProductDto>>(products));
     }
 
     public async Task<IEnumerable<ProductAttributeValueDto>> GetProductAttributeValuesAsync(long productId)
@@ -257,8 +249,27 @@ public class ProductService : IProductService
     private async Task ConvertProductImagesToBase64Async(ProductDto product)
     {
         product.Images = await ConvertStoredImagesToBase64Async(product.Images);
-        if (!string.IsNullOrWhiteSpace(product.CoverImage))
-            product.CoverImage = await _imageHelper.GetImageBase64(product.CoverImage);
+        product.CoverImage = await ConvertStoredImageToBase64Async(product.CoverImage);
+    }
+
+    private async Task<IEnumerable<ProductDto>> ConvertProductsImagesToBase64Async(IEnumerable<ProductDto> products)
+    {
+        var productList = products.ToList();
+
+        foreach (var product in productList)
+        {
+            await ConvertProductImagesToBase64Async(product);
+        }
+
+        return productList;
+    }
+
+    private async Task<string> ConvertStoredImageToBase64Async(string? image)
+    {
+        if (string.IsNullOrWhiteSpace(image))
+            return string.Empty;
+
+        return await _imageHelper.GetImageBase64(image) ?? string.Empty;
     }
 
     private async Task<List<string>> ConvertStoredImagesToBase64Async(List<string>? images)

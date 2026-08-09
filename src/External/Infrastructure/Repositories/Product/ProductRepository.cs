@@ -10,6 +10,7 @@ public class ProductRepository : Repository<Product, long>, IProductRepository
     {
         return await _context.Products
             .Where(p => p.Name.Contains(searchTerm))
+            .Include(p => p.Images)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .AsNoTracking()
@@ -70,6 +71,7 @@ public class ProductRepository : Repository<Product, long>, IProductRepository
     {
         return await _context.Products
             .Where(p => p.CategoryId == categoryId && p.IsActive == true)
+            .Include(p => p.Images)
             .AsNoTracking()
             .ToListAsync();
     }
@@ -119,6 +121,7 @@ public class ProductRepository : Repository<Product, long>, IProductRepository
     {
         return await _context.Products
             .Where(p => p.Batches.Select(z => z.SellingPrice).FirstOrDefault() >= minPrice && p.Batches.Select(z => z.SellingPrice).FirstOrDefault() <= maxPrice)
+            .Include(p => p.Images)
             .AsNoTracking()
             .ToListAsync();
     }
@@ -127,6 +130,7 @@ public class ProductRepository : Repository<Product, long>, IProductRepository
     {
         return await _context.Products
             .Where(p => p.Name.Contains(name))
+            .Include(p => p.Images)
             .AsNoTracking()
             .ToListAsync();
     }
