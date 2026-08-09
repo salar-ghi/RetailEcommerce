@@ -148,4 +148,27 @@ public class ProductRepository : Repository<Product, long>, IProductRepository
             .FirstOrDefaultAsync(product => product.Id == productId && !product.IsDeleted);
     }
 
+    public async Task<Product?> GetProductDetailsByIdAsync(long productId)
+    {
+        return await _context.Products
+            .Where(product => product.Id == productId && !product.IsDeleted)
+            .Include(product => product.Category)
+            .Include(product => product.Brand)
+            .Include(product => product.Suppliers).ThenInclude(productSupplier => productSupplier.Supplier)
+            .Include(product => product.Batches)
+            .Include(product => product.Stocks).ThenInclude(stock => stock.Space)
+            .Include(product => product.Stocks).ThenInclude(stock => stock.Zone)
+            .Include(product => product.Stocks).ThenInclude(stock => stock.Shelf)
+            .Include(product => product.Stocks).ThenInclude(stock => stock.Warehouse)
+            .Include(product => product.Attributes)
+            .Include(product => product.AttributeValues).ThenInclude(value => value.AttributeDefinition)
+            .Include(product => product.Dimensions)
+            .Include(product => product.Images)
+            .Include(product => product.VariantDefinitions).ThenInclude(variant => variant.Options)
+            .Include(product => product.Tags).ThenInclude(productTag => productTag.Tag)
+            .AsSplitQuery()
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
+    }
+
 }

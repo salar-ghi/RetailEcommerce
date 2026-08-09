@@ -11,5 +11,6 @@ public interface IProductRepository : IRepository<Product, long>
     Task<IEnumerable<Product>> GetProductsByPriceRangeAsync(decimal minPrice, decimal maxPrice);
     Task<IEnumerable<ProductAttributeValue>> GetAttributeValuesByProductIdAsync(long productId);
     Task<Product?> GetProductWithAttributeValuesAsync(long productId);
+    Task<Product?> GetProductDetailsByIdAsync(long productId);
 
 }
