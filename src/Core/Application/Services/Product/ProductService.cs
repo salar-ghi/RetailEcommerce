@@ -30,11 +30,14 @@ public class ProductService : IProductService
 
     public async Task<ProductDto> GetProductByIdAsync(int id)
     {
-        var product = await _unitOfWork.Products.GetByIdAsync(id, include: ProductIncludes);
+        var product = await _unitOfWork.Products.GetProductDetailsByIdAsync(id);
         if (product == null)
             throw new KeyNotFoundException($"Product with ID {id} not found.");
 
-        return _mapper.Map<ProductDto>(product);
+        var productDto = _mapper.Map<ProductDto>(product);
+        await ConvertProductImagesToBase64Async(productDto);
+
+        return productDto;
     }
 
     public async Task<IEnumerable<ProductDto>> GetProductsByCategory(string categoryName)
@@ -174,15 +177,22 @@ public class ProductService : IProductService
         .Include(p => p.VariantDefinitions).ThenInclude(v => v.Options)
         .Include(p => p.Tags).ThenInclude(pt => pt.Tag);
 
+    private async Task ConvertProductImagesToBase64Async(ProductDto product)
+    {
+        product.Images = await ConvertStoredImagesToBase64Async(product.Images);
+        if (!string.IsNullOrWhiteSpace(product.CoverImage))
+            product.CoverImage = await _imageHelper.GetImageBase64(product.CoverImage);
+    }
+
     private async Task<List<string>> ConvertStoredImagesToBase64Async(List<string>? images)
     {
-        var converted = new List<string>();
-        foreach (var image in images ?? new List<string>())
-        {
-            if (!string.IsNullOrWhiteSpace(image))
-                converted.Add(await _imageHelper.GetImageBase64(image));
-        }
-        return converted;
+        var conversionTasks = (images ?? new List<string>())
+            .Where(image => !string.IsNullOrWhiteSpace(image))
+            .Select(image => _imageHelper.GetImageBase64(image))
+            .ToArray();
+
+        var converted = await Task.WhenAll(conversionTasks);
+        return converted.Where(image => !string.IsNullOrWhiteSpace(image)).ToList();
     }
 
     private static void ApplyProductScalars(Product product, CreateProductRequest dto, (int? SpaceId, int? ZoneId, int? ShelfId, Shelf? Shelf) resolvedLocation)
