@@ -25,7 +25,7 @@ public class Repository<T, TId> : IRepository<T, TId> where T : BaseModel<TId>
         IQueryable<T> query = _context.Set<T>();
         if (include != null)
             query = include(query);
-        return await query.FirstOrDefaultAsync(e => e.Id.Equals(id));
+        return await query.AsNoTracking().FirstOrDefaultAsync(e => e.Id.Equals(id));
     }
 
     public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> predicate) => await _context.Set<T>().Where(predicate).ToListAsync();
