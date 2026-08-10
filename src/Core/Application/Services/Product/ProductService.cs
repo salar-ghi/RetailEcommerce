@@ -15,12 +15,28 @@ public class ProductService : IProductService
 
     public async Task<IEnumerable<ProductDto>> GetAllProductsAsync()
     {
-        var products = await _unitOfWork.Products.GetAllAsync(include: ProductIncludes);
-        var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
-        return await ConvertProductsImagesToBase64Async(productDtos);
+        var products = await BuildProductSummaryQuery()
+            .OrderByDescending(product => product.Id)
+            .ToListAsync();
+
+        return await ConvertProductsImagesToBase64Async(_mapper.Map<IEnumerable<ProductDto>>(products));
     }
 
     public async Task<ProductDto> GetProductByIdAsync(int id)
+    {
+        var product = await BuildProductSummaryQuery()
+            .FirstOrDefaultAsync(product => product.Id == id);
+
+        if (product == null)
+            throw new KeyNotFoundException($"Product with ID {id} not found.");
+
+        var productDto = _mapper.Map<ProductDto>(product);
+        await ConvertProductImagesToBase64Async(productDto, includeCoverImage: false);
+
+        return productDto;
+    }
+
+    public async Task<ProductDto> GetProductDetailByIdAsync(int id)
     {
         var product = await _unitOfWork.Products.GetProductDetailsByIdAsync(id);
         if (product == null)
@@ -29,18 +45,36 @@ public class ProductService : IProductService
         var productDto = _mapper.Map<ProductDto>(product);
         productDto.Attributes = BuildDisplayAttributes(product.AttributeValues);
         productDto.AttributeValues = new List<ProductAttributeValueDto>();
-        await ConvertProductImagesToBase64Async(productDto);
+        await ConvertProductImagesToBase64Async(productDto, includeCoverImage: false);
 
         return productDto;
     }
 
     public async Task<IEnumerable<ProductDto>> GetProductsByCategory(string categoryName)
     {
-        var category = await _unitOfWork.Categories.GetByAsync(z => z.Name == categoryName);
-        if (category == null)
+        var categoryIds = await GetCategoryAndChildIdsByNameAsync(categoryName);
+        if (!categoryIds.Any())
             return Enumerable.Empty<ProductDto>();
 
-        var products = await _unitOfWork.Products.GetProductsByCategoryAsync(category.Id);
+        var products = await BuildProductSummaryQuery()
+            .Where(product => categoryIds.Contains(product.CategoryId))
+            .OrderByDescending(product => product.Id)
+            .Take(10)
+            .ToListAsync();
+
+        return await ConvertProductsImagesToBase64Async(_mapper.Map<List<ProductDto>>(products));
+    }
+
+    public async Task<IEnumerable<ProductDto>> GetDiscountedProductsAsync(int take = 10)
+    {
+        var products = await BuildProductSummaryQuery()
+            .Where(product => product.Batches.Any(batch => batch.CostPrice > batch.SellingPrice && batch.SellingPrice > 0))
+            .OrderByDescending(product => product.Batches
+                .Where(batch => batch.CostPrice > batch.SellingPrice && batch.SellingPrice > 0)
+                .Max(batch => (batch.CostPrice - batch.SellingPrice) / batch.CostPrice))
+            .Take(take)
+            .ToListAsync();
+
         return await ConvertProductsImagesToBase64Async(_mapper.Map<List<ProductDto>>(products));
     }
 
@@ -156,22 +190,48 @@ public class ProductService : IProductService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    private static IQueryable<Product> ProductIncludes(IQueryable<Product> query) => query
-        .Include(p => p.Category)
-        .Include(p => p.Brand)
-        .Include(p => p.Suppliers).ThenInclude(ps => ps.Supplier)
-        .Include(p => p.Batches)
-        .Include(p => p.Stocks).ThenInclude(st => st.Space)
-        .Include(p => p.Stocks).ThenInclude(st => st.Zone)
-        .Include(p => p.Stocks).ThenInclude(st => st.Shelf)
-        .Include(p => p.Stocks).ThenInclude(st => st.Warehouse)
-        .Include(p => p.Attributes)
-        .Include(p => p.AttributeValues).ThenInclude(v => v.AttributeDefinition).ThenInclude(d => d.Options)
-        .Include(p => p.AttributeValues).ThenInclude(v => v.AttributeOption)
-        .Include(p => p.Dimensions)
-        .Include(p => p.Images)
-        .Include(p => p.VariantDefinitions).ThenInclude(v => v.Options)
-        .Include(p => p.Tags).ThenInclude(pt => pt.Tag);
+    private IQueryable<Product> BuildProductSummaryQuery() => _unitOfWork.Products.GetAll(product => !product.IsDeleted)
+        .Where(product => product.IsActive)
+        .Include(product => product.Category)
+        .Include(product => product.Brand)
+        .Include(product => product.Batches)
+        .Include(product => product.Stocks)
+        .Include(product => product.Images);
+
+    private async Task<HashSet<int>> GetCategoryAndChildIdsByNameAsync(string categoryName)
+    {
+        if (string.IsNullOrWhiteSpace(categoryName))
+            return new HashSet<int>();
+
+        var categories = await _unitOfWork.Categories.GetAll(category => !category.IsDeleted)
+            .Select(category => new { category.Id, category.Name, category.ParentId })
+            .ToListAsync();
+
+        var rootCategory = categories.FirstOrDefault(category => string.Equals(
+            category.Name.Trim(),
+            categoryName.Trim(),
+            StringComparison.OrdinalIgnoreCase));
+
+        if (rootCategory == null)
+            return new HashSet<int>();
+
+        var categoryIds = new HashSet<int> { rootCategory.Id };
+        var queue = new Queue<int>();
+        queue.Enqueue(rootCategory.Id);
+
+        while (queue.Count > 0)
+        {
+            var parentId = queue.Dequeue();
+            foreach (var child in categories.Where(category => category.ParentId == parentId))
+            {
+                if (categoryIds.Add(child.Id))
+                    queue.Enqueue(child.Id);
+            }
+        }
+
+        return categoryIds;
+    }
+
 
 
     private static List<AttributeDto> BuildDisplayAttributes(IEnumerable<ProductAttributeValue>? attributeValues)
@@ -246,10 +306,12 @@ public class ProductService : IProductService
         }
     }
 
-    private async Task ConvertProductImagesToBase64Async(ProductDto product)
+    private async Task ConvertProductImagesToBase64Async(ProductDto product, bool includeCoverImage = true)
     {
         product.Images = await ConvertStoredImagesToBase64Async(product.Images);
-        product.CoverImage = await ConvertStoredImageToBase64Async(product.CoverImage);
+        product.CoverImage = includeCoverImage
+            ? await ConvertStoredImageToBase64Async(product.CoverImage)
+            : string.Empty;
     }
 
     private async Task<IEnumerable<ProductDto>> ConvertProductsImagesToBase64Async(IEnumerable<ProductDto> products)
