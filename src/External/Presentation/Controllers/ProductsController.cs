@@ -54,11 +54,18 @@ public class ProductController : ControllerBase
         return Ok(product);
     }
 
+    [HttpGet("products/{id}/detail")]
+    public async Task<IActionResult> GetProductDetailById(int id)
+    {
+        var product = await _productService.GetProductDetailByIdAsync(id);
+        return Ok(product);
+    }
+
     [HttpPost("products")]
     public async Task<IActionResult> CreateProduct(CreateProductRequest dto)
     {
         var product = await _productService.AddProductAsync(dto);
-        var created = await _productService.GetProductByIdAsync(product.Id);
+        var created = await _productService.GetProductDetailByIdAsync(product.Id);
         return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, created);
     }
 

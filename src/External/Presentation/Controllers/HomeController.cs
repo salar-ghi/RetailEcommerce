@@ -28,9 +28,12 @@ public class HomeController : ControllerBase
         // if a second query starts before the previous query has completed.
         var topBanners = await _bannerService.GetByPlacementAsync(BannerPageCode.HOME_TOP);
         var bottomBanners = await _bannerService.GetByPlacementAsync(BannerPageCode.HOME_BOTTOM);
-        var allProducts = (await _productService.GetAllProductsAsync()).ToList();
-        var digitalProducts = ProductsByCategory(allProducts, DigitalCategoryName).ToList();
-        var mobileProducts = ProductsByCategory(allProducts, MobileCategoryName).ToList();
+        var digitalProducts = (await _productService.GetProductsByCategory(DigitalCategoryName)).ToList();
+        var mobileProducts = (await _productService.GetProductsByCategory(MobileCategoryName)).ToList();
+        var discountedProducts = (await _productService.GetDiscountedProductsAsync(SectionProductCount)).ToList();
+        var perfumeProducts = (await _productService.GetProductsByCategory(PerfumeCategoryName)).ToList();
+        var sportTravelProducts = (await _productService.GetProductsByCategory(SportTravelCategoryName)).ToList();
+        var coffeeDrinkProducts = (await _productService.GetProductsByCategory(CoffeeDrinkCategoryName)).ToList();
 
         var model = new HomeIndexDto(
             HeroBanners: topBanners.Select(ToHomeBanner).ToList(),
@@ -61,7 +64,7 @@ public class HomeController : ControllerBase
                     Title: "محصولات تخفیف‌دار",
                     ViewAllLink: "/offers",
                     Variant: "special",
-                    Products: allProducts
+                    Products: discountedProducts
                         .Select(product => new { Product = product, Discount = GetBestDiscount(product) })
                         .Where(item => item.Discount is not null)
                         .OrderByDescending(item => item.Discount!.Percentage)
@@ -69,9 +72,9 @@ public class HomeController : ControllerBase
                         .Select(item => ToHomeProduct(item.Product, item.Discount))
                         .ToList()),
                 //CategoryCarousel(3, "موبایل", MobileCategoryName, allProducts),
-                CategoryCarousel(4, "عطر و ادکلن", PerfumeCategoryName, allProducts),
-                CategoryCarousel(5, "ورزش و سفر", SportTravelCategoryName, allProducts),
-                CategoryCarousel(6, "قهوه و نوشیدنی", CoffeeDrinkCategoryName, allProducts)
+                CategoryCarousel(4, "عطر و ادکلن", PerfumeCategoryName, perfumeProducts),
+                CategoryCarousel(5, "ورزش و سفر", SportTravelCategoryName, sportTravelProducts),
+                CategoryCarousel(6, "قهوه و نوشیدنی", CoffeeDrinkCategoryName, coffeeDrinkProducts)
             });
 
         return Ok(model);
@@ -88,18 +91,10 @@ public class HomeController : ControllerBase
             Title: title,
             ViewAllLink: CategoryLink(categoryName),
             Variant: "default",
-            Products: ProductsByCategory(allProducts, categoryName)
+            Products: allProducts
                 .Take(SectionProductCount)
                 .Select(product => ToHomeProduct(product))
                 .ToList());
-    }
-
-    private static IEnumerable<ProductDto> ProductsByCategory(IEnumerable<ProductDto> products, string categoryName)
-    {
-        return products.Where(product => string.Equals(
-            product.CategoryName?.Trim(),
-            categoryName,
-            StringComparison.OrdinalIgnoreCase));
     }
 
     private static HomeBannerDto ToHomeBanner(BannerDto banner)
