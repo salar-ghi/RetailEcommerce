@@ -26,6 +26,7 @@ public class AttributeDefinitionDto
     public decimal? MinValue { get; set; }
     public decimal? MaxValue { get; set; }
     public List<AttributeOptionDto> Options { get; set; } = new();
+    public int? CategoryId { get; set; }
 }
 
 public class UpsertAttributeDefinitionDto
@@ -44,4 +45,5 @@ public class UpsertAttributeDefinitionDto
     public decimal? MinValue { get; set; }
     public decimal? MaxValue { get; set; }
     public List<AttributeOptionDto> Options { get; set; } = new();
+    public int? CategoryId { get; set; }
 }
