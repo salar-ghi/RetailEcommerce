@@ -58,6 +58,7 @@ public static class DependencyInjection
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<ICategoryAttributeRepository, CategoryAttributeRepository>();
         services.AddScoped<ICategoryAttributeDefinitionRepository, CategoryAttributeDefinitionRepository>();
+        services.AddScoped<IAttributeDefinitionRepository, AttributeDefinitionRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IProductAttributeRepository, ProductAttributeRepository>();
         services.AddScoped<IProductDimensionsRepository, ProductDimensionsRepository>();
@@ -118,6 +119,7 @@ public static class DependencyInjection
         services.AddScoped<BrandService>();
         services.AddScoped<CategoryService>();
         services.AddScoped<CategoryAttributeService>();
+        services.AddScoped<AttributeDefinitionService>();
         services.AddScoped<SupplierService>();
         services.AddScoped<TagService>();
         services.AddScoped<RoleService>();

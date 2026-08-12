@@ -134,7 +134,7 @@ public class AppDbContext : DbContext
             builder.Property(a => a.Name).IsRequired().HasMaxLength(200);
             builder.Property(a => a.Unit).HasMaxLength(50);
             builder.Property(a => a.ValidationRegex).HasMaxLength(500);
-            builder.HasIndex(a => a.Code).IsUnique().HasFilter("[IsDeleted] = 0");
+            builder.HasIndex(a => new { a.Code, a.DataType }).IsUnique().HasFilter("[IsDeleted] = 0");
             builder.HasMany(a => a.Options).WithOne(o => o.AttributeDefinition).HasForeignKey(o => o.AttributeDefinitionId).OnDelete(DeleteBehavior.Cascade);
         });
 

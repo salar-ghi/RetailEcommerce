@@ -146,7 +146,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
+                    b.HasIndex("Code", "DataType")
                         .IsUnique()
                         .HasFilter("[IsDeleted] = 0");
 
