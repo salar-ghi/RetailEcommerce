@@ -73,8 +73,8 @@ public class HomeController : ControllerBase
                         .ToList()),
                 //CategoryCarousel(3, "موبایل", MobileCategoryName, allProducts),
                 CategoryCarousel(4, "عطر و ادکلن", PerfumeCategoryName, perfumeProducts),
-                CategoryCarousel(5, "ورزش و سفر", SportTravelCategoryName, sportTravelProducts),
-                CategoryCarousel(6, "قهوه و نوشیدنی", CoffeeDrinkCategoryName, coffeeDrinkProducts)
+                //CategoryCarousel(5, "ورزش و سفر", SportTravelCategoryName, sportTravelProducts),
+                //CategoryCarousel(6, "قهوه و نوشیدنی", CoffeeDrinkCategoryName, coffeeDrinkProducts)
             });
 
         return Ok(model);
