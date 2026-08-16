@@ -17,6 +17,8 @@ public class OrderDto
     public decimal TotalItems { get; set; }
     public decimal FinalTotal { get; set; }
     public string Source { get; set; }
+    public string Channel { get; set; }
+    public string? BasketId { get; set; }
     public string Notes { get; set; }
     public ShippingAddressDto ShippingAddress { get; set; }
     public string PaymentMethod { get; set; }

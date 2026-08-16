@@ -13,6 +13,7 @@ public class Order : BaseModel<string>
     public decimal FinalAmount => TotalAmount;
     public string Notes { get; set; }
     public OrderSource Source { get; set; } = OrderSource.Storefront;
+    public string? BasketId { get; set; }
     public ShippingAddress ShippingAddress { get; set; } = new ShippingAddress();
 
     [Timestamp]

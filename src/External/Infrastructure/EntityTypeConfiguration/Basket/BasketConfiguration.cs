@@ -17,6 +17,16 @@ public class BasketConfiguration : IEntityTypeConfiguration<Basket>
             .IsRequired()
             .HasConversion<int>();
 
+        builder.Property(b => b.Status)
+            .IsRequired()
+            .HasMaxLength(32);
+
+        builder.Property(b => b.AdminNotes)
+            .HasMaxLength(1000);
+
+        builder.Property(b => b.ConvertedOrderId)
+            .HasMaxLength(50);
+
         builder.HasOne(b => b.User)
             .WithMany(z => z.Basket)
             .HasForeignKey(b => b.UserId)
@@ -33,8 +43,9 @@ public class BasketConfiguration : IEntityTypeConfiguration<Basket>
         builder.Ignore(b => b.TotalPrice);
         builder.Ignore(b => b.TotalItems);
 
-        //builder.HasIndex(b => b.UserId);
-        //builder.HasIndex(b => b.GuestId);
+        builder.HasIndex(b => b.UserId);
+        builder.HasIndex(b => b.GuestId);
+        builder.HasIndex(b => b.Status);
     }
 }
 

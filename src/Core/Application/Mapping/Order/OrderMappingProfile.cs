@@ -13,6 +13,7 @@ public class OrderMappingProfile : Profile
             .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.CreatedTime.ToString("yyyy-MM-dd")))
             .ForMember(dest => dest.CustomerAddress, opt => opt.MapFrom(src => src.ShippingAddress != null ? src.ShippingAddress.AddressLine1 : string.Empty))
             .ForMember(dest => dest.Source, opt => opt.MapFrom(src => ToClientEnum(src.Source.ToString())))
+            .ForMember(dest => dest.Channel, opt => opt.MapFrom(src => src.Source == OrderSource.Storefront ? "online" : "panel"))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => MapOrderStatus(src.Status)))
             .ForMember(dest => dest.DiscountAmount, opt => opt.MapFrom(src => src.DiscountAmount))
             .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => src.TotalAmount))
