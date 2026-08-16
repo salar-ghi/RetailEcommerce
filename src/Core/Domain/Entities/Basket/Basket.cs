@@ -7,6 +7,10 @@ public class Basket : BaseModel<string>
 
     public string? GuestId { get; set; }
     public BasketType Type { get; set; }
+    public string Status { get; set; } = "active";
+    public string? AdminNotes { get; set; }
+    public DateTime? LastReminderAt { get; set; }
+    public string? ConvertedOrderId { get; set; }
 
     public List<BasketItem> Items { get; set; } = new();
 

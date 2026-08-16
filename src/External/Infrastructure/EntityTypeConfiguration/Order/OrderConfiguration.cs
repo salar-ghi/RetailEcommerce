@@ -13,6 +13,8 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.DiscountAmount).HasPrecision(18, 2).HasDefaultValue(0m);
         builder.Property(o => o.Notes).HasMaxLength(1000);
         builder.Property(o => o.Source).IsRequired();
+        builder.Property(o => o.BasketId).HasMaxLength(50);
+        builder.HasIndex(o => o.BasketId);
         //builder.Property(o => o.ShippingAddress).IsRequired().HasMaxLength(500);
         //builder.Property(o => o.PaymentMethod).IsRequired();
         builder.Property(o => o.RowVersion).IsConcurrencyToken();

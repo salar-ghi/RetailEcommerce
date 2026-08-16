@@ -33,7 +33,7 @@ public class OrderService : IOrderService
         var order = new Order
         {
             Id = Guid.NewGuid().ToString(), CustomerId = userId, CreatedTime = DateTime.UtcNow,
-            Status = OrderStatus.Pending, Source = OrderSource.Storefront,
+            Status = OrderStatus.Pending, Source = OrderSource.Storefront, BasketId = basketDto.Id,
             ShippingAddress = CreateShippingAddress(shippingAddress),
             Items = basketDto.Items.Select(item => new OrderItem { ProductId = item.ProductId, Quantity = item.Quantity, UnitPrice = item.UnitPrice }).ToList(),
             Payments = new List<Payment> { new() { Id = Guid.NewGuid().ToString(), Amount = total, Method = method, Status = PaymentStatus.Pending, PaymentDate = DateTime.UtcNow, TransactionId = string.Empty, FinanceAccountId = DefaultFinanceAccountId, BranchId = DefaultBranchId } }
