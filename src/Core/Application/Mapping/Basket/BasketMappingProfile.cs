@@ -11,6 +11,6 @@ public class BasketMappingProfile : Profile
             .ForMember(dest => dest.AgeHours, opt => opt.MapFrom(src => (int)Math.Max(0, (DateTime.UtcNow - src.CreatedTime).TotalHours)));
 
         CreateMap<BasketItem, BasketItemDto>()
-            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name));
+            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.Name : string.Empty));
     }
 }
