@@ -2,6 +2,7 @@ global using Domain;
 global using Domain.Common;
 global using Domain.Entities;
 global using System.Text.Json;
+global using System.Text.Json.Serialization;
 global using Application.Helper;
 global using Application.Mapping;
 global using Infrastructure.Data;

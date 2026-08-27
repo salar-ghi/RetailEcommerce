@@ -2,7 +2,10 @@ namespace Infrastructure.Caching;
 
 public class RedisCacheService : IRedisCacheService
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        ReferenceHandler = ReferenceHandler.IgnoreCycles
+    };
 
     private readonly IDistributedCache _cache;
     private readonly ILogger<RedisCacheService> _logger;

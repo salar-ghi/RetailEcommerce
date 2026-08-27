@@ -2,6 +2,9 @@
 
 public class BasketService : IBasketService
 {
+    private static readonly TimeSpan BasketCacheDuration = TimeSpan.FromDays(1);
+    private const string BasketCacheKeyPrefix = "basket:";
+
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRedisCacheService _cacheService;
     private readonly IMapper _mapper;
@@ -15,27 +18,24 @@ public class BasketService : IBasketService
 
     public async Task<BasketDto> GetBasketAsync(string userId)
     {
-        var cachedBasket = await _cacheService.GetCachedDataAsync<Basket>(userId);
+        var cachedBasket = await _cacheService.GetCachedDataAsync<BasketDto>(GetBasketCacheKey(userId));
         if (cachedBasket != null)
         {
-            return _mapper.Map<BasketDto>(cachedBasket);
+            return cachedBasket;
         }
 
-        var basket = await _unitOfWork.Baskets.GetByUserIdAsync(userId, null);
-        if (basket == null)
-        {
-            basket = new Basket { Id = userId, UserId = userId };
-            await _unitOfWork.Baskets.AddAsync(basket);
-            await _unitOfWork.SaveChangesAsync();
-        }
-
-        await _cacheService.SetCachedDataAsync<Basket>(basket.Id, basket, TimeSpan.FromDays(1));
-        return _mapper.Map<BasketDto>(basket);
+        var basket = await GetOrCreateBasketFromDbAsync(userId);
+        return await CacheAndMapBasketAsync(basket);
     }
 
     public async Task AddItemToBasketAsync(string userId, int productId, int quantity)
     {
-        var basket = await GetBasketFromCacheOrDbAsync(userId);
+        if (quantity <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be greater than zero.");
+        }
+
+        var basket = await GetOrCreateBasketFromDbAsync(userId);
         var product = await _unitOfWork.Products.GetByIdAsync(productId,
             include: q => q.Include(p => p.Batches));
         if (product == null)
@@ -49,48 +49,67 @@ public class BasketService : IBasketService
         if (existingItem != null)
         {
             existingItem.Quantity += quantity;
+            existingItem.UnitPrice = unitPrice;
+            existingItem.Product = product;
         }
         else
         {
             basket.Items.Add(new BasketItem
             {
                 ProductId = productId,
+                Product = product,
                 Quantity = quantity,
-                UnitPrice= unitPrice,
+                UnitPrice = unitPrice,
                 BasketId = basket.Id
             });
         }
 
+        basket.ModifiedTime = DateTime.UtcNow;
         await _unitOfWork.Baskets.UpdateAsync(basket);
         await _unitOfWork.SaveChangesAsync();
-        await _cacheService.SetCachedDataAsync<Basket>(basket.Id, basket, TimeSpan.FromDays(1));
+        await CacheAndMapBasketAsync(basket);
     }
 
     public async Task UpdateItemQuantityAsync(string userId, int productId, int quantity)
     {
-        var basket = await GetBasketFromCacheOrDbAsync(userId);
+        if (quantity < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity cannot be negative.");
+        }
+
+        var basket = await GetOrCreateBasketFromDbAsync(userId);
         var item = basket.Items.FirstOrDefault(i => i.ProductId == productId);
         if (item == null)
         {
             throw new KeyNotFoundException($"Item with Product ID {productId} not found.");
         }
 
-        item.Quantity = quantity;
+        if (quantity == 0)
+        {
+            basket.Items.Remove(item);
+        }
+        else
+        {
+            item.Quantity = quantity;
+        }
+
+        basket.ModifiedTime = DateTime.UtcNow;
         await _unitOfWork.Baskets.UpdateAsync(basket);
         await _unitOfWork.SaveChangesAsync();
-        await _cacheService.SetCachedDataAsync<Basket>(basket.Id, basket, TimeSpan.FromDays(1));
+        await CacheAndMapBasketAsync(basket);
     }
 
     public async Task RemoveItemFromBasketAsync(string userId, int productId)
     {
-        var basket = await GetBasketFromCacheOrDbAsync(userId);
+        var basket = await GetOrCreateBasketFromDbAsync(userId);
         var item = basket.Items.FirstOrDefault(i => i.ProductId == productId);
         if (item != null)
         {
             basket.Items.Remove(item);
+            basket.ModifiedTime = DateTime.UtcNow;
             await _unitOfWork.Baskets.UpdateAsync(basket);
             await _unitOfWork.SaveChangesAsync();
-            await _cacheService.SetCachedDataAsync<Basket>(basket.Id, basket, TimeSpan.FromDays(1));
+            await CacheAndMapBasketAsync(basket);
         }
     }
 
@@ -101,7 +120,7 @@ public class BasketService : IBasketService
         {
             await _unitOfWork.Baskets.DeleteAsync(basket);
             await _unitOfWork.SaveChangesAsync();
-            await _cacheService.RemoveCachedDataAsync(basket.Id);
+            await _cacheService.RemoveCachedDataAsync(GetBasketCacheKey(userId));
         }
     }
 
@@ -145,8 +164,8 @@ public class BasketService : IBasketService
         basket.ModifiedTime = DateTime.UtcNow;
         await _unitOfWork.Baskets.UpdateAsync(basket);
         await _unitOfWork.SaveChangesAsync();
-        await _cacheService.RemoveCachedDataAsync(basket.UserId ?? basket.Id);
-        return _mapper.Map<BasketDto>(basket);
+        var basketDto = await CacheAndMapBasketAsync(basket);
+        return basketDto;
     }
 
     public async Task<BasketActionResultDto> DeleteBasketAsync(string basketId)
@@ -154,7 +173,7 @@ public class BasketService : IBasketService
         var basket = await _unitOfWork.Baskets.GetByIdAsync(basketId, q => q.Include(b => b.Items)) ?? throw new KeyNotFoundException($"Basket with ID {basketId} not found.");
         await _unitOfWork.Baskets.DeleteAsync(basket);
         await _unitOfWork.SaveChangesAsync();
-        await _cacheService.RemoveCachedDataAsync(basket.UserId ?? basket.Id);
+        await _cacheService.RemoveCachedDataAsync(GetBasketCacheKey(basket.UserId ?? basket.Id));
         return new BasketActionResultDto { BasketId = basketId, Message = "Basket deleted." };
     }
 
@@ -166,6 +185,7 @@ public class BasketService : IBasketService
         basket.ModifiedTime = DateTime.UtcNow;
         await _unitOfWork.Baskets.UpdateAsync(basket);
         await _unitOfWork.SaveChangesAsync();
+        await _cacheService.RemoveCachedDataAsync(GetBasketCacheKey(basket.UserId ?? basket.Id));
         return new BasketActionResultDto { BasketId = basketId, Message = "Basket is validated and ready to convert to an order." };
     }
 
@@ -177,26 +197,30 @@ public class BasketService : IBasketService
         basket.ModifiedTime = DateTime.UtcNow;
         await _unitOfWork.Baskets.UpdateAsync(basket);
         await _unitOfWork.SaveChangesAsync();
+        await _cacheService.RemoveCachedDataAsync(GetBasketCacheKey(basket.UserId ?? basket.Id));
         return new BasketActionResultDto { BasketId = basketId, Message = "Basket reminder registered for delivery pipeline." };
     }
 
-    private async Task<Basket> GetBasketFromCacheOrDbAsync(string userId)
+    private async Task<Basket> GetOrCreateBasketFromDbAsync(string userId)
     {
-        var cachedBasket = await _cacheService.GetCachedDataAsync<Basket>(userId);
-        if (cachedBasket != null)
-        {
-            return cachedBasket;
-        }
-
         var basket = await _unitOfWork.Baskets.GetByUserIdAsync(userId, string.Empty);
-        if (basket == null)
+        if (basket != null)
         {
-            basket = new Basket { Id = userId, UserId = userId };
-            await _unitOfWork.Baskets.AddAsync(basket);
-            await _unitOfWork.SaveChangesAsync();
+            return basket;
         }
 
-        await _cacheService.SetCachedDataAsync<Basket>(basket.Id, basket, TimeSpan.FromDays(1));
+        basket = new Basket { Id = userId, UserId = userId };
+        await _unitOfWork.Baskets.AddAsync(basket);
+        await _unitOfWork.SaveChangesAsync();
         return basket;
     }
+
+    private async Task<BasketDto> CacheAndMapBasketAsync(Basket basket)
+    {
+        var basketDto = _mapper.Map<BasketDto>(basket);
+        await _cacheService.SetCachedDataAsync(GetBasketCacheKey(basket.UserId ?? basket.Id), basketDto, BasketCacheDuration);
+        return basketDto;
+    }
+
+    private static string GetBasketCacheKey(string userId) => $"{BasketCacheKeyPrefix}{userId}";
 }
