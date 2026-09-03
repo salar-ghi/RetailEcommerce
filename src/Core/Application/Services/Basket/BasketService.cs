@@ -87,10 +87,14 @@ public class BasketService : IBasketService
         if (quantity == 0)
         {
             basket.Items.Remove(item);
+            // Do not rely on orphan detection here.  A basket item must be physically
+            // removed so that it cannot reappear on a later read.
+            await _unitOfWork.BasketItems.DeleteAsync(item);
         }
         else
         {
             item.Quantity = quantity;
+            await _unitOfWork.BasketItems.UpdateAsync(item);
         }
 
         basket.ModifiedTime = DateTime.UtcNow;
@@ -106,6 +110,7 @@ public class BasketService : IBasketService
         if (item != null)
         {
             basket.Items.Remove(item);
+            await _unitOfWork.BasketItems.DeleteAsync(item);
             basket.ModifiedTime = DateTime.UtcNow;
             await _unitOfWork.Baskets.UpdateAsync(basket);
             await _unitOfWork.SaveChangesAsync();
@@ -115,7 +120,7 @@ public class BasketService : IBasketService
 
     public async Task ClearBasketAsync(string userId)
     {
-        var basket = await _unitOfWork.Baskets.GetByUserIdAsync(userId, string.Empty);
+        var basket = await _unitOfWork.Baskets.GetByUserIdAsync(userId, userId);
         if (basket != null)
         {
             await _unitOfWork.Baskets.DeleteAsync(basket);
@@ -158,7 +163,16 @@ public class BasketService : IBasketService
         {
             var item = basket.Items.FirstOrDefault(i => i.Id == requestedItem.Id || i.ProductId == requestedItem.ProductId);
             if (item is null) continue;
-            if (requestedItem.Quantity <= 0) basket.Items.Remove(item); else item.Quantity = requestedItem.Quantity;
+            if (requestedItem.Quantity <= 0)
+            {
+                basket.Items.Remove(item);
+                await _unitOfWork.BasketItems.DeleteAsync(item);
+            }
+            else
+            {
+                item.Quantity = requestedItem.Quantity;
+                await _unitOfWork.BasketItems.UpdateAsync(item);
+            }
         }
 
         basket.ModifiedTime = DateTime.UtcNow;
@@ -173,7 +187,7 @@ public class BasketService : IBasketService
         var basket = await _unitOfWork.Baskets.GetByIdAsync(basketId, q => q.Include(b => b.Items)) ?? throw new KeyNotFoundException($"Basket with ID {basketId} not found.");
         await _unitOfWork.Baskets.DeleteAsync(basket);
         await _unitOfWork.SaveChangesAsync();
-        await _cacheService.RemoveCachedDataAsync(GetBasketCacheKey(basket.UserId ?? basket.Id));
+        await _cacheService.RemoveCachedDataAsync(GetBasketCacheKey(GetBasketOwnerId(basket)));
         return new BasketActionResultDto { BasketId = basketId, Message = "Basket deleted." };
     }
 
@@ -185,7 +199,7 @@ public class BasketService : IBasketService
         basket.ModifiedTime = DateTime.UtcNow;
         await _unitOfWork.Baskets.UpdateAsync(basket);
         await _unitOfWork.SaveChangesAsync();
-        await _cacheService.RemoveCachedDataAsync(GetBasketCacheKey(basket.UserId ?? basket.Id));
+        await _cacheService.RemoveCachedDataAsync(GetBasketCacheKey(GetBasketOwnerId(basket)));
         return new BasketActionResultDto { BasketId = basketId, Message = "Basket is validated and ready to convert to an order." };
     }
 
@@ -197,19 +211,30 @@ public class BasketService : IBasketService
         basket.ModifiedTime = DateTime.UtcNow;
         await _unitOfWork.Baskets.UpdateAsync(basket);
         await _unitOfWork.SaveChangesAsync();
-        await _cacheService.RemoveCachedDataAsync(GetBasketCacheKey(basket.UserId ?? basket.Id));
+        await _cacheService.RemoveCachedDataAsync(GetBasketCacheKey(GetBasketOwnerId(basket)));
         return new BasketActionResultDto { BasketId = basketId, Message = "Basket reminder registered for delivery pipeline." };
     }
 
     private async Task<Basket> GetOrCreateBasketFromDbAsync(string userId)
     {
-        var basket = await _unitOfWork.Baskets.GetByUserIdAsync(userId, string.Empty);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            throw new ArgumentException("A user or guest identifier is required.", nameof(userId));
+        }
+
+        // A route identifier can represent an anonymous visitor.  Only assign
+        // UserId when that identifier exists in Users; assigning a guest value
+        // to UserId violates FK_Baskets_Users_UserId.
+        var user = await _unitOfWork.Users.GetByIdAsync(userId);
+        var basket = await _unitOfWork.Baskets.GetByUserIdAsync(user?.Id ?? string.Empty, user is null ? userId : string.Empty);
         if (basket != null)
         {
             return basket;
         }
 
-        basket = new Basket { Id = userId, UserId = userId };
+        basket = user is null
+            ? new Basket { Id = Guid.NewGuid().ToString(), GuestId = userId, Type = BasketType.Guest }
+            : new Basket { Id = Guid.NewGuid().ToString(), UserId = user.Id, Type = BasketType.User };
         await _unitOfWork.Baskets.AddAsync(basket);
         await _unitOfWork.SaveChangesAsync();
         return basket;
@@ -218,9 +243,11 @@ public class BasketService : IBasketService
     private async Task<BasketDto> CacheAndMapBasketAsync(Basket basket)
     {
         var basketDto = _mapper.Map<BasketDto>(basket);
-        await _cacheService.SetCachedDataAsync(GetBasketCacheKey(basket.UserId ?? basket.Id), basketDto, BasketCacheDuration);
+        await _cacheService.SetCachedDataAsync(GetBasketCacheKey(GetBasketOwnerId(basket)), basketDto, BasketCacheDuration);
         return basketDto;
     }
+
+    private static string GetBasketOwnerId(Basket basket) => basket.UserId ?? basket.GuestId ?? basket.Id;
 
     private static string GetBasketCacheKey(string userId) => $"{BasketCacheKeyPrefix}{userId}";
 }
