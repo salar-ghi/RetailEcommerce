@@ -1,4 +1,4 @@
-﻿namespace Presentation.Controllers;
+namespace Presentation.Controllers;
 
 using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -16,43 +16,6 @@ public class BasketController : ControllerBase
         _currentUserService = currentUserService;
     }
 
-    [HttpGet("baskets")]
-    public async Task<ActionResult<IEnumerable<BasketDto>>> ListBaskets([FromQuery] string? status, [FromQuery] string? userId)
-    {
-        var baskets = await _basketService.ListBasketsAsync(status, userId);
-        return Ok(baskets);
-    }
-
-    [HttpGet("baskets/{id}")]
-    public async Task<ActionResult<BasketDto>> GetBasketById(string id)
-    {
-        return Ok(await _basketService.GetBasketByIdAsync(id));
-    }
-
-    [HttpPut("baskets/{id}")]
-    public async Task<ActionResult<BasketDto>> UpdateBasket(string id, [FromBody] UpdateBasketRequest request)
-    {
-        return Ok(await _basketService.UpdateBasketAsync(id, request));
-    }
-
-    [HttpDelete("baskets/{id}")]
-    public async Task<ActionResult<BasketActionResultDto>> DeleteBasket(string id)
-    {
-        return Ok(await _basketService.DeleteBasketAsync(id));
-    }
-
-    [HttpPost("baskets/{id}/convert")]
-    public async Task<ActionResult<BasketActionResultDto>> ConvertBasket(string id)
-    {
-        return Ok(await _basketService.ConvertBasketAsync(id));
-    }
-
-    [HttpPost("baskets/{id}/remind")]
-    public async Task<ActionResult<BasketActionResultDto>> RemindBasketOwner(string id)
-    {
-        return Ok(await _basketService.RemindBasketOwnerAsync(id));
-    }
-
     [HttpGet("{userId}")]
     public async Task<ActionResult<BasketDto>> GetBasket(string userId)
     {
@@ -61,24 +24,21 @@ public class BasketController : ControllerBase
     }
 
     [HttpPost("{userId}/items")]
-    public async Task<IActionResult> AddItem(string userId, [FromBody] AddItemRequest request)
+    public async Task<ActionResult<BasketDto>> AddItem(string userId, [FromBody] AddItemRequest request)
     {
-        await _basketService.AddItemToBasketAsync(ResolveBasketOwner(userId), request.ProductId, request.Quantity);
-        return Ok();
+        return Ok(await _basketService.AddItemToBasketAsync(ResolveBasketOwner(userId), request.ProductId, request.Quantity));
     }
 
     [HttpPut("{userId}/items")]
-    public async Task<IActionResult> UpdateItemQuantity(string userId, [FromBody] UpdateQuantityRequest request)
+    public async Task<ActionResult<BasketDto>> UpdateItemQuantity(string userId, [FromBody] UpdateQuantityRequest request)
     {
-        await _basketService.UpdateItemQuantityAsync(ResolveBasketOwner(userId), request.ProductId, request.Quantity);
-        return Ok();
+        return Ok(await _basketService.UpdateItemQuantityAsync(ResolveBasketOwner(userId), request.ProductId, request.Quantity));
     }
 
-    [HttpDelete("{userId}/items/{productId:int}")]
-    public async Task<IActionResult> RemoveItem(string userId, int productId)
+    [HttpDelete("{userId}/items/{productId:long}")]
+    public async Task<ActionResult<BasketDto>> RemoveItem(string userId, long productId)
     {
-        await _basketService.RemoveItemFromBasketAsync(ResolveBasketOwner(userId), productId);
-        return Ok();
+        return Ok(await _basketService.RemoveItemFromBasketAsync(ResolveBasketOwner(userId), productId));
     }
 
     [HttpDelete("{userId}")]
@@ -97,12 +57,12 @@ public class BasketController : ControllerBase
 
 public class AddItemRequest
 {
-    public int ProductId { get; set; }
+    public long ProductId { get; set; }
     public int Quantity { get; set; }
 }
 
 public class UpdateQuantityRequest
 {
-    public int ProductId { get; set; }
+    public long ProductId { get; set; }
     public int Quantity { get; set; }
 }

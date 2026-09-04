@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Domain.IRepositories;
 
 namespace Infrastructure.Repositories;
@@ -39,9 +39,6 @@ public class UnitOfWork : IUnitOfWork
         StorageSpaces = new StorageSpaceRepository(context);
         StorageZones = new StorageZoneRepository(context);
         Shelves = new ShelfRepository(context);
-        Baskets = new BasketRepository(context);
-        BasketItems = new BasketItemRepository(context);
-
         Orders = new OrderRepository(context);
         OrderItems = new OrderItemRepository(context);
         Promotions = new PromotionRepository(context);
@@ -57,8 +54,6 @@ public class UnitOfWork : IUnitOfWork
     public ICategoryAttributeDefinitionRepository CategoryAttributeDefinitions { get; }
     public IAttributeDefinitionRepository AttributeDefinitions { get; }
     public IBrandRepository Brands { get; }
-    public IBasketRepository Baskets { get; }
-    public IBasketItemRepository BasketItems { get; }
     public ISupplierRepository Suppliers { get; }
     public IUserRepository Users { get; }
     public IRoleRepository Roles { get; }

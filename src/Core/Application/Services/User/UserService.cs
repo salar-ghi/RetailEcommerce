@@ -123,12 +123,6 @@ public class UserService : IUserService
         return _mapper.Map<IEnumerable<UserDto>>(users);
     }
 
-    //public async Task<BasketDto> GetUserBasketAsync(string userId)
-    //{
-    //    var basket = await _basketRepository.GetSingleAsync(b => b.UserId == userId);
-    //    if (basket == null) throw new NotFoundException("Basket not found");
-    //    return _mapper.Map<BasketDto>(basket);
-    //}
     public async Task<Result<string>> RegisterAsync(SignupDto dto)
     {
         var existingUser = await _unitOfWork.Users.GetByAsync(u => u.PhoneNumber == dto.PhoneNumber);
