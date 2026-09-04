@@ -26,7 +26,13 @@ public sealed class BasketService : IBasketService
     {
         ValidateOwnerId(ownerId);
         return await WithBasketLockAsync(ownerId, async () =>
-            await GetCachedBasketAsync(ownerId) ?? await CreateAndSaveBasketAsync(ownerId));
+        {
+            var basket = await GetCachedBasketAsync(ownerId) ?? await CreateAndSaveBasketAsync(ownerId);
+            if (PopulateClientImages(basket))
+                await SaveBasketAsync(ownerId, basket);
+
+            return basket;
+        });
     }
 
     public async Task<BasketDto> AddItemToBasketAsync(string ownerId, long productId, int quantity)
@@ -56,6 +62,7 @@ public sealed class BasketService : IBasketService
                     ProductId = productId,
                     ProductName = product.Name,
                     CoverImage = coverImage,
+                    Image = coverImage,
                     Quantity = quantity,
                     UnitPrice = unitPrice
                 });
@@ -65,6 +72,7 @@ public sealed class BasketService : IBasketService
                 item.Quantity += quantity;
                 item.ProductName = product.Name;
                 item.CoverImage = coverImage;
+                item.Image = coverImage;
                 item.UnitPrice = unitPrice;
             }
         });
@@ -146,6 +154,18 @@ public sealed class BasketService : IBasketService
     {
         basket.TotalItems = basket.Items.Sum(item => item.Quantity);
         basket.TotalPrice = basket.Items.Sum(item => item.Quantity * item.UnitPrice);
+    }
+
+    private static bool PopulateClientImages(BasketDto basket)
+    {
+        var updated = false;
+        foreach (var item in basket.Items.Where(item => string.IsNullOrWhiteSpace(item.Image) && !string.IsNullOrWhiteSpace(item.CoverImage)))
+        {
+            item.Image = item.CoverImage;
+            updated = true;
+        }
+
+        return updated;
     }
 
     private static void ValidateOwnerId(string ownerId)
