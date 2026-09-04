@@ -16,7 +16,7 @@ public class BasketItemDto
     /// <see cref="CoverImage"/> so existing cached baskets remain compatible
     /// while the client can render <c>item.image</c> directly.
     /// </summary>
-    public string? Image { get; set; }
+    public string? imageUrl { get; set; }
     public int Quantity { get; set; }
     public decimal UnitPrice { get; set; }
 }

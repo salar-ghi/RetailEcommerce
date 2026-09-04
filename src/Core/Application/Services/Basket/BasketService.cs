@@ -62,7 +62,7 @@ public sealed class BasketService : IBasketService
                     ProductId = productId,
                     ProductName = product.Name,
                     CoverImage = coverImage,
-                    Image = coverImage,
+                    imageUrl = coverImage,
                     Quantity = quantity,
                     UnitPrice = unitPrice
                 });
@@ -72,7 +72,7 @@ public sealed class BasketService : IBasketService
                 item.Quantity += quantity;
                 item.ProductName = product.Name;
                 item.CoverImage = coverImage;
-                item.Image = coverImage;
+                item.imageUrl = coverImage;
                 item.UnitPrice = unitPrice;
             }
         });
@@ -159,9 +159,9 @@ public sealed class BasketService : IBasketService
     private static bool PopulateClientImages(BasketDto basket)
     {
         var updated = false;
-        foreach (var item in basket.Items.Where(item => string.IsNullOrWhiteSpace(item.Image) && !string.IsNullOrWhiteSpace(item.CoverImage)))
+        foreach (var item in basket.Items.Where(item => string.IsNullOrWhiteSpace(item.imageUrl) && !string.IsNullOrWhiteSpace(item.CoverImage)))
         {
-            item.Image = item.CoverImage;
+            item.imageUrl = item.CoverImage;
             updated = true;
         }
 

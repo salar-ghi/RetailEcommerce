@@ -67,7 +67,7 @@ public class BasketController : ControllerBase
         foreach (var item in basket.Items)
         {
             item.CoverImage = await ConvertImageToBase64Async(item.CoverImage);
-            item.Image = await ConvertImageToBase64Async(item.Image);
+            item.imageUrl = await ConvertImageToBase64Async(item.imageUrl);
         }
     }
 
