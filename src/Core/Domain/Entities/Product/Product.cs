@@ -1,4 +1,4 @@
-﻿using Domain.Enums;
+using Domain.Enums;
 
 namespace Domain.Entities;
 
@@ -27,7 +27,6 @@ public class Product : BaseModel<long>
     public ICollection<ProductAttributeValue> AttributeValues { get; set; } = new List<ProductAttributeValue>();
     public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
     public ICollection<ProductReview> Reviews { get; set; } = new List<ProductReview>();
-    public virtual ICollection<BasketItem> BasketItems { get; set; } = new List<BasketItem>();
     public ICollection<ProductTag> Tags { get; set; } = new List<ProductTag>();
     public ICollection<ProductSupplier> Suppliers { get; set; } = new List<ProductSupplier>();
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();

@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.EntityTypeConfiguration;
+namespace Infrastructure.EntityTypeConfiguration;
 
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
@@ -16,10 +16,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.RefreshToken).IsRequired(false).HasMaxLength(500);
         builder.Property(u => u.RefreshTokenExpiryTime).IsRequired(false);
         builder.Property(u => u.ProfilePictureUrl).IsRequired(false).HasMaxLength(5000);
-
-        builder.HasMany(u => u.Basket)
-              .WithOne(b => b.User)
-              .HasForeignKey(b => b.UserId).IsRequired(false);
 
         builder.HasOne(u => u.Supplier)
                .WithOne(b => b.User)

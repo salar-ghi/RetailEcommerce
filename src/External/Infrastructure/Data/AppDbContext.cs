@@ -1,10 +1,7 @@
-﻿namespace Infrastructure.Data;
+namespace Infrastructure.Data;
 
 public class AppDbContext : DbContext
 {
-    public DbSet<Basket> Baskets { get; set; }
-    public DbSet<BasketItem> BasketItems { get; set; }
-
     public DbSet<Brand> Brands { get; set; }
     public DbSet<Category> Categories { get; set; }
     public DbSet<BrandCategory> BrandCategories { get; set; }
@@ -99,8 +96,6 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new ProductTagConfiguration());
         modelBuilder.ApplyConfiguration(new ProductUnitPriceConfiguration());
         modelBuilder.ApplyConfiguration(new ProductVariantConfiguration());
-        modelBuilder.ApplyConfiguration(new BasketConfiguration());
-        modelBuilder.ApplyConfiguration(new BasketItemConfiguration());
         modelBuilder.ApplyConfiguration(new PaymentConfiguration());
         modelBuilder.ApplyConfiguration(new FinanceTenantConfiguration());
         modelBuilder.ApplyConfiguration(new FinanceBranchConfiguration());

@@ -1,65 +1,47 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 
 namespace Application.Services;
 
-public class BasketService : IBasketService
+/// <summary>
+/// Redis-backed active basket service. Redis is the sole store for basket state;
+/// the product repository is consulted only to snapshot product details when an
+/// item is first added or its quantity is increased.
+/// </summary>
+public sealed class BasketService : IBasketService
 {
-    private static readonly TimeSpan BasketCacheDuration = TimeSpan.FromDays(1);
-    private const string BasketCacheKeyPrefix = "basket:";
-    // Redis is the source of truth for storefront baskets. Serializing writes for
-    // a basket prevents quick consecutive clicks from overwriting each other in a
-    // single application instance.
+    private static readonly TimeSpan BasketLifetime = TimeSpan.FromDays(1);
+    private const string BasketKeyPrefix = "basket:";
     private static readonly ConcurrentDictionary<string, SemaphoreSlim> BasketLocks = new();
 
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly IRedisCacheService _cacheService;
-    private readonly IMapper _mapper;
+    private readonly IProductRepository _products;
+    private readonly IRedisCacheService _cache;
 
-    public BasketService(IUnitOfWork unitOfWork, IRedisCacheService cacheService, IMapper mapper)
+    public BasketService(IProductRepository products, IRedisCacheService cache)
     {
-        _unitOfWork = unitOfWork;
-        _cacheService = cacheService;
-        _mapper = mapper;
+        _products = products;
+        _cache = cache;
     }
 
-    public async Task<BasketDto> GetBasketAsync(string userId)
+    public async Task<BasketDto> GetBasketAsync(string ownerId)
     {
-        ValidateBasketOwner(userId);
-        var basket = await GetCachedBasketAsync(userId);
-        if (basket != null) return basket;
-
-        basket = CreateBasket(userId);
-        await SaveBasketAsync(userId, basket);
-        return basket;
+        ValidateOwnerId(ownerId);
+        return await WithBasketLockAsync(ownerId, async () =>
+            await GetCachedBasketAsync(ownerId) ?? await CreateAndSaveBasketAsync(ownerId));
     }
 
-    public async Task AddItemToBasketAsync(string userId, int productId, int quantity)
+    public async Task<BasketDto> AddItemToBasketAsync(string ownerId, long productId, int quantity)
     {
-        if (quantity <= 0)
+        ValidateOwnerId(ownerId);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
+
+        var product = await _products.GetByIdAsync(productId, query => query.Include(p => p.Batches))
+            ?? throw new KeyNotFoundException($"Product with ID {productId} was not found.");
+        var unitPrice = product.Batches.FirstOrDefault()?.SellingPrice ?? 0;
+
+        return await UpdateBasketAsync(ownerId, basket =>
         {
-            throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be greater than zero.");
-        }
-
-        var product = await _unitOfWork.Products.GetByIdAsync(productId,
-            include: q => q.Include(p => p.Batches));
-        if (product == null)
-            throw new KeyNotFoundException($"Product with ID {productId} not found.");
-
-        decimal unitPrice = product.Batches.Any()
-                        ? product.Batches.First().SellingPrice
-                        : 0;
-
-        await WithBasketLockAsync(userId, async () =>
-        {
-            var basket = await GetOrCreateCachedBasketAsync(userId);
-            var existingItem = basket.Items.FirstOrDefault(i => i.ProductId == productId);
-            if (existingItem != null)
-            {
-                existingItem.Quantity += quantity;
-                existingItem.UnitPrice = unitPrice;
-                existingItem.ProductName = product.Name;
-            }
-            else
+            var item = basket.Items.FirstOrDefault(existing => existing.ProductId == productId);
+            if (item is null)
             {
                 basket.Items.Add(new BasketItemDto
                 {
@@ -70,158 +52,83 @@ public class BasketService : IBasketService
                     UnitPrice = unitPrice
                 });
             }
-
-            basket.ModifiedTime = DateTime.UtcNow;
-            RefreshTotals(basket);
-            await SaveBasketAsync(userId, basket);
-        });
-    }
-
-    public async Task UpdateItemQuantityAsync(string userId, int productId, int quantity)
-    {
-        if (quantity < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity cannot be negative.");
-        }
-
-        await WithBasketLockAsync(userId, async () =>
-        {
-            var basket = await GetCachedBasketAsync(userId)
-                ?? throw new KeyNotFoundException($"Basket for owner {userId} was not found.");
-            var item = basket.Items.FirstOrDefault(i => i.ProductId == productId)
-                ?? throw new KeyNotFoundException($"Item with Product ID {productId} not found.");
-
-            if (quantity == 0) basket.Items.Remove(item);
-            else item.Quantity = quantity;
-
-            basket.ModifiedTime = DateTime.UtcNow;
-            RefreshTotals(basket);
-            await SaveBasketAsync(userId, basket);
-        });
-    }
-
-    public async Task RemoveItemFromBasketAsync(string userId, int productId)
-    {
-        await WithBasketLockAsync(userId, async () =>
-        {
-            var basket = await GetCachedBasketAsync(userId);
-            if (basket == null) return;
-
-            basket.Items.RemoveAll(item => item.ProductId == productId);
-            basket.ModifiedTime = DateTime.UtcNow;
-            RefreshTotals(basket);
-            await SaveBasketAsync(userId, basket);
-        });
-    }
-
-    public async Task ClearBasketAsync(string userId)
-    {
-        ValidateBasketOwner(userId);
-        await WithBasketLockAsync(userId, () => _cacheService.RemoveCachedDataAsync(GetBasketCacheKey(userId)));
-    }
-
-
-    public async Task<IEnumerable<BasketDto>> ListBasketsAsync(string? status = null, string? userId = null)
-    {
-        var baskets = await _unitOfWork.Baskets.GetAllAsync(q => q
-            .Include(b => b.User)
-            .Include(b => b.Items)
-                .ThenInclude(i => i.Product));
-
-        var filtered = baskets
-            .Where(b => string.IsNullOrWhiteSpace(status) || b.Status.Equals(status, StringComparison.OrdinalIgnoreCase))
-            .Where(b => string.IsNullOrWhiteSpace(userId) || b.UserId == userId)
-            .OrderByDescending(b => b.ModifiedTime);
-
-        return _mapper.Map<IEnumerable<BasketDto>>(filtered);
-    }
-
-    public async Task<BasketDto> GetBasketByIdAsync(string basketId)
-    {
-        var basket = await _unitOfWork.Baskets.GetByIdAsync(basketId, q => q
-            .Include(b => b.User)
-            .Include(b => b.Items)
-                .ThenInclude(i => i.Product)) ?? throw new KeyNotFoundException($"Basket with ID {basketId} not found.");
-        return _mapper.Map<BasketDto>(basket);
-    }
-
-    public async Task<BasketDto> UpdateBasketAsync(string basketId, UpdateBasketRequest request)
-    {
-        var basket = await _unitOfWork.Baskets.GetByIdAsync(basketId, q => q.Include(b => b.Items).ThenInclude(i => i.Product)) ?? throw new KeyNotFoundException($"Basket with ID {basketId} not found.");
-        basket.AdminNotes = request.AdminNotes;
-
-        foreach (var requestedItem in request.Items)
-        {
-            var item = basket.Items.FirstOrDefault(i => i.Id == requestedItem.Id || i.ProductId == requestedItem.ProductId);
-            if (item is null) continue;
-            if (requestedItem.Quantity <= 0)
-            {
-                basket.Items.Remove(item);
-                await _unitOfWork.BasketItems.DeleteAsync(item);
-            }
             else
             {
-                item.Quantity = requestedItem.Quantity;
-                await _unitOfWork.BasketItems.UpdateAsync(item);
+                item.Quantity += quantity;
+                item.ProductName = product.Name;
+                item.UnitPrice = unitPrice;
             }
-        }
-
-        basket.ModifiedTime = DateTime.UtcNow;
-        await _unitOfWork.Baskets.UpdateAsync(basket);
-        await _unitOfWork.SaveChangesAsync();
-        var basketDto = await CacheAndMapBasketAsync(basket);
-        return basketDto;
+        });
     }
 
-    public async Task<BasketActionResultDto> DeleteBasketAsync(string basketId)
+    public Task<BasketDto> UpdateItemQuantityAsync(string ownerId, long productId, int quantity)
     {
-        var basket = await _unitOfWork.Baskets.GetByIdAsync(basketId, q => q.Include(b => b.Items)) ?? throw new KeyNotFoundException($"Basket with ID {basketId} not found.");
-        await _unitOfWork.Baskets.DeleteAsync(basket);
-        await _unitOfWork.SaveChangesAsync();
-        await _cacheService.RemoveCachedDataAsync(GetBasketCacheKey(GetBasketOwnerId(basket)));
-        return new BasketActionResultDto { BasketId = basketId, Message = "Basket deleted." };
+        ValidateOwnerId(ownerId);
+        ArgumentOutOfRangeException.ThrowIfNegative(quantity);
+
+        return UpdateBasketAsync(ownerId, basket =>
+        {
+            var item = basket.Items.FirstOrDefault(existing => existing.ProductId == productId)
+                ?? throw new KeyNotFoundException($"Item with Product ID {productId} was not found.");
+
+            if (quantity == 0)
+                basket.Items.Remove(item);
+            else
+                item.Quantity = quantity;
+        }, createIfMissing: false);
     }
 
-    public async Task<BasketActionResultDto> ConvertBasketAsync(string basketId)
+    public Task<BasketDto> RemoveItemFromBasketAsync(string ownerId, long productId)
     {
-        var basket = await _unitOfWork.Baskets.GetByIdAsync(basketId, q => q.Include(b => b.Items)) ?? throw new KeyNotFoundException($"Basket with ID {basketId} not found.");
-        if (!basket.Items.Any()) throw new InvalidOperationException("Cannot convert an empty basket.");
-        basket.Status = "ready_to_convert";
-        basket.ModifiedTime = DateTime.UtcNow;
-        await _unitOfWork.Baskets.UpdateAsync(basket);
-        await _unitOfWork.SaveChangesAsync();
-        await _cacheService.RemoveCachedDataAsync(GetBasketCacheKey(GetBasketOwnerId(basket)));
-        return new BasketActionResultDto { BasketId = basketId, Message = "Basket is validated and ready to convert to an order." };
+        ValidateOwnerId(ownerId);
+        return UpdateBasketAsync(ownerId, basket => basket.Items.RemoveAll(item => item.ProductId == productId));
     }
 
-    public async Task<BasketActionResultDto> RemindBasketOwnerAsync(string basketId)
+    public async Task ClearBasketAsync(string ownerId)
     {
-        var basket = await _unitOfWork.Baskets.GetByIdAsync(basketId) ?? throw new KeyNotFoundException($"Basket with ID {basketId} not found.");
-        basket.LastReminderAt = DateTime.UtcNow;
-        basket.Status = "reminded";
-        basket.ModifiedTime = DateTime.UtcNow;
-        await _unitOfWork.Baskets.UpdateAsync(basket);
-        await _unitOfWork.SaveChangesAsync();
-        await _cacheService.RemoveCachedDataAsync(GetBasketCacheKey(GetBasketOwnerId(basket)));
-        return new BasketActionResultDto { BasketId = basketId, Message = "Basket reminder registered for delivery pipeline." };
+        ValidateOwnerId(ownerId);
+        await WithBasketLockAsync(ownerId, () => _cache.RemoveCachedDataAsync(GetBasketKey(ownerId)));
     }
 
-    private async Task<BasketDto?> GetCachedBasketAsync(string userId) =>
-        await _cacheService.GetCachedDataAsync<BasketDto>(GetBasketCacheKey(userId));
-
-    private async Task<BasketDto> GetOrCreateCachedBasketAsync(string userId) =>
-        await GetCachedBasketAsync(userId) ?? CreateBasket(userId);
-
-    private async Task SaveBasketAsync(string userId, BasketDto basket)
+    private async Task<BasketDto> UpdateBasketAsync(string ownerId, Action<BasketDto> update, bool createIfMissing = true)
     {
-        await _cacheService.SetCachedDataAsync(GetBasketCacheKey(userId), basket, BasketCacheDuration);
+        return await WithBasketLockAsync(ownerId, async () =>
+        {
+            var basket = await GetCachedBasketAsync(ownerId);
+            if (basket is null)
+            {
+                if (!createIfMissing)
+                    throw new KeyNotFoundException($"Basket for owner {ownerId} was not found.");
+
+                basket = CreateBasket(ownerId);
+            }
+
+            update(basket);
+            basket.ModifiedTime = DateTime.UtcNow;
+            RefreshTotals(basket);
+            await SaveBasketAsync(ownerId, basket);
+            return basket;
+        });
     }
 
-    private static BasketDto CreateBasket(string userId) => new()
+    private async Task<BasketDto?> GetCachedBasketAsync(string ownerId) =>
+        await _cache.GetCachedDataAsync<BasketDto>(GetBasketKey(ownerId));
+
+    private async Task<BasketDto> CreateAndSaveBasketAsync(string ownerId)
     {
-        Id = Guid.NewGuid().ToString(),
-        UserId = userId,
-        GuestId = userId,
+        var basket = CreateBasket(ownerId);
+        await SaveBasketAsync(ownerId, basket);
+        return basket;
+    }
+
+    private Task SaveBasketAsync(string ownerId, BasketDto basket) =>
+        _cache.SetCachedDataAsync(GetBasketKey(ownerId), basket, BasketLifetime);
+
+    private static BasketDto CreateBasket(string ownerId) => new()
+    {
+        Id = Guid.NewGuid().ToString("N"),
+        UserId = ownerId,
+        GuestId = ownerId,
         CreatedTime = DateTime.UtcNow,
         ModifiedTime = DateTime.UtcNow
     };
@@ -232,22 +139,19 @@ public class BasketService : IBasketService
         basket.TotalPrice = basket.Items.Sum(item => item.Quantity * item.UnitPrice);
     }
 
-    private static void ValidateBasketOwner(string userId)
+    private static void ValidateOwnerId(string ownerId)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            throw new ArgumentException("A user or guest identifier is required.", nameof(userId));
-        }
+        if (string.IsNullOrWhiteSpace(ownerId))
+            throw new ArgumentException("A user or guest identifier is required.", nameof(ownerId));
     }
 
-    private static async Task WithBasketLockAsync(string userId, Func<Task> action)
+    private static async Task<T> WithBasketLockAsync<T>(string ownerId, Func<Task<T>> action)
     {
-        ValidateBasketOwner(userId);
-        var basketLock = BasketLocks.GetOrAdd(userId, _ => new SemaphoreSlim(1, 1));
+        var basketLock = BasketLocks.GetOrAdd(ownerId, _ => new SemaphoreSlim(1, 1));
         await basketLock.WaitAsync();
         try
         {
-            await action();
+            return await action();
         }
         finally
         {
@@ -255,14 +159,14 @@ public class BasketService : IBasketService
         }
     }
 
-    private async Task<BasketDto> CacheAndMapBasketAsync(Basket basket)
+    private static async Task WithBasketLockAsync(string ownerId, Func<Task> action)
     {
-        var basketDto = _mapper.Map<BasketDto>(basket);
-        await _cacheService.SetCachedDataAsync(GetBasketCacheKey(GetBasketOwnerId(basket)), basketDto, BasketCacheDuration);
-        return basketDto;
+        await WithBasketLockAsync(ownerId, async () =>
+        {
+            await action();
+            return true;
+        });
     }
 
-    private static string GetBasketOwnerId(Basket basket) => basket.UserId ?? basket.GuestId ?? basket.Id;
-
-    private static string GetBasketCacheKey(string userId) => $"{BasketCacheKeyPrefix}{userId}";
+    private static string GetBasketKey(string ownerId) => $"{BasketKeyPrefix}{ownerId}";
 }

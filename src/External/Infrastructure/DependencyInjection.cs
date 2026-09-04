@@ -1,4 +1,4 @@
-﻿using Infrastructure.Persistence;
+using Infrastructure.Persistence;
 using Infrastructure.Services;
 
 namespace Infrastructure;
@@ -31,7 +31,6 @@ public static class DependencyInjection
 
         services.AddSingleton<IRedisCacheService, RedisCacheService>();
 
-        services.AddAutoMapper(typeof(BasketMappingProfile));
         services.AddAutoMapper(typeof(BrandMappingProfile));
         services.AddAutoMapper(typeof(CategoryMappingProfile));
         services.AddAutoMapper(typeof(OrderMappingProfile));
@@ -78,8 +77,6 @@ public static class DependencyInjection
         services.AddScoped<IUserRoleRepository, UserRoleRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IUserAddressRepository, UserAddressRepository>();
-        services.AddScoped<IBasketRepository, BasketRepository>();
-        services.AddScoped<IBasketItemRepository, BasketItemRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IOrderItemRepository, OrderItemRepository>();
@@ -95,7 +92,6 @@ public static class DependencyInjection
         // Register Services from Application Layer
 
         services.AddScoped<IBasketService, BasketService>();
-        services.AddScoped<IBasketItemService, BasketItemService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IPromotionService, PromotionService>();
         services.AddScoped<IPaymentService, PaymentService>();

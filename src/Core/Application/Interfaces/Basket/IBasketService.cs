@@ -1,16 +1,14 @@
 ﻿namespace Application.Interfaces;
 
+/// <summary>
+/// Manages a customer's active basket in Redis. Basket data is never persisted
+/// to the application database.
+/// </summary>
 public interface IBasketService
 {
-    Task<IEnumerable<BasketDto>> ListBasketsAsync(string? status = null, string? userId = null);
-    Task<BasketDto> GetBasketByIdAsync(string basketId);
-    Task<BasketDto> GetBasketAsync(string userId);
-    Task AddItemToBasketAsync(string userId, int productId, int quantity);
-    Task UpdateItemQuantityAsync(string userId, int productId, int quantity);
-    Task RemoveItemFromBasketAsync(string userId, int productId);
-    Task ClearBasketAsync(string userId);
-    Task<BasketDto> UpdateBasketAsync(string basketId, UpdateBasketRequest request);
-    Task<BasketActionResultDto> DeleteBasketAsync(string basketId);
-    Task<BasketActionResultDto> ConvertBasketAsync(string basketId);
-    Task<BasketActionResultDto> RemindBasketOwnerAsync(string basketId);
+    Task<BasketDto> GetBasketAsync(string ownerId);
+    Task<BasketDto> AddItemToBasketAsync(string ownerId, long productId, int quantity);
+    Task<BasketDto> UpdateItemQuantityAsync(string ownerId, long productId, int quantity);
+    Task<BasketDto> RemoveItemFromBasketAsync(string ownerId, long productId);
+    Task ClearBasketAsync(string ownerId);
 }

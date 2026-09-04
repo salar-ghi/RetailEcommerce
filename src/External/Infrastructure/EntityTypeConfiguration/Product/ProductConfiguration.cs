@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.EntityTypeConfiguration;
+namespace Infrastructure.EntityTypeConfiguration;
 
 public class ProductConfiguration : IEntityTypeConfiguration<Product>
 {
@@ -40,11 +40,6 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.HasMany(p => p.Tags)
                .WithOne(pt => pt.Product)
                .HasForeignKey(pt => pt.ProductId);
-
-        builder.HasMany(p => p.BasketItems)
-            .WithOne(bi => bi.Product)
-            .HasForeignKey(bi => bi.ProductId)
-            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(p => p.Batches)
                .WithOne(b => b.Product)

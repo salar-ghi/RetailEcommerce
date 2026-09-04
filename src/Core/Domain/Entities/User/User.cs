@@ -1,4 +1,4 @@
-﻿namespace Domain.Entities;
+namespace Domain.Entities;
 
 public class User : BaseModel<string>
 {
@@ -27,5 +27,4 @@ public class User : BaseModel<string>
     public ICollection<ProductReview> Reviewer { get; set; } = new List<ProductReview>();
     public ICollection<Order> Orders { get; set; } = new List<Order>();
 
-    public ICollection<Basket> Basket { get; set; } = new List<Basket>();
 }

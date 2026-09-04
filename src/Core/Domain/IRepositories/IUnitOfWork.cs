@@ -1,4 +1,4 @@
-﻿namespace Domain.IRepositories;
+namespace Domain.IRepositories;
 
 // Domain Layer
 public interface IUnitOfWork : IDisposable
@@ -11,8 +11,6 @@ public interface IUnitOfWork : IDisposable
     ICategoryAttributeDefinitionRepository CategoryAttributeDefinitions { get; }
     IAttributeDefinitionRepository AttributeDefinitions { get; }
     IBrandRepository Brands { get; }
-    IBasketRepository Baskets { get; }
-    IBasketItemRepository BasketItems { get; }
     ISupplierRepository Suppliers { get; }
     IUserRepository Users { get; }
     IRoleRepository Roles { get; }
