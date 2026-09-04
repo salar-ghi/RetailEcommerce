@@ -34,9 +34,16 @@ public sealed class BasketService : IBasketService
         ValidateOwnerId(ownerId);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
 
-        var product = await _products.GetByIdAsync(productId, query => query.Include(p => p.Batches))
+        var product = await _products.GetByIdAsync(productId, query => query
+            .Include(p => p.Batches)
+            .Include(p => p.Images))
             ?? throw new KeyNotFoundException($"Product with ID {productId} was not found.");
         var unitPrice = product.Batches.FirstOrDefault()?.SellingPrice ?? 0;
+        var coverImage = product.Images
+            .OrderByDescending(image => image.IsPrimary)
+            .ThenBy(image => image.Id)
+            .Select(image => image.ImageUrl)
+            .FirstOrDefault();
 
         return await UpdateBasketAsync(ownerId, basket =>
         {
@@ -48,6 +55,7 @@ public sealed class BasketService : IBasketService
                     Id = productId,
                     ProductId = productId,
                     ProductName = product.Name,
+                    CoverImage = coverImage,
                     Quantity = quantity,
                     UnitPrice = unitPrice
                 });
@@ -56,6 +64,7 @@ public sealed class BasketService : IBasketService
             {
                 item.Quantity += quantity;
                 item.ProductName = product.Name;
+                item.CoverImage = coverImage;
                 item.UnitPrice = unitPrice;
             }
         });
