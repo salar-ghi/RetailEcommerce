@@ -2,7 +2,7 @@
 
 public interface IOrderService
 {
-    Task<OrderDto> CreateOrderFromBasketAsync(string userId, ShippingAddressDto shippingAddress, string paymentMethod);
+    Task<OrderDto> CreateStorefrontOrderAsync(CreateStorefrontOrderRequest request);
     Task<OrderDto> CreateManualOrderAsync(CreateManualOrderRequest request);
     Task<OrderDto> GetOrderAsync(string userId, string orderId);
     Task<OrderDto> GetOrderByIdAsync(string orderId);

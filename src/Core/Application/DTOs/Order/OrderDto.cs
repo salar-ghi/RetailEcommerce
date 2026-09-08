@@ -13,6 +13,7 @@ public class OrderDto
     public string Status { get; set; }
     public decimal DiscountAmount { get; set; }
     public decimal TotalAmount { get; set; }
+    public decimal TotalPrice { get; set; }
     public decimal Total { get; set; }
     public decimal TotalItems { get; set; }
     public decimal FinalTotal { get; set; }

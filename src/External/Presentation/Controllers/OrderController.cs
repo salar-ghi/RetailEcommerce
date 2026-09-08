@@ -13,14 +13,14 @@ public class OrderController : ControllerBase
         _orderService = orderService;
     }
 
-    [HttpGet("orders")]
+    [HttpGet("admin/orders")]
     public async Task<ActionResult<IEnumerable<OrderDto>>> ListOrders()
     {
         var orders = await _orderService.ListOrdersAsync();
         return Ok(orders);
     }
 
-    [HttpPost("orders")]
+    [HttpPost("admin/orders")]
     public async Task<ActionResult<OrderDto>> CreateManualOrder([FromBody] CreateManualOrderRequest request)
     {
         var order = await _orderService.CreateManualOrderAsync(request);
@@ -28,7 +28,7 @@ public class OrderController : ControllerBase
     }
 
 
-    [HttpPut("orders/{orderId}")]
+    [HttpPut("admin/orders/{orderId}")]
     public async Task<ActionResult<OrderDto>> UpdateManualOrder(string orderId, [FromBody] UpdateManualOrderRequest request)
     {
         if (!string.IsNullOrWhiteSpace(request.Status))
@@ -40,7 +40,7 @@ public class OrderController : ControllerBase
         return Ok(order);
     }
 
-    [HttpPost("orders/{orderId}/returns")]
+    [HttpPost("admin/orders/{orderId}/returns")]
     public async Task<IActionResult> CreateReturn(string orderId, [FromBody] CreateReturnRequest request)
     {
         request.OrderId = orderId;
@@ -48,18 +48,27 @@ public class OrderController : ControllerBase
         return NoContent();
     }
 
-    [HttpGet("orders/{orderId}")]
+    [HttpGet("admin/orders/{orderId}")]
     public async Task<ActionResult<OrderDto>> GetOrderById(string orderId)
     {
         var order = await _orderService.GetOrderByIdAsync(orderId);
         return Ok(order);
     }
 
-    [HttpPost("{userId}")]
-    public async Task<ActionResult<OrderDto>> CreateOrder(string userId, [FromBody] CreateBasketOrderRequest request)
+    // The storefront posts the checkout payload directly to /api/Order/orders.
+    // Admin-created orders use /api/Order/admin/orders and the separate manual contract.
+    [HttpPost("orders")]
+    public async Task<ActionResult<OrderDto>> CreateOrder([FromBody] CreateStorefrontOrderRequest request)
     {
-        var order = await _orderService.CreateOrderFromBasketAsync(userId, request.ShippingAddress, request.PaymentMethod);
-        return CreatedAtAction(nameof(GetOrder), new { userId, orderId = order.Id }, order);
+        var order = await _orderService.CreateStorefrontOrderAsync(request);
+        return CreatedAtAction(nameof(GetOrder), new { userId = request.UserId, orderId = order.Id }, order);
+    }
+
+    [HttpGet("orders/{orderId}")]
+    public async Task<ActionResult<OrderDto>> GetStorefrontOrderById(string orderId)
+    {
+        var order = await _orderService.GetOrderByIdAsync(orderId);
+        return Ok(order);
     }
 
     [HttpGet("{userId}/{orderId}")]
@@ -77,7 +86,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpPut("{orderId}/status")]
-    public async Task<IActionResult> UpdateOrderStatus(string orderId, [FromBody] UpdateStatusRequest request)
+    public async Task<IActionResult> UpdateOrderStatus(string orderId, [FromBody] UpdateOrderStatusRequest request)
     {
         await _orderService.UpdateOrderStatusAsync(orderId, request.Status);
         return NoContent();
@@ -102,20 +111,4 @@ public class OrderController : ControllerBase
         "cancelled" => OrderStatus.Cancelled,
         _ => throw new ArgumentException($"Unsupported order status '{status}'.")
     };
-}
-
-public class CreateBasketOrderRequest
-{
-    public ShippingAddressDto ShippingAddress { get; set; } = new();
-    public string PaymentMethod { get; set; } = "OnlineGateway";
-}
-
-public class UpdateStatusRequest
-{
-    public OrderStatus Status { get; set; }
-}
-
-public class UpdateManualOrderRequest
-{
-    public string? Status { get; set; }
 }
