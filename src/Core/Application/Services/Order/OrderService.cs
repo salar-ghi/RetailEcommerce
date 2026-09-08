@@ -23,19 +23,18 @@ public class OrderService : IOrderService
         _financeService = financeService;
     }
 
-    public async Task<OrderDto> CreateOrderFromBasketAsync(string userId, ShippingAddressDto shippingAddress, string paymentMethod)
+    public async Task<OrderDto> CreateStorefrontOrderAsync(CreateStorefrontOrderRequest request)
     {
-        var basketDto = await _basketService.GetBasketAsync(userId);
-        if (basketDto.Items.Count == 0) throw new InvalidOperationException("Cannot create an order from an empty basket.");
+        ValidateStorefrontOrderRequest(request);
 
-        var method = ParsePaymentMethod(paymentMethod);
-        var total = basketDto.Items.Sum(item => item.Quantity * item.UnitPrice);
+        var method = ParsePaymentMethod(request.PaymentMethod);
+        var total = request.Items.Sum(item => item.Quantity * item.Price);
         var order = new Order
         {
-            Id = Guid.NewGuid().ToString(), CustomerId = userId, CreatedTime = DateTime.UtcNow,
-            Status = OrderStatus.Pending, Source = OrderSource.Storefront, BasketId = basketDto.Id,
-            ShippingAddress = CreateShippingAddress(shippingAddress),
-            Items = basketDto.Items.Select(item => new OrderItem { ProductId = item.ProductId, Quantity = item.Quantity, UnitPrice = item.UnitPrice }).ToList(),
+            Id = Guid.NewGuid().ToString(), CustomerId = request.UserId.Trim(), CreatedTime = DateTime.UtcNow,
+            Status = OrderStatus.Pending, Source = OrderSource.Storefront,
+            ShippingAddress = CreateShippingAddress(null, request.ShippingAddress),
+            Items = request.Items.Select(item => new OrderItem { ProductId = item.ProductId, Quantity = item.Quantity, UnitPrice = item.Price }).ToList(),
             Payments = new List<Payment> { new() { Id = Guid.NewGuid().ToString(), Amount = total, Method = method, Status = PaymentStatus.Pending, PaymentDate = DateTime.UtcNow, TransactionId = string.Empty, FinanceAccountId = DefaultFinanceAccountId, BranchId = DefaultBranchId } }
         };
 
@@ -44,7 +43,7 @@ public class OrderService : IOrderService
 
         var orderDto = _mapper.Map<OrderDto>(order);
         await _cacheService.SetCachedDataAsync(order.Id, orderDto, TimeSpan.FromHours(3));
-        await _basketService.ClearBasketAsync(userId);
+        await _basketService.ClearBasketAsync(request.UserId);
         return orderDto;
     }
 
@@ -150,6 +149,17 @@ public class OrderService : IOrderService
 
         var invalidPaymentIndex = request.Payments.FindIndex(p => p.Amount < 0);
         if (invalidPaymentIndex >= 0) throw new InvalidOperationException($"Payment #{invalidPaymentIndex + 1} is invalid. Payment amount cannot be negative.");
+    }
+
+    private static void ValidateStorefrontOrderRequest(CreateStorefrontOrderRequest request)
+    {
+        if (request is null) throw new ArgumentNullException(nameof(request), "Order request body is required.");
+        if (string.IsNullOrWhiteSpace(request.UserId)) throw new InvalidOperationException("A user ID is required to create an order.");
+        if (request.Items is null || request.Items.Count == 0) throw new InvalidOperationException("Cannot create an order without items.");
+
+        var invalidItemIndex = request.Items.FindIndex(item => item.ProductId <= 0 || item.Quantity <= 0 || item.Price < 0);
+        if (invalidItemIndex >= 0)
+            throw new InvalidOperationException($"Order item #{invalidItemIndex + 1} is invalid. ProductId and Quantity must be positive and Price cannot be negative.");
     }
 
     private async Task<string> ResolveCustomerAsync(CreateManualOrderRequest request)

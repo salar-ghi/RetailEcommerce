@@ -17,6 +17,7 @@ public class OrderMappingProfile : Profile
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => MapOrderStatus(src.Status)))
             .ForMember(dest => dest.DiscountAmount, opt => opt.MapFrom(src => src.DiscountAmount))
             .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => src.TotalAmount))
+            .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => src.FinalAmount))
             .ForMember(dest => dest.Total, opt => opt.MapFrom(src => src.SubtotalAmount))
             .ForMember(dest => dest.PaymentStatus, opt => opt.MapFrom(src => src.Payments.Any(p => p.Status != PaymentStatus.Completed) ? "pending" : "paid"))
             .ForMember(dest => dest.TotalItems, opt => opt.MapFrom(src => src.TotalItems))
