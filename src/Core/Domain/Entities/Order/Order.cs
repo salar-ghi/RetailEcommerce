@@ -11,7 +11,9 @@ public class Order : BaseModel<string>
     public decimal TotalItems => Items.Sum(item => item.Quantity);
     public decimal SubtotalAmount => Items.Sum(item => item.Subtotal);
     public decimal FinalAmount => TotalAmount;
-    public string Notes { get; set; }
+    // Notes is required by the database schema, but storefront checkout does not
+    // collect it. Default it so orders created without an optional note persist.
+    public string Notes { get; set; } = string.Empty;
     public OrderSource Source { get; set; } = OrderSource.Storefront;
     public string? BasketId { get; set; }
     public ShippingAddress ShippingAddress { get; set; } = new ShippingAddress();
