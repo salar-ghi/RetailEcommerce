@@ -20,6 +20,7 @@ public interface IUnitOfWork : IDisposable
     IProductAttributeRepository ProductAttributes { get; }
     IProductDimensionsRepository ProductDimensions { get; }
     IProductImageRepository ProductImages { get; }
+    IProductContentBlockRepository ProductContentBlocks { get; }
     IProductReviewRepository ProductReviews { get; }
     IProductStockRepository ProductStocks { get; }
     IProductSupplierRepository ProductSuppliers { get; }

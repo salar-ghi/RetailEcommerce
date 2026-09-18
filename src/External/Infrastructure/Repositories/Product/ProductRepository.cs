@@ -170,6 +170,7 @@ public class ProductRepository : Repository<Product, long>, IProductRepository
             .Include(product => product.AttributeValues).ThenInclude(value => value.AttributeOption)
             .Include(product => product.Dimensions)
             .Include(product => product.Images)
+            .Include(product => product.ContentBlocks)
             .Include(product => product.VariantDefinitions).ThenInclude(variant => variant.Options)
             .Include(product => product.Tags).ThenInclude(productTag => productTag.Tag)
             .AsSplitQuery()

@@ -27,6 +27,7 @@ public class AppDbContext : DbContext
     public DbSet<ProductVariantOption> ProductVariantOption { get; set; }
 
     public DbSet<ProductImage> ProductImages { get; set; }
+    public DbSet<ProductContentBlock> ProductContentBlocks { get; set; }
     public DbSet<ProductReview> ProductReviews { get; set; }
     public DbSet<ProductStock> ProductStocks { get; set; }
     public DbSet<StorageSpace> StorageSpaces { get; set; }

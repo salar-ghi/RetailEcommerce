@@ -29,6 +29,11 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
                .WithOne(i => i.Product)
                .HasForeignKey(i => i.ProductId);
 
+        builder.HasMany(p => p.ContentBlocks)
+               .WithOne(block => block.Product)
+               .HasForeignKey(block => block.ProductId)
+               .OnDelete(DeleteBehavior.Cascade);
+
         builder.HasMany(p => p.Reviews)
                .WithOne(r => r.Product)
                .HasForeignKey(r => r.ProductId);
@@ -55,6 +60,21 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
                .WithOne(v => v.Product)
                .HasForeignKey(v => v.ProductId)
                .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public class ProductContentBlockConfiguration : IEntityTypeConfiguration<ProductContentBlock>
+{
+    public void Configure(EntityTypeBuilder<ProductContentBlock> builder)
+    {
+        builder.HasKey(block => block.Id);
+        builder.Property(block => block.Id).ValueGeneratedOnAdd();
+        builder.Property(block => block.ClientId).HasMaxLength(50);
+        builder.Property(block => block.Type).IsRequired().HasMaxLength(20);
+        builder.Property(block => block.Text).HasMaxLength(10000);
+        builder.Property(block => block.ImageUrl).HasMaxLength(500);
+        builder.Property(block => block.Caption).HasMaxLength(1000);
+        builder.HasIndex(block => new { block.ProductId, block.SortOrder });
     }
 }
 

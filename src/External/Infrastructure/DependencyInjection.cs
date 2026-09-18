@@ -62,6 +62,7 @@ public static class DependencyInjection
         services.AddScoped<IProductAttributeRepository, ProductAttributeRepository>();
         services.AddScoped<IProductDimensionsRepository, ProductDimensionsRepository>();
         services.AddScoped<IProductImageRepository, ProductImageRepository>();
+        services.AddScoped<IProductContentBlockRepository, ProductContentBlockRepository>();
         services.AddScoped<IProductReviewRepository, ProductReviewRepository>();
         services.AddScoped<IProductStockRepository, ProductStockRepository>();
         services.AddScoped<IProductSupplierRepository, ProductSupplierRepository>();

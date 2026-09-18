@@ -29,6 +29,7 @@ public class UnitOfWork : IUnitOfWork
         ProductAttributes = new ProductAttributeRepository(context);
         ProductDimensions = new ProductDimensionsRepository(context);
         ProductImages = new ProductImageRepository(context);
+        ProductContentBlocks = new ProductContentBlockRepository(context);
         ProductReviews = new ProductReviewRepository(context);
         ProductStocks = new ProductStockRepository(context);
         ProductSuppliers = new ProductSupplierRepository(context);
@@ -63,6 +64,7 @@ public class UnitOfWork : IUnitOfWork
     public IProductAttributeRepository ProductAttributes { get; }
     public IProductDimensionsRepository ProductDimensions { get; }
     public IProductImageRepository ProductImages { get; }
+    public IProductContentBlockRepository ProductContentBlocks { get; }
     public IProductReviewRepository ProductReviews { get; }
     public IProductStockRepository ProductStocks { get; }
     public IProductSupplierRepository ProductSuppliers { get; }

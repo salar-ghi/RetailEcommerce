@@ -26,6 +26,7 @@ public class Product : BaseModel<long>
     public ICollection<ProductAttribute> Attributes { get; set; } = new List<ProductAttribute>();
     public ICollection<ProductAttributeValue> AttributeValues { get; set; } = new List<ProductAttributeValue>();
     public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
+    public ICollection<ProductContentBlock> ContentBlocks { get; set; } = new List<ProductContentBlock>();
     public ICollection<ProductReview> Reviews { get; set; } = new List<ProductReview>();
     public ICollection<ProductTag> Tags { get; set; } = new List<ProductTag>();
     public ICollection<ProductSupplier> Suppliers { get; set; } = new List<ProductSupplier>();
