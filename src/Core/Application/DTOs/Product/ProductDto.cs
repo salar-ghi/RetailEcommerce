@@ -33,6 +33,7 @@ public class ProductDto
     public List<string> Tags { get; set; }
     public string? PricingStrategy { get; set; }
     public SalesUnitConfigDto? SalesUnit { get; set; }
+    public List<ProductContentBlockDto> ContentBlocks { get; set; } = new();
 }
 
 public class BatchDto
@@ -148,6 +149,7 @@ public class CreateProductRequest
 
     public string? PricingStrategy { get; set; }              // fifo | latest | average
     public SalesUnitConfigDto? SalesUnit { get; set; }        // piece/weight/both mode
+    public List<ProductContentBlockDto>? ContentBlocks { get; set; }
 }
 
 public class UpdateProductRequest : CreateProductRequest

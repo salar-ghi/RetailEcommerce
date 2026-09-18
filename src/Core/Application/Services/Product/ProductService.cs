@@ -93,12 +93,15 @@ public class ProductService : IProductService
         ReplaceAttributes(product, dto.Attributes);
         ReplaceAttributeValues(product, dto.AttributeValues);
         ReplaceVariants(product, dto.Variants);
+        await ReplaceContentBlocksAsync(product, dto.ContentBlocks);
 
         await ApplyStorageUsageAsync(dto.Stock?.Quantity ?? 0, resolvedLocation);
         await _unitOfWork.Products.AddAsync(product);
         await _unitOfWork.SaveChangesAsync();
 
-        return _mapper.Map<ProductDto>(product);
+        var productDto = _mapper.Map<ProductDto>(product);
+        await ConvertProductImagesToBase64Async(productDto);
+        return productDto;
     }
 
     public async Task<ProductDto> UpdateProductAsync(int id, UpdateProductRequest dto)
@@ -106,6 +109,7 @@ public class ProductService : IProductService
         var product = await _unitOfWork.Products.GetByIdAsync(id, include: q => q
             .Include(p => p.Dimensions)
             .Include(p => p.Images)
+            .Include(p => p.ContentBlocks)
             .Include(p => p.Tags)
             .Include(p => p.Suppliers)
             .Include(p => p.Batches)
@@ -131,12 +135,15 @@ public class ProductService : IProductService
         ReplaceAttributes(product, dto.Attributes);
         ReplaceAttributeValues(product, dto.AttributeValues);
         ReplaceVariants(product, dto.Variants);
+        await ReplaceContentBlocksAsync(product, dto.ContentBlocks);
 
         await ApplyStorageUsageAsync((dto.Stock?.Quantity ?? 0) - oldStockQuantity, resolvedLocation);
         await _unitOfWork.Products.UpdateAsync(product);
         await _unitOfWork.SaveChangesAsync();
 
-        return _mapper.Map<ProductDto>(product);
+        var productDto = _mapper.Map<ProductDto>(product);
+        await ConvertProductImagesToBase64Async(productDto);
+        return productDto;
     }
 
     public async Task DeleteProductAsync(int id)
@@ -196,7 +203,8 @@ public class ProductService : IProductService
         .Include(product => product.Brand)
         .Include(product => product.Batches)
         .Include(product => product.Stocks)
-        .Include(product => product.Images);
+        .Include(product => product.Images)
+        .Include(product => product.ContentBlocks);
 
     private async Task<HashSet<int>> GetCategoryAndChildIdsByNameAsync(string categoryName)
     {
@@ -309,6 +317,7 @@ public class ProductService : IProductService
     private async Task ConvertProductImagesToBase64Async(ProductDto product, bool includeCoverImage = true)
     {
         product.Images = await ConvertStoredImagesToBase64Async(product.Images);
+        await ConvertContentBlockImagesToBase64Async(product.ContentBlocks);
         product.CoverImage = includeCoverImage
             ? await ConvertStoredImageToBase64Async(product.CoverImage)
             : string.Empty;
@@ -343,6 +352,12 @@ public class ProductService : IProductService
 
         var converted = await Task.WhenAll(conversionTasks);
         return converted.Where(image => !string.IsNullOrWhiteSpace(image)).ToList();
+    }
+
+    private async Task ConvertContentBlockImagesToBase64Async(IEnumerable<ProductContentBlockDto> blocks)
+    {
+        foreach (var block in blocks.Where(block => !string.IsNullOrWhiteSpace(block.Image)))
+            block.Image = await ConvertStoredImageToBase64Async(block.Image);
     }
 
     private static void ApplyProductScalars(Product product, CreateProductRequest dto, (int? SpaceId, int? ZoneId, int? ShelfId, Shelf? Shelf) resolvedLocation)
@@ -411,6 +426,36 @@ public class ProductService : IProductService
                 ImageUrl = imageUrl,
                 IsPrimary = string.Equals(image, coverImage, StringComparison.OrdinalIgnoreCase) ||
                             string.Equals(imageUrl, coverImage, StringComparison.OrdinalIgnoreCase)
+            });
+        }
+    }
+
+    private async Task ReplaceContentBlocksAsync(Product product, List<ProductContentBlockDto>? contentBlocks)
+    {
+        product.ContentBlocks.Clear();
+        if (contentBlocks == null)
+            return;
+
+        foreach (var (block, index) in contentBlocks.Select((block, index) => (block, index)))
+        {
+            var type = block.Type?.Trim().ToLowerInvariant();
+            if (type is not ("heading" or "paragraph" or "image"))
+                throw new InvalidOperationException("Product content block type must be heading, paragraph, or image.");
+
+            var imageUrl = string.IsNullOrWhiteSpace(block.Image)
+                ? null
+                : block.Image.StartsWith("data:", StringComparison.OrdinalIgnoreCase)
+                    ? await _imageHelper.SaveBase64Image(block.Image, "images/products/introduction", "product-introduction")
+                    : block.Image;
+
+            product.ContentBlocks.Add(new ProductContentBlock
+            {
+                ClientId = string.IsNullOrWhiteSpace(block.Id) ? Guid.NewGuid().ToString("N") : block.Id,
+                Type = type,
+                Text = block.Text,
+                ImageUrl = imageUrl,
+                Caption = block.Caption,
+                SortOrder = block.SortOrder ?? index
             });
         }
     }

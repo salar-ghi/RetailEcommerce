@@ -24,6 +24,7 @@ public class ProductMappingProfile : Profile
             .ForMember(d => d.Prices, o => o.MapFrom(s => s.Batches))
             .ForMember(d => d.AttributeValues, o => o.MapFrom(s => s.AttributeValues))
             .ForMember(d => d.Variants, o => o.MapFrom(s => s.VariantDefinitions))
+            .ForMember(d => d.ContentBlocks, o => o.MapFrom(s => s.ContentBlocks.OrderBy(block => block.SortOrder)))
             .ForMember(d => d.SalesUnit, o => o.MapFrom(s => string.IsNullOrWhiteSpace(s.SalesUnitMode) ? null : new SalesUnitConfigDto
             {
                 Mode = s.SalesUnitMode!,
@@ -61,6 +62,9 @@ public class ProductMappingProfile : Profile
         CreateMap<ProductStock, ProductStockDto>().ReverseMap();
         CreateMap<ProductVariant, ProductVariantDto>().ReverseMap();
         CreateMap<ProductImage, ProductImageDto>().ReverseMap();
+        CreateMap<ProductContentBlock, ProductContentBlockDto>()
+            .ForMember(d => d.Id, o => o.MapFrom(s => s.ClientId ?? s.Id.ToString()))
+            .ForMember(d => d.Image, o => o.MapFrom(s => s.ImageUrl));
         CreateMap<ProductSupplier, ProductSupplierDto>().ReverseMap();
         CreateMap<ProductTag, ProductTagDto>().ReverseMap();
         CreateMap<ProductUnitPrice, ProductUnitPriceDto>().ReverseMap();
