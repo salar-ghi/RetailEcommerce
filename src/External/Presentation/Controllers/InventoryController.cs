@@ -115,11 +115,8 @@ public class InventoryController : ControllerBase
     }
 
     [HttpGet("inputs")]
-    public async Task<IActionResult> GetInputs(
-        [FromQuery] long? productId,
-        [FromQuery] int? supplierId,
-        [FromQuery] DateTime? from,
-        [FromQuery] DateTime? to)
+    public async Task<IActionResult> GetInputs([FromQuery] long? productId, [FromQuery] int? supplierId,
+        [FromQuery] DateTime? from, [FromQuery] DateTime? to)
     {
         return Ok(await _inventoryService.GetInputsAsync(productId, supplierId, from, to));
     }
