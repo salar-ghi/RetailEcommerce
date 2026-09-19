@@ -49,10 +49,15 @@ public class ImageHelper : IImageHelper
 
     public async Task<string> SaveBase64Image(string dataUrl, string subFolder, string imagePrefix)
     {
-        var parsedImage = ParseBase64Image(dataUrl);
+        var parsedImage = await ParseBase64ImageAsync(dataUrl);
         if (parsedImage == null)
             return null;
 
+        return await SaveParsedImageAsync(parsedImage, subFolder, imagePrefix);
+    }
+
+    private async Task<string> SaveParsedImageAsync(ParsedImage parsedImage, string subFolder, string imagePrefix)
+    {
         string folderPath = Path.Combine(_env.ContentRootPath, subFolder);
         if (!Directory.Exists(folderPath))
         {
@@ -88,7 +93,7 @@ public class ImageHelper : IImageHelper
         string subFolder,
         string imagePrefix)
     {
-        var parsedImage = ParseBase64Image(dataUrl);
+        var parsedImage = await ParseBase64ImageAsync(dataUrl);
         if (parsedImage == null)
             return existingImageUrl;
 
@@ -98,7 +103,7 @@ public class ImageHelper : IImageHelper
             return existingImageUrl;
         }
 
-        return await SaveBase64Image(dataUrl, subFolder, imagePrefix);
+        return await SaveParsedImageAsync(parsedImage, subFolder, imagePrefix);
     }
 
 
@@ -146,7 +151,7 @@ public class ImageHelper : IImageHelper
         return $"data:{mime};base64,{base64}";
     }
 
-    private static ParsedImage? ParseBase64Image(string dataUrl)
+    private static async Task<ParsedImage?> ParseBase64ImageAsync(string dataUrl)
     {
         if (string.IsNullOrWhiteSpace(dataUrl))
             return null;
@@ -166,7 +171,7 @@ public class ImageHelper : IImageHelper
         var mimeType = match.Groups["mime"].Value.ToLowerInvariant();
         var base64 = match.Groups["data"].Value;
 
-        if (!SupportedImageExtensions.TryGetValue(mimeType, out var extension))
+        if (!SupportedImageExtensions.ContainsKey(mimeType))
         {
             throw new ArgumentException(
                 $"Unsupported image type '{mimeType}'. Supported image types are: {string.Join(", ", SupportedImageExtensions.Keys.OrderBy(type => type))}.");
@@ -182,7 +187,32 @@ public class ImageHelper : IImageHelper
             throw new ArgumentException("Invalid base64 image content.", ex);
         }
 
-        return new ParsedImage(imageBytes, extension, ComputeHash(imageBytes));
+        var normalizedImage = await ConvertToWebpIfNeededAsync(imageBytes);
+        return new ParsedImage(normalizedImage.Bytes, normalizedImage.Extension, ComputeHash(normalizedImage.Bytes));
+    }
+
+    /// <summary>
+    /// Normalizes uploaded raster images to WebP. The decoded image format is used instead of
+    /// the data URL MIME type, because the MIME type is client-provided and can be inaccurate.
+    /// </summary>
+    private static async Task<(byte[] Bytes, string Extension)> ConvertToWebpIfNeededAsync(byte[] imageBytes)
+    {
+        try
+        {
+            await using var input = new MemoryStream(imageBytes);
+            using var image = await Image.LoadAsync(input);
+
+            if (string.Equals(image.Metadata.DecodedImageFormat?.Name, "WEBP", StringComparison.OrdinalIgnoreCase))
+                return (imageBytes, ".webp");
+
+            await using var output = new MemoryStream();
+            await image.SaveAsync(output, new SixLabors.ImageSharp.Formats.Webp.WebpEncoder());
+            return (output.ToArray(), ".webp");
+        }
+        catch (UnknownImageFormatException ex)
+        {
+            throw new ArgumentException("The base64 content is not a supported raster image.", ex);
+        }
     }
 
     private async Task<string?> FindExistingImagePathAsync(
