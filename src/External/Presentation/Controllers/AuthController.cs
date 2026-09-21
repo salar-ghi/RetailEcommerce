@@ -50,7 +50,7 @@ public class AuthController : ControllerBase
             });
         }
 
-        return Ok(ApiResponse<object>.Ok(new { Token = result.JwtToken, RefreshToken = result.RefreshToken }, "Login completed successfully.", HttpContext.TraceIdentifier));
+        return Ok(ApiResponse<object>.Ok(new { Token = result.JwtToken, RefreshToken = result.RefreshToken, User = result.User }, "Login completed successfully.", HttpContext.TraceIdentifier));
     }
 
     [HttpPost("refresh")]

@@ -161,7 +161,7 @@ public class UserService : IUserService
 
     public async Task<AuthResult> AuthenticateAsync(LoginDto dto)
     {
-        var user = await _unitOfWork.Users.GetByAsync(u => u.PhoneNumber == dto.PhoneNumber);
+        var user = await _unitOfWork.Users.GetByPhonenumberWithRolesAsync(dto.PhoneNumber);
         if (user == null || !_passwordHasher.VerifyPassword(dto.Password, user.PasswordHash))
         {
             return AuthResult.Failure("Invalid credentials");
@@ -176,7 +176,9 @@ public class UserService : IUserService
         await _unitOfWork.Users.UpdateAsync(user);
         await _unitOfWork.SaveChangesAsync();
 
-        return AuthResult.Success(jwtToken, refreshToken);
+        var userDto = _mapper.Map<UserDto>(user);
+
+        return AuthResult.Success(jwtToken, refreshToken, userDto);
     }
 
     public async Task<User> ValidateRefreshTokenAsync(string refreshToken)

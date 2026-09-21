@@ -3,6 +3,7 @@ namespace Presentation.Controllers;
 /// <summary>Admin dashboard analytics. Every endpoint accepts range, categoryId, and brandId.</summary>
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = "Admin, Analytics, Developer")]
 public sealed class AnalyticsController : ControllerBase
 {
     private readonly IAnalyticsService _analyticsService;
