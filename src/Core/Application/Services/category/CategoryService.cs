@@ -39,23 +39,18 @@ public class CategoryService
 
     public async Task<List<CategoryDto>> GetCategoriesWithProductCount()
     {
-        List<CategoryDto> categoryDto = new List<CategoryDto>();
         var categories = await _unitOfWork.Categories.GetAllAsync();
-        foreach (var category in categories) 
+        var productCounts = await _unitOfWork.Products.GetProductCountsGroupedByCategoryAsync();
+
+        return categories.Select(category => new CategoryDto
         {
-            CategoryDto dto = new CategoryDto();
-            var products = await _unitOfWork.Products.GetProductsByCategoryAsync(category.Id);
-
-            dto.Id = category.Id;
-            dto.Name = category.Name;
-            dto.Description = category.Description;
-            dto.ParentId = category.ParentId;
-            dto.ProductCount = products.Count();
-            dto.CreatedAt = category.CreatedTime;
-
-            categoryDto.Add(dto);
-        }
-        return categoryDto;
+            Id = category.Id,
+            Name = category.Name,
+            Description = category.Description,
+            ParentId = category.ParentId,
+            ProductCount = productCounts.TryGetValue(category.Id, out var count) ? count : 0,
+            CreatedAt = category.CreatedTime
+        }).ToList();
     }
 
     public async Task<CategoryDto> GetCategoryByIdAsync(int id)
