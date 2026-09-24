@@ -244,9 +244,9 @@ public class BannerService : IBannerService
             .Where(map => !map.IsDeleted && !requestedPlacementIdSet.Contains(map.PlacementId))
             .ToList();
 
-        foreach (var map in mapsToRemove)
+        if (mapsToRemove.Count > 0)
         {
-            await _unitOfWork.BannerPlacementMaps.DeleteAsync(map);
+            await _unitOfWork.BannerPlacementMaps.DeleteRangeAsync(mapsToRemove);
         }
 
         var placementIdsToAdd = requestedPlacementIds
