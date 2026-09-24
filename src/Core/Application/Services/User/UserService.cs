@@ -173,7 +173,6 @@ public class UserService : IUserService
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays);
         user.LastLoginTime = DateTime.UtcNow;
 
-        await _unitOfWork.Users.UpdateAsync(user);
         await _unitOfWork.SaveChangesAsync();
 
         var userDto = _mapper.Map<UserDto>(user);
