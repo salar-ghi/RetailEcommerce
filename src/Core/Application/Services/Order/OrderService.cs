@@ -39,6 +39,7 @@ public class OrderService : IOrderService
         };
 
         await _unitOfWork.Orders.AddAsync(order);
+        await DeductInventoryForOrderAsync(order.Items);
         await _unitOfWork.SaveChangesAsync();
 
         var orderDto = _mapper.Map<OrderDto>(order);
@@ -71,6 +72,7 @@ public class OrderService : IOrderService
         };
 
         await _unitOfWork.Orders.AddAsync(order);
+        await DeductInventoryForOrderAsync(order.Items);
         await _unitOfWork.SaveChangesAsync();
         await SyncPaymentsToFinanceAsync(order, request.Payments);
 
@@ -213,4 +215,70 @@ public class OrderService : IOrderService
     private static string NormalizeBranchId(string? branchId) => string.IsNullOrWhiteSpace(branchId) ? DefaultBranchId : branchId.Trim();
     private static string NormalizeFinanceAccountId(string? financeAccountId) => string.IsNullOrWhiteSpace(financeAccountId) ? DefaultFinanceAccountId : financeAccountId.Trim();
     private static string NormalizeTransactionId(string? transactionId) => string.IsNullOrWhiteSpace(transactionId) ? string.Empty : transactionId.Trim();
+
+    private async Task DeductInventoryForOrderAsync(IEnumerable<OrderItem> items)
+    {
+        foreach (var item in items)
+        {
+            var remainingQtyNeeded = (int)Math.Ceiling(item.Quantity);
+            if (remainingQtyNeeded <= 0) continue;
+
+            var stocks = await _unitOfWork.ProductStocks.GetAllAsync(q => q
+                .Where(s => s.ProductId == item.ProductId && s.Quantity > 0)
+                .Include(s => s.ProductInventoryBatch)
+                .Include(s => s.Space)
+                .Include(s => s.Shelf));
+
+            var orderedStocks = stocks.OrderBy(s =>
+            {
+                if (item.ShelfId.HasValue && s.ShelfId == item.ShelfId.Value) return 0;
+                if (item.SpaceId.HasValue && s.SpaceId == item.SpaceId.Value) return 1;
+                return 2;
+            }).ThenBy(s => s.CreatedTime);
+
+            var totalAvailable = stocks.Sum(s => s.AvailableQuantity);
+            if (totalAvailable < remainingQtyNeeded)
+            {
+                var product = await _unitOfWork.Products.GetByIdAsync(item.ProductId);
+                var productName = product?.Name ?? $"ID {item.ProductId}";
+                throw new InvalidOperationException($"Insufficient inventory for product '{productName}'. Available stock: {totalAvailable}, requested: {remainingQtyNeeded}.");
+            }
+
+            foreach (var stock in orderedStocks)
+            {
+                if (remainingQtyNeeded <= 0) break;
+
+                var qtyFromThisStock = Math.Min(remainingQtyNeeded, stock.Quantity);
+                stock.Quantity -= qtyFromThisStock;
+                remainingQtyNeeded -= qtyFromThisStock;
+
+                if (stock.ProductInventoryBatch != null)
+                {
+                    stock.ProductInventoryBatch.SoldQuantity += qtyFromThisStock;
+                }
+
+                if (stock.SpaceId.HasValue)
+                {
+                    var space = stock.Space ?? await _unitOfWork.StorageSpaces.GetByIdAsync(stock.SpaceId.Value);
+                    if (space != null)
+                    {
+                        space.Used = Math.Max(0, space.Used - qtyFromThisStock);
+                        await _unitOfWork.StorageSpaces.UpdateAsync(space);
+                    }
+                }
+
+                if (stock.ShelfId.HasValue)
+                {
+                    var shelf = stock.Shelf ?? await _unitOfWork.Shelves.GetByIdAsync(stock.ShelfId.Value);
+                    if (shelf != null)
+                    {
+                        shelf.Used = Math.Max(0, shelf.Used - qtyFromThisStock);
+                        await _unitOfWork.Shelves.UpdateAsync(shelf);
+                    }
+                }
+
+                await _unitOfWork.ProductStocks.UpdateAsync(stock);
+            }
+        }
+    }
 }

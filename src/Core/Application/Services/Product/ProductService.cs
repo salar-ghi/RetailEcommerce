@@ -661,19 +661,30 @@ public class ProductService : IProductService
         if (quantityDelta == 0)
             return;
 
+        StorageSpace? space = null;
         if (resolvedLocation.SpaceId.HasValue)
         {
-            var space = await _unitOfWork.StorageSpaces.GetByIdAsync(resolvedLocation.SpaceId.Value);
-            if (space != null)
+            space = await _unitOfWork.StorageSpaces.GetByIdAsync(resolvedLocation.SpaceId.Value);
+            if (space != null && quantityDelta > 0 && space.Capacity > 0 && space.Used + quantityDelta > space.Capacity)
             {
-                space.Used += quantityDelta;
-                await _unitOfWork.StorageSpaces.UpdateAsync(space);
+                throw new InvalidOperationException($"Storage space '{space.Name}' capacity limit reached. Available capacity: {space.Capacity - space.Used}, requested: {quantityDelta}.");
             }
+        }
+
+        if (resolvedLocation.Shelf != null && quantityDelta > 0 && resolvedLocation.Shelf.Capacity > 0 && resolvedLocation.Shelf.Used + quantityDelta > resolvedLocation.Shelf.Capacity)
+        {
+            throw new InvalidOperationException($"Shelf '{resolvedLocation.Shelf.Name ?? resolvedLocation.Shelf.Code}' capacity limit reached. Available capacity: {resolvedLocation.Shelf.Capacity - resolvedLocation.Shelf.Used}, requested: {quantityDelta}.");
+        }
+
+        if (space != null)
+        {
+            space.Used = Math.Max(0, space.Used + quantityDelta);
+            await _unitOfWork.StorageSpaces.UpdateAsync(space);
         }
 
         if (resolvedLocation.Shelf != null)
         {
-            resolvedLocation.Shelf.Used += quantityDelta;
+            resolvedLocation.Shelf.Used = Math.Max(0, resolvedLocation.Shelf.Used + quantityDelta);
             await _unitOfWork.Shelves.UpdateAsync(resolvedLocation.Shelf);
         }
     }

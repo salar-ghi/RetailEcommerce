@@ -280,14 +280,25 @@ public class InventoryService : IInventoryService
         product.StorageLocationNote = dto.LocationNote ?? product.StorageLocationNote;
         await _unitOfWork.Products.UpdateAsync(product);
 
+        StorageSpace space = null;
         if (resolvedSpaceId.HasValue)
         {
-            var space = await _unitOfWork.StorageSpaces.GetByIdAsync(resolvedSpaceId.Value);
-            if (space != null)
+            space = await _unitOfWork.StorageSpaces.GetByIdAsync(resolvedSpaceId.Value);
+            if (space != null && space.Capacity > 0 && space.Used + dto.Quantity > space.Capacity)
             {
-                space.Used += dto.Quantity;
-                await _unitOfWork.StorageSpaces.UpdateAsync(space);
+                throw new InvalidOperationException($"Storage space '{space.Name}' capacity limit reached. Available capacity: {space.Capacity - space.Used}, requested: {dto.Quantity}.");
             }
+        }
+
+        if (shelf != null && shelf.Capacity > 0 && shelf.Used + dto.Quantity > shelf.Capacity)
+        {
+            throw new InvalidOperationException($"Shelf '{shelf.Name ?? shelf.Code}' capacity limit reached. Available capacity: {shelf.Capacity - shelf.Used}, requested: {dto.Quantity}.");
+        }
+
+        if (space != null)
+        {
+            space.Used += dto.Quantity;
+            await _unitOfWork.StorageSpaces.UpdateAsync(space);
         }
 
         if (shelf != null)
