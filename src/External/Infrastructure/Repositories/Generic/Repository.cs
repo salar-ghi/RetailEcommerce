@@ -33,6 +33,11 @@ public class Repository<T, TId> : IRepository<T, TId> where T : BaseModel<TId>
     public IQueryable<T> GetAll(Expression<Func<T, bool>> predicate) => _context.Set<T>().AsNoTracking().Where(predicate);
     public async Task UpdateAsync(T entity) => _context.Set<T>().Update(entity);
     public async Task DeleteAsync(T entity) => _context.Set<T>().Remove(entity);
+    public async Task DeleteRangeAsync(IEnumerable<T> entities)
+    {
+        _context.Set<T>().RemoveRange(entities);
+        await Task.CompletedTask;
+    }
     public async Task<T> GetSingleAsync(Expression<Func<T, bool>> predicate) => await _context.Set<T>().FirstOrDefaultAsync(predicate);
     public async Task<T> GetByAsync(Func<T, bool> predicate) => await Task.FromResult(_context.Set<T>().FirstOrDefault(predicate));
 }
