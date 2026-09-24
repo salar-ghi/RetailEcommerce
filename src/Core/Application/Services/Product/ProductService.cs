@@ -316,21 +316,23 @@ public class ProductService : IProductService
 
     private async Task ConvertProductImagesToBase64Async(ProductDto product, bool includeCoverImage = true)
     {
-        product.Images = await ConvertStoredImagesToBase64Async(product.Images);
-        await ConvertContentBlockImagesToBase64Async(product.ContentBlocks);
-        product.CoverImage = includeCoverImage
-            ? await ConvertStoredImageToBase64Async(product.CoverImage)
-            : string.Empty;
+        var imagesTask = ConvertStoredImagesToBase64Async(product.Images);
+        var contentBlocksTask = ConvertContentBlockImagesToBase64Async(product.ContentBlocks);
+        var coverImageTask = includeCoverImage
+            ? ConvertStoredImageToBase64Async(product.CoverImage)
+            : Task.FromResult(string.Empty);
+
+        await Task.WhenAll(imagesTask, contentBlocksTask, coverImageTask);
+
+        product.Images = await imagesTask;
+        product.CoverImage = await coverImageTask;
     }
 
     private async Task<IEnumerable<ProductDto>> ConvertProductsImagesToBase64Async(IEnumerable<ProductDto> products)
     {
         var productList = products.ToList();
 
-        foreach (var product in productList)
-        {
-            await ConvertProductImagesToBase64Async(product);
-        }
+        await Task.WhenAll(productList.Select(product => ConvertProductImagesToBase64Async(product)));
 
         return productList;
     }
@@ -356,8 +358,11 @@ public class ProductService : IProductService
 
     private async Task ConvertContentBlockImagesToBase64Async(IEnumerable<ProductContentBlockDto> blocks)
     {
-        foreach (var block in blocks.Where(block => !string.IsNullOrWhiteSpace(block.Image)))
-            block.Image = await ConvertStoredImageToBase64Async(block.Image);
+        var conversionTasks = blocks
+            .Where(block => !string.IsNullOrWhiteSpace(block.Image))
+            .Select(async block => block.Image = await ConvertStoredImageToBase64Async(block.Image));
+
+        await Task.WhenAll(conversionTasks);
     }
 
     private static void ApplyProductScalars(Product product, CreateProductRequest dto, (int? SpaceId, int? ZoneId, int? ShelfId, Shelf? Shelf) resolvedLocation)
