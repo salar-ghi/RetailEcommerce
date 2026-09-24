@@ -44,9 +44,15 @@ public sealed class FinanceService : IFinanceService
             ("5300", "Cost of Goods Sold", LedgerAccountType.Expense, LedgerAccountNormalBalance.Debit)
         };
 
+        var existingAccountCodes = (await _unitOfWork.Finance.ChartOfAccounts
+            .Where(x => x.TenantId == FinanceDefaults.TenantId)
+            .Select(x => x.Code)
+            .ToListAsync(cancellationToken))
+            .ToHashSet();
+
         foreach (var account in accounts)
         {
-            if (!await _unitOfWork.Finance.ChartOfAccounts.AnyAsync(x => x.TenantId == FinanceDefaults.TenantId && x.Code == account.Item1, cancellationToken))
+            if (!existingAccountCodes.Contains(account.Item1))
             {
                 await _unitOfWork.Finance.AddChartOfAccountAsync(new ChartOfAccount
                 {
@@ -62,6 +68,8 @@ public sealed class FinanceService : IFinanceService
                     CreatedTime = DateTime.UtcNow,
                     ModifiedTime = DateTime.UtcNow
                 }, cancellationToken);
+
+                existingAccountCodes.Add(account.Item1);
             }
         }
 
