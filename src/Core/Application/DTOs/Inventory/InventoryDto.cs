@@ -119,6 +119,8 @@ public class InventoryInputDto : CreateInventoryStockDto
     public decimal? SellingPrice { get; set; }
     public decimal? SalePrice { get; set; }
     public string Currency { get; set; }
+    // Defaults to the standard customer-facing price when the client does not select a tier.
+    public string PricingTier { get; set; } = "retail";
     public int? SupplierId { get; set; }
     public DateTime? ReceivedDate { get; set; }
     public DateTime? ExpiryDate { get; set; }
@@ -136,6 +138,7 @@ public class StockInputDto
     public decimal CostPrice { get; set; }
     public decimal SalePrice { get; set; }
     public string Currency { get; set; }
+    public string PricingTier { get; set; }
     public int? SupplierId { get; set; }
     public string SupplierName { get; set; }
     public int? SpaceId { get; set; }
