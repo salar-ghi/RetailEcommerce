@@ -178,14 +178,44 @@ public class OrderService : IOrderService
 
     private async Task SyncPaymentsToFinanceAsync(Order order, IEnumerable<OrderPaymentSplitDto> splits)
     {
-        foreach (var split in splits.Where(s => !IsCredit(s.Method) && s.Status == PaymentStatus.Completed))
-            await _financeService.RecordOrderPaymentAsync(new RecordOrderFinanceDto { OrderId = order.Id, FinanceAccountId = NormalizeFinanceAccountId(split.FinanceAccountId), BranchId = NormalizeBranchId(split.BranchId), PaymentMethod = MapFinanceMethod(split.Method), CounterpartyId = order.CustomerId, CounterpartyName = order.Customer?.FirstName });
+        var dtos = splits
+            .Where(s => !IsCredit(s.Method) && s.Status == PaymentStatus.Completed)
+            .Select(split => new RecordOrderFinanceDto
+            {
+                OrderId = order.Id,
+                FinanceAccountId = NormalizeFinanceAccountId(split.FinanceAccountId),
+                BranchId = NormalizeBranchId(split.BranchId),
+                PaymentMethod = MapFinanceMethod(split.Method),
+                CounterpartyId = order.CustomerId,
+                CounterpartyName = order.Customer?.FirstName
+            })
+            .ToList();
+
+        if (dtos.Count > 0)
+        {
+            await _financeService.RecordOrderPaymentsAsync(dtos);
+        }
     }
 
     private async Task SyncRefundsToFinanceAsync(Order order, CreateReturnRequest request)
     {
-        foreach (var refund in request.Refunds.Where(s => !IsCredit(s.Method)))
-            await _financeService.RecordOrderPaymentAsync(new RecordOrderFinanceDto { OrderId = order.Id, FinanceAccountId = NormalizeFinanceAccountId(refund.FinanceAccountId), BranchId = NormalizeBranchId(refund.BranchId), PaymentMethod = MapFinanceMethod(refund.Method), CounterpartyId = order.CustomerId, CounterpartyName = order.Customer?.FirstName });
+        var dtos = request.Refunds
+            .Where(s => !IsCredit(s.Method))
+            .Select(refund => new RecordOrderFinanceDto
+            {
+                OrderId = order.Id,
+                FinanceAccountId = NormalizeFinanceAccountId(refund.FinanceAccountId),
+                BranchId = NormalizeBranchId(refund.BranchId),
+                PaymentMethod = MapFinanceMethod(refund.Method),
+                CounterpartyId = order.CustomerId,
+                CounterpartyName = order.Customer?.FirstName
+            })
+            .ToList();
+
+        if (dtos.Count > 0)
+        {
+            await _financeService.RecordOrderPaymentsAsync(dtos);
+        }
     }
 
     private static PaymentMethod ParsePaymentMethod(string method) => Enum.TryParse<PaymentMethod>(method, true, out var parsed) ? parsed : PaymentMethod.OnlineGateway;

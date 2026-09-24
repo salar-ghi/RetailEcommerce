@@ -19,7 +19,7 @@ public class Order : BaseModel<string>
     public ShippingAddress ShippingAddress { get; set; } = new ShippingAddress();
 
     [Timestamp]
-    public byte[] RowVersion { get; set; }
+    public byte[] RowVersion { get; set; } = Array.Empty<byte>();
     public DateTime? PaymentDate { get; set; }
     public DateTime? ShippingDate { get; set; }
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();

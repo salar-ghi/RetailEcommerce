@@ -18,4 +18,5 @@ public interface IFinanceService
     Task<IReadOnlyList<CashFlowPointDto>> GetCashFlowAsync(string tenantId = FinanceDefaults.TenantId, int days = 14, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<BranchPerformanceDto>> GetBranchPerformanceAsync(string tenantId = FinanceDefaults.TenantId, DateTime? from = null, DateTime? to = null, CancellationToken cancellationToken = default);
     Task<FinancialTransactionDto> RecordOrderPaymentAsync(RecordOrderFinanceDto request, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<FinancialTransactionDto>> RecordOrderPaymentsAsync(IEnumerable<RecordOrderFinanceDto> requests, CancellationToken cancellationToken = default);
 }

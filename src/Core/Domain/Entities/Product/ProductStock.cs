@@ -35,5 +35,5 @@ public class ProductStock : BaseModel<long>
 
 
     [Timestamp]
-    public byte[] RowVersion { get; set; } // Concurrency
+    public byte[] RowVersion { get; set; } = Array.Empty<byte>(); // Concurrency
 }
