@@ -4,6 +4,7 @@ namespace Presentation.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = "Admin, Marketing, Developer")]
 public class PromotionController : ControllerBase
 {
     private readonly IPromotionService _promotionService;

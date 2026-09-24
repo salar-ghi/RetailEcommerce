@@ -18,10 +18,16 @@ public class JwtTokenGenerator : IJwtTokenGenerator
             new Claim(ClaimTypes.Name, user.PhoneNumber),
         };
 
-        //foreach (var role in user.UserRoles)
-        //{
-        //    claims.Add(new Claim(ClaimTypes.Role, role.Role));
-        //}
+        if (user.UserRoles != null)
+        {
+            foreach (var userRole in user.UserRoles)
+            {
+                if (userRole.Role != null && !string.IsNullOrEmpty(userRole.Role.Name))
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
+                }
+            }
+        }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

@@ -33,6 +33,14 @@ public class UserRepository : Repository<User, string>, IUserRepository
             .FirstOrDefaultAsync();
     }
 
+    public async Task<User> GetByPhonenumberWithRolesAsync(string phonenum)
+    {
+        return await _context.Users
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .FirstOrDefaultAsync(u => u.PhoneNumber == phonenum);
+    }
+
     public async Task<User> GetByRefreshTokenAsync(string refreshToken)
     {
         return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);

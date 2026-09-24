@@ -6,6 +6,7 @@ public interface IUserRepository : IRepository<User, string>
     Task<User> GetByRefreshTokenAsync(string refreshToken);
     Task<User> GetByUsernameAsync(string username);
     Task<User> GetByPhonenumberAsync(string phonenum);
+    Task<User> GetByPhonenumberWithRolesAsync(string phonenum);
     Task<IEnumerable<User>> SearchByEmailAsync(string email);
 
     Task<IEnumerable<User>> GetAllWithRolesAsync();
