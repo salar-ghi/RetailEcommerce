@@ -226,64 +226,6 @@ public class AnalyticsRepository : IAnalyticsRepository
     }
 
     // ═══════════════════════════════════════════════════════════════
-    //                    MOST SEARCHED PRODUCTS
-    // ═══════════════════════════════════════════════════════════════
-
-    //public async Task<List<ProductSearchModel>> GetMostSearchedProductsAsync(int top = 10)
-    //{
-    //    return await _context.ProductSearches
-    //        .Where(s => s.Product.IsActive)
-    //        .GroupBy(s => new
-    //        {
-    //            s.ProductId,
-    //            s.Product.Name,
-    //            s.Product.Category.Name,
-    //            s.Product.Brand.Name
-    //        })
-    //        .Select(g => new ProductSearchModel
-    //        {
-    //            ProductId = g.Key.ProductId,
-    //            ProductName = g.Key.Name,
-    //            CategoryName = g.Key.Name,
-    //            BrandName = g.Key.Brand.Name,
-    //            SearchCount = g.Count(),
-    //            UniqueUsers = g.Select(s => s.UserId).Distinct().Count()
-    //        })
-    //        .OrderByDescending(x => x.SearchCount)
-    //        .Take(top)
-    //        .AsNoTracking()
-    //        .ToListAsync();
-    //}
-
-    //public async Task<List<ProductSearchModel>> GetMostSearchedProductsInCategoryAsync(
-    //    string categoryName,
-    //    int top = 10)
-    //{
-    //    return await _context.ProductSearches
-    //        .Where(s => s.Product.Category.Name == categoryName && s.Product.IsActive)
-    //        .GroupBy(s => new
-    //        {
-    //            s.ProductId,
-    //            s.Product.Name,
-    //            s.Product.Category.Name,
-    //            s.Product.Brand.Name
-    //        })
-    //        .Select(g => new ProductSearchModel
-    //        {
-    //            ProductId = g.Key.ProductId,
-    //            ProductName = g.Key.Name,
-    //            CategoryName = g.Key.Name,
-    //            BrandName = g.Key.Brand.Name,
-    //            SearchCount = g.Count(),
-    //            UniqueUsers = g.Select(s => s.UserId).Distinct().Count()
-    //        })
-    //        .OrderByDescending(x => x.SearchCount)
-    //        .Take(top)
-    //        .AsNoTracking()
-    //        .ToListAsync();
-    //}
-
-    // ═══════════════════════════════════════════════════════════════
     //                    SALES BY TIMEFRAME - DAILY
     // ═══════════════════════════════════════════════════════════════
 

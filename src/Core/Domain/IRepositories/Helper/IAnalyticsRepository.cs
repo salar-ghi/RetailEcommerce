@@ -17,10 +17,6 @@ public interface IAnalyticsRepository
     Task<List<ProductModel>> GetCheapestProductsAsync(int top = 10);
     Task<List<ProductModel>> GetCheapestProductsInCategoryAsync(string categoryName, int top = 10);
 
-    // ==================== MOST SEARCHED ====================
-    //Task<List<ProductSearchModel>> GetMostSearchedProductsAsync(int top = 10);
-    //Task<List<ProductSearchModel>> GetMostSearchedProductsInCategoryAsync(string categoryName, int top = 10);
-
     // ==================== SALES BY TIMEFRAME ====================
     Task<List<ProductSalesModel>> GetTopSellingProductsDailyAsync(DateTime date, int top = 10);
     Task<List<ProductSalesModel>> GetTopSellingProductsWeeklyAsync(DateTime weekStart, int top = 10);
