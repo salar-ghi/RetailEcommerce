@@ -151,6 +151,38 @@ public class ImageHelper : IImageHelper
         return $"data:{mime};base64,{base64}";
     }
 
+    public async Task<IReadOnlyDictionary<string, string>> GetImagesBase64Async(IEnumerable<string> imageUrls)
+    {
+        var distinctUrls = imageUrls?
+            .Where(url => !string.IsNullOrWhiteSpace(url))
+            .Distinct()
+            .ToList() ?? new List<string>();
+
+        if (distinctUrls.Count == 0)
+        {
+            return new Dictionary<string, string>();
+        }
+
+        var tasks = distinctUrls.Select(async url =>
+        {
+            var base64 = await GetImageBase64(url);
+            return (Url: url, Base64: base64);
+        });
+
+        var results = await Task.WhenAll(tasks);
+
+        var dict = new Dictionary<string, string>(distinctUrls.Count);
+        foreach (var res in results)
+        {
+            if (res.Base64 != null)
+            {
+                dict[res.Url] = res.Base64;
+            }
+        }
+
+        return dict;
+    }
+
     private static async Task<ParsedImage?> ParseBase64ImageAsync(string dataUrl)
     {
         if (string.IsNullOrWhiteSpace(dataUrl))

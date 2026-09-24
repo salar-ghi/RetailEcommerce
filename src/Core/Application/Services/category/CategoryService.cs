@@ -27,11 +27,17 @@ public class CategoryService
             .ProjectTo<CategoryDetailsDto>(_mapper.ConfigurationProvider)
             .OrderBy(z => z.Name)
             .ToListAsync();
+
+        var imageMap = await _imageHelper.GetImagesBase64Async(
+            categories.Select(dto => dto.Image).Where(img => !string.IsNullOrEmpty(img))!
+        );
+
         foreach (var dto in categories)
         {
             if (string.IsNullOrEmpty(dto.Image))
                 continue;
-            dto.Image = await _imageHelper.GetImageBase64(dto.Image);
+
+            dto.Image = imageMap.TryGetValue(dto.Image, out var base64) ? base64 : null;
         }
         
         return categories;

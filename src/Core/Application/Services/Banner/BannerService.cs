@@ -96,12 +96,15 @@ public class BannerService : IBannerService
     {
         var bannerQuery = await _unitOfWork.Banners
             .GetActiveBannersByPlacementAsync(placementKey);
-        var banners = _mapper.Map<IEnumerable<BannerDto>>(bannerQuery);
+        var banners = _mapper.Map<IEnumerable<BannerDto>>(bannerQuery).ToList();
+        var imageMap = await _imageHelper.GetImagesBase64Async(
+            banners.Select(dto => dto.ImageUrl).Where(img => !string.IsNullOrEmpty(img))!
+        );
         foreach (var dto in banners)
         {
             if (string.IsNullOrEmpty(dto.ImageUrl))
                 continue;
-            dto.ImageUrl = await _imageHelper.GetImageBase64(dto.ImageUrl);
+            dto.ImageUrl = imageMap.TryGetValue(dto.ImageUrl, out var base64) ? base64 : null;
         }
         return banners;
     }

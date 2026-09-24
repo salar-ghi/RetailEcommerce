@@ -21,12 +21,16 @@ public class BrandService
         var brands = await _unitOfWork.Brands.GetAllWithCategoryAsync();
         var brandDtos = _mapper.Map<List<BrandDto>>(brands);
 
+        var imageMap = await _imageHelper.GetImagesBase64Async(
+            brandDtos.Select(dto => dto.Logo).Where(logo => !string.IsNullOrEmpty(logo))!
+        );
+
         foreach (var dto in brandDtos)
         {
             if (string.IsNullOrEmpty(dto.Logo))
                 continue;
 
-            dto.Logo = await _imageHelper.GetImageBase64(dto.Logo);
+            dto.Logo = imageMap.TryGetValue(dto.Logo, out var base64) ? base64 : null;
         }
 
         return brandDtos;
