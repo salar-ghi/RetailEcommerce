@@ -1,34 +1,39 @@
 {
   "format": 1,
   "restore": {
-    "/app/src/External/Presentation/Presentation.csproj": {}
+    "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\External\\Presentation\\Presentation.csproj": {}
   },
   "projects": {
-    "/app/src/Core/Application/Application.csproj": {
+    "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\Core\\Application\\Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/app/src/Core/Application/Application.csproj",
+        "projectUniqueName": "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\Core\\Application\\Application.csproj",
         "projectName": "Application",
-        "projectPath": "/app/src/Core/Application/Application.csproj",
-        "packagesPath": "/home/jules/.nuget/packages/",
-        "outputPath": "/app/src/Core/Application/obj/",
+        "projectPath": "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\Core\\Application\\Application.csproj",
+        "packagesPath": "C:\\Users\\Salar\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\Core\\Application\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "/home/jules/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\Salar\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
-          "/usr/lib/dotnet/library-packs": {},
-          "https://api.nuget.org/v3/index.json": {}
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {}
         },
         "frameworks": {
           "net10.0": {
             "targetAlias": "net10.0",
             "projectReferences": {
-              "/app/src/Core/Domain/Domain.csproj": {
-                "projectPath": "/app/src/Core/Domain/Domain.csproj"
+              "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\Core\\Domain\\Domain.csproj": {
+                "projectPath": "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\Core\\Domain\\Domain.csproj"
               }
             }
           }
@@ -90,7 +95,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.100/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
@@ -368,24 +373,29 @@
         }
       }
     },
-    "/app/src/Core/Domain/Domain.csproj": {
+    "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\Core\\Domain\\Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/app/src/Core/Domain/Domain.csproj",
+        "projectUniqueName": "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\Core\\Domain\\Domain.csproj",
         "projectName": "Domain",
-        "projectPath": "/app/src/Core/Domain/Domain.csproj",
-        "packagesPath": "/home/jules/.nuget/packages/",
-        "outputPath": "/app/src/Core/Domain/obj/",
+        "projectPath": "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\Core\\Domain\\Domain.csproj",
+        "packagesPath": "C:\\Users\\Salar\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\Core\\Domain\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "/home/jules/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\Salar\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
-          "/usr/lib/dotnet/library-packs": {},
-          "https://api.nuget.org/v3/index.json": {}
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {}
         },
         "frameworks": {
           "net10.0": {
@@ -424,7 +434,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.100/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
@@ -702,34 +712,39 @@
         }
       }
     },
-    "/app/src/External/Infrastructure/Infrastructure.csproj": {
+    "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\External\\Infrastructure\\Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/app/src/External/Infrastructure/Infrastructure.csproj",
+        "projectUniqueName": "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\External\\Infrastructure\\Infrastructure.csproj",
         "projectName": "Infrastructure",
-        "projectPath": "/app/src/External/Infrastructure/Infrastructure.csproj",
-        "packagesPath": "/home/jules/.nuget/packages/",
-        "outputPath": "/app/src/External/Infrastructure/obj/",
+        "projectPath": "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\External\\Infrastructure\\Infrastructure.csproj",
+        "packagesPath": "C:\\Users\\Salar\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\External\\Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "/home/jules/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\Salar\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
-          "/usr/lib/dotnet/library-packs": {},
-          "https://api.nuget.org/v3/index.json": {}
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {}
         },
         "frameworks": {
           "net10.0": {
             "targetAlias": "net10.0",
             "projectReferences": {
-              "/app/src/Core/Application/Application.csproj": {
-                "projectPath": "/app/src/Core/Application/Application.csproj"
+              "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\Core\\Application\\Application.csproj": {
+                "projectPath": "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\Core\\Application\\Application.csproj"
               },
-              "/app/src/Core/Domain/Domain.csproj": {
-                "projectPath": "/app/src/Core/Domain/Domain.csproj"
+              "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\Core\\Domain\\Domain.csproj": {
+                "projectPath": "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\Core\\Domain\\Domain.csproj"
               }
             }
           }
@@ -802,7 +817,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.100/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.AspNetCore": "(,10.0.32767]",
             "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",
@@ -1220,31 +1235,36 @@
         }
       }
     },
-    "/app/src/External/Presentation/Presentation.csproj": {
+    "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\External\\Presentation\\Presentation.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/app/src/External/Presentation/Presentation.csproj",
+        "projectUniqueName": "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\External\\Presentation\\Presentation.csproj",
         "projectName": "Presentation",
-        "projectPath": "/app/src/External/Presentation/Presentation.csproj",
-        "packagesPath": "/home/jules/.nuget/packages/",
-        "outputPath": "/app/src/External/Presentation/obj/",
+        "projectPath": "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\External\\Presentation\\Presentation.csproj",
+        "packagesPath": "C:\\Users\\Salar\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\External\\Presentation\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "/home/jules/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\Salar\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
-          "/usr/lib/dotnet/library-packs": {},
-          "https://api.nuget.org/v3/index.json": {}
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {}
         },
         "frameworks": {
           "net10.0": {
             "targetAlias": "net10.0",
             "projectReferences": {
-              "/app/src/External/Infrastructure/Infrastructure.csproj": {
-                "projectPath": "/app/src/External/Infrastructure/Infrastructure.csproj"
+              "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\External\\Infrastructure\\Infrastructure.csproj": {
+                "projectPath": "C:\\Users\\Salar\\Documents\\Business\\market\\RetailEcommerce\\src\\External\\Infrastructure\\Infrastructure.csproj"
               }
             }
           }
@@ -1309,7 +1329,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.100/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.AspNetCore": "(,10.0.32767]",
             "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",
