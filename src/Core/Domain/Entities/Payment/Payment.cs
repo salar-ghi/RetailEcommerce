@@ -15,7 +15,7 @@ public class Payment : BaseModel<string>
     public Supplier Supplier { get; set; }
 
     [Timestamp]
-    public byte[] RowVersion { get; set; }
+    public byte[] RowVersion { get; set; } = Array.Empty<byte>();
     public string OrderId { get; set; } = string.Empty;
     public Order Order { get; set; }
 }

@@ -162,42 +162,7 @@ public sealed class FinanceService : IFinanceService
     public async Task<FinancialTransactionDto> CreateTransactionAsync(CreateFinancialTransactionDto request, CancellationToken cancellationToken = default)
     {
         await EnsureDefaultsAsync(cancellationToken);
-        ValidateTransactionRequest(request);
-
-        var amount = FinanceMoney.Normalize(request.Amount, request.Currency);
-        var status = request.AutoPost ? FinancialTransactionStatus.Completed : FinancialTransactionStatus.PendingApproval;
-        var tx = new FinancialTransaction
-        {
-            Id = Guid.NewGuid().ToString(),
-            TenantId = request.TenantId,
-            Code = await NextTransactionCodeAsync(request.TenantId, cancellationToken),
-            Status = status,
-            SourceDocumentType = request.SourceDocumentType,
-            SourceDocumentId = request.SourceDocumentId,
-            Direction = request.Direction,
-            Amount = amount,
-            Currency = request.Currency,
-            PaymentMethod = request.PaymentMethod,
-            FinanceAccountId = request.FinanceAccountId,
-            BranchId = request.BranchId,
-            CostCenterId = request.CostCenterId,
-            Category = request.Category,
-            CounterpartyId = request.CounterpartyId,
-            CounterpartyName = request.CounterpartyName,
-            Description = request.Description,
-            TransactionDate = request.TransactionDate ?? DateTime.UtcNow,
-            IsAutomated = request.SourceDocumentType != FinanceSourceDocumentType.ManualJournal,
-            CreatedTime = DateTime.UtcNow,
-            ModifiedTime = DateTime.UtcNow
-        };
-
-        await _unitOfWork.Finance.AddTransactionAsync(tx, cancellationToken);
-
-        if (request.AutoPost)
-        {
-            await PostTransactionAsync(tx, null, cancellationToken);
-        }
-
+        var tx = await BuildAndPostTransactionAsync(request, 0, cancellationToken);
         await _unitOfWork.SaveChangesAsync();
         return ToTransactionDto(tx);
     }
@@ -231,7 +196,7 @@ public sealed class FinanceService : IFinanceService
 
         if (tx.Status == FinancialTransactionStatus.Completed)
         {
-            await PostTransactionAsync(tx, null, cancellationToken);
+            await PostTransactionAsync(tx, null, 0, cancellationToken);
         }
 
         await _unitOfWork.SaveChangesAsync();
@@ -252,7 +217,7 @@ public sealed class FinanceService : IFinanceService
         tx.ApprovedOn = DateTime.UtcNow;
         tx.ModifiedTime = DateTime.UtcNow;
         await _unitOfWork.Finance.AddApprovalLogAsync(CreateApprovalLog(tx, request, ApprovalDecision.Approved), cancellationToken);
-        await PostTransactionAsync(tx, request.ApproverUserId, cancellationToken);
+        await PostTransactionAsync(tx, request.ApproverUserId, 0, cancellationToken);
         await _unitOfWork.SaveChangesAsync();
         return ToTransactionDto(tx);
     }
@@ -356,30 +321,60 @@ public sealed class FinanceService : IFinanceService
 
     public async Task<FinancialTransactionDto> RecordOrderPaymentAsync(RecordOrderFinanceDto request, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(request.OrderId)) throw new ArgumentException("Order id is required.", nameof(request));
-        var order = await _unitOfWork.Orders.GetOrderWithItemsAsync(request.OrderId)
-            ?? throw new KeyNotFoundException($"Order {request.OrderId} was not found.");
-        if (order.IsDeleted) throw new KeyNotFoundException($"Order {request.OrderId} was not found.");
-        if (order.TotalAmount <= 0m) throw new InvalidOperationException("Cannot post a zero or negative order total.");
+        var results = await RecordOrderPaymentsAsync(new[] { request }, cancellationToken);
+        return results.Single();
+    }
 
-        return await CreateTransactionAsync(new CreateFinancialTransactionDto
+    public async Task<IReadOnlyList<FinancialTransactionDto>> RecordOrderPaymentsAsync(IEnumerable<RecordOrderFinanceDto> requests, CancellationToken cancellationToken = default)
+    {
+        var requestList = requests?.ToList() ?? new List<RecordOrderFinanceDto>();
+        if (requestList.Count == 0) return Array.Empty<FinancialTransactionDto>();
+
+        await EnsureDefaultsAsync(cancellationToken);
+
+        var results = new List<FinancialTransactionDto>();
+        var orderIds = requestList.Select(r => r.OrderId).Distinct().ToList();
+        var ordersDict = new Dictionary<string, Order>();
+
+        foreach (var orderId in orderIds)
         {
-            TenantId = request.TenantId,
-            SourceDocumentType = FinanceSourceDocumentType.SalesOrder,
-            SourceDocumentId = order.Id,
-            Direction = FinanceTransactionDirection.Debit,
-            Amount = order.TotalAmount,
-            Currency = FinanceCurrency.IRR,
-            PaymentMethod = request.PaymentMethod,
-            FinanceAccountId = request.FinanceAccountId,
-            BranchId = request.BranchId,
-            Category = "Sales",
-            CounterpartyId = request.CounterpartyId ?? order.CustomerId,
-            CounterpartyName = request.CounterpartyName,
-            Description = $"Sales order {order.Id}",
-            TransactionDate = order.PaymentDate ?? DateTime.UtcNow,
-            AutoPost = true
-        }, cancellationToken);
+            if (string.IsNullOrWhiteSpace(orderId)) throw new ArgumentException("Order id is required.");
+            var order = await _unitOfWork.Orders.GetOrderWithItemsAsync(orderId)
+                ?? throw new KeyNotFoundException($"Order {orderId} was not found.");
+            if (order.IsDeleted) throw new KeyNotFoundException($"Order {orderId} was not found.");
+            if (order.TotalAmount <= 0m) throw new InvalidOperationException("Cannot post a zero or negative order total.");
+            ordersDict[orderId] = order;
+        }
+
+        for (int i = 0; i < requestList.Count; i++)
+        {
+            var request = requestList[i];
+            var order = ordersDict[request.OrderId];
+            var createDto = new CreateFinancialTransactionDto
+            {
+                TenantId = request.TenantId,
+                SourceDocumentType = FinanceSourceDocumentType.SalesOrder,
+                SourceDocumentId = order.Id,
+                Direction = FinanceTransactionDirection.Debit,
+                Amount = order.TotalAmount,
+                Currency = FinanceCurrency.IRR,
+                PaymentMethod = request.PaymentMethod,
+                FinanceAccountId = request.FinanceAccountId,
+                BranchId = request.BranchId,
+                Category = "Sales",
+                CounterpartyId = request.CounterpartyId ?? order.CustomerId,
+                CounterpartyName = request.CounterpartyName,
+                Description = $"Sales order {order.Id}",
+                TransactionDate = order.PaymentDate ?? DateTime.UtcNow,
+                AutoPost = true
+            };
+
+            var tx = await BuildAndPostTransactionAsync(createDto, i, cancellationToken);
+            results.Add(ToTransactionDto(tx));
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+        return results;
     }
 
     private IQueryable<FinancialTransaction> FilterCompletedTransactions(string tenantId, DateTime? from, DateTime? to)
@@ -387,7 +382,48 @@ public sealed class FinanceService : IFinanceService
         return _unitOfWork.Finance.FinancialTransactions.Where(x => x.TenantId == tenantId && x.Status == FinancialTransactionStatus.Completed && !x.IsDeleted && (from == null || x.TransactionDate >= from) && (to == null || x.TransactionDate <= to));
     }
 
-    private async Task PostTransactionAsync(FinancialTransaction tx, string? userId, CancellationToken cancellationToken)
+    private async Task<FinancialTransaction> BuildAndPostTransactionAsync(CreateFinancialTransactionDto request, int indexOffset, CancellationToken cancellationToken)
+    {
+        ValidateTransactionRequest(request);
+
+        var amount = FinanceMoney.Normalize(request.Amount, request.Currency);
+        var status = request.AutoPost ? FinancialTransactionStatus.Completed : FinancialTransactionStatus.PendingApproval;
+        var tx = new FinancialTransaction
+        {
+            Id = Guid.NewGuid().ToString(),
+            TenantId = request.TenantId,
+            Code = await NextTransactionCodeAsync(request.TenantId, cancellationToken, indexOffset),
+            Status = status,
+            SourceDocumentType = request.SourceDocumentType,
+            SourceDocumentId = request.SourceDocumentId,
+            Direction = request.Direction,
+            Amount = amount,
+            Currency = request.Currency,
+            PaymentMethod = request.PaymentMethod,
+            FinanceAccountId = request.FinanceAccountId,
+            BranchId = request.BranchId,
+            CostCenterId = request.CostCenterId,
+            Category = request.Category,
+            CounterpartyId = request.CounterpartyId,
+            CounterpartyName = request.CounterpartyName,
+            Description = request.Description,
+            TransactionDate = request.TransactionDate ?? DateTime.UtcNow,
+            IsAutomated = request.SourceDocumentType != FinanceSourceDocumentType.ManualJournal,
+            CreatedTime = DateTime.UtcNow,
+            ModifiedTime = DateTime.UtcNow
+        };
+
+        await _unitOfWork.Finance.AddTransactionAsync(tx, cancellationToken);
+
+        if (request.AutoPost)
+        {
+            await PostTransactionAsync(tx, null, indexOffset, cancellationToken);
+        }
+
+        return tx;
+    }
+
+    private async Task PostTransactionAsync(FinancialTransaction tx, string? userId, int indexOffset, CancellationToken cancellationToken)
     {
         if (!string.IsNullOrEmpty(tx.JournalEntryId)) return;
 
@@ -403,7 +439,7 @@ public sealed class FinanceService : IFinanceService
         {
             Id = Guid.NewGuid().ToString(),
             TenantId = tx.TenantId,
-            JournalNumber = await NextJournalNumberAsync(tx.TenantId, cancellationToken),
+            JournalNumber = await NextJournalNumberAsync(tx.TenantId, cancellationToken, indexOffset),
             AccountingDate = tx.TransactionDate,
             Status = JournalEntryStatus.Posted,
             SourceDocumentType = tx.SourceDocumentType,
@@ -480,15 +516,15 @@ public sealed class FinanceService : IFinanceService
         ModifiedTime = DateTime.UtcNow
     };
 
-    private async Task<string> NextTransactionCodeAsync(string tenantId, CancellationToken cancellationToken)
+    private async Task<string> NextTransactionCodeAsync(string tenantId, CancellationToken cancellationToken, int offset = 0)
     {
-        var count = await _unitOfWork.Finance.FinancialTransactions.CountAsync(x => x.TenantId == tenantId, cancellationToken) + 1;
+        var count = await _unitOfWork.Finance.FinancialTransactions.CountAsync(x => x.TenantId == tenantId, cancellationToken) + 1 + offset;
         return $"FT-{DateTime.UtcNow:yyyyMMdd}-{count:000000}";
     }
 
-    private async Task<string> NextJournalNumberAsync(string tenantId, CancellationToken cancellationToken)
+    private async Task<string> NextJournalNumberAsync(string tenantId, CancellationToken cancellationToken, int offset = 0)
     {
-        var count = await _unitOfWork.Finance.JournalEntries.CountAsync(x => x.TenantId == tenantId, cancellationToken) + 1;
+        var count = await _unitOfWork.Finance.JournalEntries.CountAsync(x => x.TenantId == tenantId, cancellationToken) + 1 + offset;
         return $"JE-{DateTime.UtcNow:yyyyMMdd}-{count:000000}";
     }
 
