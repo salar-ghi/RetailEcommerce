@@ -32,10 +32,10 @@ public class OrderService : IOrderService
         var order = new Order
         {
             Id = Guid.NewGuid().ToString(), CustomerId = request.UserId.Trim(), CreatedTime = DateTime.UtcNow,
-            Status = OrderStatus.Pending, Source = OrderSource.Storefront,
+            Status = OrderStatus.Pending, Source = OrderSource.Storefront, RowVersion = Array.Empty<byte>(),
             ShippingAddress = CreateShippingAddress(null, request.ShippingAddress),
             Items = request.Items.Select(item => new OrderItem { ProductId = item.ProductId, Quantity = item.Quantity, UnitPrice = item.Price }).ToList(),
-            Payments = new List<Payment> { new() { Id = Guid.NewGuid().ToString(), Amount = total, Method = method, Status = PaymentStatus.Pending, PaymentDate = DateTime.UtcNow, TransactionId = string.Empty, FinanceAccountId = DefaultFinanceAccountId, BranchId = DefaultBranchId } }
+            Payments = new List<Payment> { new() { Id = Guid.NewGuid().ToString(), Amount = total, Method = method, Status = PaymentStatus.Pending, PaymentDate = DateTime.UtcNow, TransactionId = string.Empty, FinanceAccountId = DefaultFinanceAccountId, BranchId = DefaultBranchId, RowVersion = Array.Empty<byte>() } }
         };
 
         await _unitOfWork.Orders.AddAsync(order);
@@ -65,10 +65,10 @@ public class OrderService : IOrderService
             Status = paid >= finalTotal ? OrderStatus.Processing : OrderStatus.Pending,
             Source = OrderSource.AdminManual, 
             DiscountAmount = request.DiscountAmount, 
-            Notes = request.Notes,
+            Notes = request.Notes, RowVersion = Array.Empty<byte>(),
             ShippingAddress = CreateShippingAddress(request.ShippingAddress, request.CustomerAddress),
             Items = request.Items.Select(i => new OrderItem { ProductId = i.ProductId, Quantity = i.Quantity, UnitPrice = i.UnitPrice, DiscountedPrice = 0, SaleUnit = i.SaleUnit, WeightUnit = i.WeightUnit, SpaceId = i.SpaceId, SpaceName = i.SpaceName, ZoneId = i.ZoneId, ZoneName = i.ZoneName, ShelfId = i.ShelfId, ShelfCode = i.ShelfCode }).ToList(),
-            Payments = request.Payments.Select(p => new Payment { Id = Guid.NewGuid().ToString(), Amount = p.Amount, Method = MapPaymentMethod(p.Method), Status = p.Status, TransactionId = NormalizeTransactionId(p.GatewayTxnId), DueDate = p.DueDate, FinanceAccountId = NormalizeFinanceAccountId(p.FinanceAccountId), BranchId = NormalizeBranchId(p.BranchId), PaymentDate = DateTime.UtcNow }).ToList()
+            Payments = request.Payments.Select(p => new Payment { Id = Guid.NewGuid().ToString(), Amount = p.Amount, Method = MapPaymentMethod(p.Method), Status = p.Status, TransactionId = NormalizeTransactionId(p.GatewayTxnId), DueDate = p.DueDate, FinanceAccountId = NormalizeFinanceAccountId(p.FinanceAccountId), BranchId = NormalizeBranchId(p.BranchId), PaymentDate = DateTime.UtcNow, RowVersion = Array.Empty<byte>() }).ToList()
         };
 
         await _unitOfWork.Orders.AddAsync(order);
@@ -218,16 +218,34 @@ public class OrderService : IOrderService
 
     private async Task DeductInventoryForOrderAsync(IEnumerable<OrderItem> items)
     {
-        foreach (var item in items)
+        var itemGroup = items
+            .Where(i => (int)Math.Ceiling(i.Quantity) > 0)
+            .ToList();
+
+        if (itemGroup.Count == 0) return;
+
+        var productIds = itemGroup.Select(i => i.ProductId).Distinct().ToList();
+
+        var allStocks = await _unitOfWork.ProductStocks.GetAllAsync(q => q
+            .AsTracking()
+            .Where(s => productIds.Contains(s.ProductId) && s.Quantity > 0)
+            .Include(s => s.ProductInventoryBatch)
+            .Include(s => s.Space)
+            .Include(s => s.Shelf));
+
+        var stocksByProduct = allStocks
+            .GroupBy(s => s.ProductId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        foreach (var item in itemGroup)
         {
             var remainingQtyNeeded = (int)Math.Ceiling(item.Quantity);
             if (remainingQtyNeeded <= 0) continue;
 
-            var stocks = await _unitOfWork.ProductStocks.GetAllAsync(q => q
-                .Where(s => s.ProductId == item.ProductId && s.Quantity > 0)
-                .Include(s => s.ProductInventoryBatch)
-                .Include(s => s.Space)
-                .Include(s => s.Shelf));
+            if (!stocksByProduct.TryGetValue(item.ProductId, out var stocks))
+            {
+                stocks = new List<ProductStock>();
+            }
 
             var orderedStocks = stocks.OrderBy(s =>
             {
@@ -247,6 +265,7 @@ public class OrderService : IOrderService
             foreach (var stock in orderedStocks)
             {
                 if (remainingQtyNeeded <= 0) break;
+                if (stock.Quantity <= 0) continue;
 
                 var qtyFromThisStock = Math.Min(remainingQtyNeeded, stock.Quantity);
                 stock.Quantity -= qtyFromThisStock;
@@ -257,27 +276,15 @@ public class OrderService : IOrderService
                     stock.ProductInventoryBatch.SoldQuantity += qtyFromThisStock;
                 }
 
-                if (stock.SpaceId.HasValue)
+                if (stock.Space != null)
                 {
-                    var space = stock.Space ?? await _unitOfWork.StorageSpaces.GetByIdAsync(stock.SpaceId.Value);
-                    if (space != null)
-                    {
-                        space.Used = Math.Max(0, space.Used - qtyFromThisStock);
-                        await _unitOfWork.StorageSpaces.UpdateAsync(space);
-                    }
+                    stock.Space.Used = Math.Max(0, stock.Space.Used - qtyFromThisStock);
                 }
 
-                if (stock.ShelfId.HasValue)
+                if (stock.Shelf != null)
                 {
-                    var shelf = stock.Shelf ?? await _unitOfWork.Shelves.GetByIdAsync(stock.ShelfId.Value);
-                    if (shelf != null)
-                    {
-                        shelf.Used = Math.Max(0, shelf.Used - qtyFromThisStock);
-                        await _unitOfWork.Shelves.UpdateAsync(shelf);
-                    }
+                    stock.Shelf.Used = Math.Max(0, stock.Shelf.Used - qtyFromThisStock);
                 }
-
-                await _unitOfWork.ProductStocks.UpdateAsync(stock);
             }
         }
     }
