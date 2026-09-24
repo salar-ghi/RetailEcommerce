@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Application.DTOs;
 using Application.Helper;
 using Application.Interfaces;
+using Application.Mapping;
 using Application.Services;
 using AutoMapper;
 using Domain.Entities;
@@ -20,6 +21,7 @@ public class CategoryServiceTests : IDisposable
     private readonly AppDbContext _dbContext;
     private readonly UnitOfWork _unitOfWork;
     private readonly CategoryService _categoryService;
+    private readonly Mock<IImageHelper> _mockImageHelper;
     private readonly ITestOutputHelper _output;
 
     public CategoryServiceTests(ITestOutputHelper output)
@@ -35,11 +37,17 @@ public class CategoryServiceTests : IDisposable
         var mockCache = new Mock<IDistributedCache>();
         _unitOfWork = new UnitOfWork(_dbContext, mockCache.Object);
 
-        var mockMapper = new Mock<IMapper>();
-        var mockImageHelper = new Mock<IImageHelper>();
+        var mapperConfig = new MapperConfiguration(cfg =>
+        {
+            cfg.AddProfile<CategoryMappingProfile>();
+            cfg.AddProfile<BrandMappingProfile>();
+        });
+        var mapper = mapperConfig.CreateMapper();
+
+        _mockImageHelper = new Mock<IImageHelper>();
         var mockCurrentUserService = new Mock<ICurrentUserService>();
 
-        _categoryService = new CategoryService(_unitOfWork, mockCurrentUserService.Object, mockMapper.Object, mockImageHelper.Object);
+        _categoryService = new CategoryService(_unitOfWork, mockCurrentUserService.Object, mapper, _mockImageHelper.Object);
     }
 
     [Fact]
@@ -102,6 +110,41 @@ public class CategoryServiceTests : IDisposable
 
             int expectedCount = (c % 5 == 0) ? 0 : c * 2;
             Assert.Equal(expectedCount, catDto.ProductCount);
+        }
+    }
+
+    [Fact]
+    public async Task GetAllCategoriesWithDetailsAsync_ReturnsCategoriesWithImages()
+    {
+        for (int i = 1; i <= 100; i++)
+        {
+            _dbContext.Categories.Add(new Category
+            {
+                Id = i,
+                Name = $"Category {i:D3}",
+                Description = $"Description {i}",
+                ImageUrl = $"images/categories/cat_{i % 10}.png",
+                IsDeleted = false,
+                CreatedTime = DateTime.UtcNow
+            });
+        }
+        await _dbContext.SaveChangesAsync();
+
+        _mockImageHelper.Setup(x => x.GetImagesBase64Async(It.IsAny<IEnumerable<string>>()))
+            .ReturnsAsync((IEnumerable<string> urls) =>
+                urls.Distinct().ToDictionary(u => u, u => $"data:image/png;base64,dummy_{u}"));
+
+        var sw = Stopwatch.StartNew();
+        var result = await _categoryService.GetAllCategoriesWithDetailsAsync();
+        sw.Stop();
+
+        _output.WriteLine($"GetAllCategoriesWithDetailsAsync took: {sw.ElapsedMilliseconds} ms ({sw.Elapsed.TotalMicroseconds} us)");
+
+        Assert.Equal(100, result.Count);
+        foreach (var cat in result)
+        {
+            Assert.NotNull(cat.Image);
+            Assert.StartsWith("data:image/png;base64,dummy_", cat.Image);
         }
     }
 
