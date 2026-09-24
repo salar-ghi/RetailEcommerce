@@ -17,6 +17,15 @@ public class ProductRepository : Repository<Product, long>, IProductRepository
             .ToListAsync();
     }
 
+    public async Task<Dictionary<int, int>> GetProductCountsGroupedByCategoryAsync()
+    {
+        return await _context.Products
+            .Where(p => p.IsActive)
+            .GroupBy(p => p.CategoryId)
+            .Select(g => new { CategoryId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.CategoryId, x => x.Count);
+    }
+
     //public async Task<IEnumerable<ProductDto>> SearchProductsAsync(SearchProductsDto searchDto)
     //{
     //    var query = _unitOfWork.Products.GetAllQueryable()
