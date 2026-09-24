@@ -229,6 +229,17 @@ public class InventoryService : IInventoryService
         var resolvedZoneId = dto.ZoneId ?? shelf?.ZoneId;
         var receivedDate = dto.ReceivedDate ?? DateTime.UtcNow;
         var salePrice = dto.SalePrice ?? dto.SellingPrice ?? 0m;
+        var pricingTier = string.IsNullOrWhiteSpace(dto.PricingTier) ? "retail" : dto.PricingTier.Trim();
+
+        if (pricingTier.Length > 50)
+            throw new ArgumentException("Pricing tier cannot exceed 50 characters.");
+
+        if (dto.SupplierId.HasValue)
+        {
+            var supplier = await _unitOfWork.Suppliers.GetByIdAsync(dto.SupplierId.Value);
+            if (supplier == null || supplier.IsDeleted)
+                throw new KeyNotFoundException($"Supplier with ID {dto.SupplierId.Value} not found.");
+        }
 
         var batch = new ProductInventoryBatch
         {
@@ -237,6 +248,7 @@ public class InventoryService : IInventoryService
             CostPrice = dto.CostPrice ?? 0m,
             SellingPrice = salePrice,
             Currency = string.IsNullOrWhiteSpace(dto.Currency) ? "IRR" : dto.Currency,
+            PricingTier = pricingTier,
             EffectiveDate = receivedDate,
             ExpiryDate = dto.ExpiryDate,
             Quantity = dto.Quantity,
@@ -459,6 +471,7 @@ public class InventoryService : IInventoryService
         CostPrice = stock.ProductInventoryBatch?.CostPrice ?? 0m,
         SalePrice = stock.ProductInventoryBatch?.SellingPrice ?? 0m,
         Currency = stock.ProductInventoryBatch?.Currency,
+        PricingTier = stock.ProductInventoryBatch?.PricingTier,
         SupplierId = stock.ProductInventoryBatch?.SupplierId,
         SupplierName = stock.ProductInventoryBatch?.Supplier?.Name,
         SpaceId = stock.SpaceId,
