@@ -24,7 +24,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
             {
                 if (userRole.Role != null && !string.IsNullOrEmpty(userRole.Role.Name))
                 {
-                    claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
+                    claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name.Trim()));
                 }
             }
         }
