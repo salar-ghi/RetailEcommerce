@@ -2,7 +2,7 @@
 
 [ApiController]
 [Route("api/finance")]
-[Authorize(Roles = "Admin, Manager, Accountant, Developer")]
+[Authorize(Roles = "Admin,Manager,Accountant,Developer")]
 public sealed class FinanceController : ControllerBase
 {
     private readonly IFinanceService _financeService;
