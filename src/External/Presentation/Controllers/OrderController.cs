@@ -48,6 +48,13 @@ public class OrderController : ControllerBase
         return NoContent();
     }
 
+    [HttpGet("admin/returns")]
+    public async Task<ActionResult<IEnumerable<OrderDto>>> ListReturns()
+    {
+        var returns = await _orderService.ListReturnsAsync();
+        return Ok(returns);
+    }
+
     [HttpGet("admin/orders/{orderId}")]
     public async Task<ActionResult<OrderDto>> GetOrderById(string orderId)
     {

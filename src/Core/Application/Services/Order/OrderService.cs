@@ -92,6 +92,7 @@ public class OrderService : IOrderService
     public async Task<IEnumerable<OrderDto>> GetUserOrdersAsync(string userId) => _mapper.Map<IEnumerable<OrderDto>>(await _unitOfWork.Orders.GetByUserIdAsync(userId));
     public async Task<IEnumerable<OrderDto>> GetOrdersByUserIdAsync(string userId) => await GetUserOrdersAsync(userId);
     public async Task<IEnumerable<OrderDto>> ListOrdersAsync() => _mapper.Map<IEnumerable<OrderDto>>(await _unitOfWork.Orders.GetAllAsync(q => q.Include(o => o.Customer).Include(o => o.Items).ThenInclude(i => i.Product).Include(o => o.Payments)));
+    public async Task<IEnumerable<OrderDto>> ListReturnsAsync() => _mapper.Map<IEnumerable<OrderDto>>(await _unitOfWork.Orders.GetAllAsync(q => q.Where(o => o.Status == OrderStatus.Returned || o.Status == OrderStatus.PartiallyReturned).Include(o => o.Customer).Include(o => o.Items).ThenInclude(i => i.Product).Include(o => o.Payments)));
 
     public async Task UpdateOrderStatusAsync(string orderId, OrderStatus status)
     {
