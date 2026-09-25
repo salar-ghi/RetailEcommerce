@@ -31,7 +31,7 @@ public class BannerService : IBannerService
         var placements = await _unitOfWork.BannerPlacements.GetAllByIdsAsync(requestedPlacementIds);
 
         if (placements.Count != requestedPlacementIds.Count)
-            throw new Exception("Some placements not found.");
+            throw new KeyNotFoundException("Some placements not found.");
 
         foreach (var placement in placements)
         {
@@ -232,7 +232,7 @@ public class BannerService : IBannerService
 
         var placements = await _unitOfWork.BannerPlacements.GetAllByIdsAsync(requestedPlacementIds);
         if (placements.Count != requestedPlacementIds.Count)
-            throw new Exception("Some placements not found.");
+            throw new KeyNotFoundException("Some placements not found.");
 
         var requestedPlacementIdSet = requestedPlacementIds.ToHashSet();
         var existingActivePlacementIdSet = banner.BannerPlacementMaps

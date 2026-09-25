@@ -103,6 +103,46 @@ public class BannerServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task CreateAsync_ThrowsKeyNotFoundException_WhenPlacementNotFound()
+    {
+        // Arrange
+        var createDto = new CreateBannerDto
+        {
+            Name = "New Banner",
+            PlacementIds = new List<int> { 999 } // Placement 999 does not exist
+        };
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() => _bannerService.CreateAsync(createDto));
+        Assert.Equal("Some placements not found.", ex.Message);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ThrowsKeyNotFoundException_WhenPlacementNotFound()
+    {
+        // Arrange
+        var banner = new Banner
+        {
+            Id = 1,
+            Name = "Test Banner",
+            IsActive = true
+        };
+        _dbContext.Banners.Add(banner);
+        await _dbContext.SaveChangesAsync();
+
+        var updateDto = new UpdateBannerDto
+        {
+            Id = 1,
+            Name = "Updated Banner",
+            PlacementIds = new List<int> { 999 } // Placement 999 does not exist
+        };
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() => _bannerService.UpdateAsync(updateDto));
+        Assert.Equal("Some placements not found.", ex.Message);
+    }
+
+    [Fact]
     public async Task Repository_DeleteRangeAsync_RemovesAllSpecifiedEntities()
     {
         // Arrange
