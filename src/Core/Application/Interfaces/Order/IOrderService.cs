@@ -12,4 +12,5 @@ public interface IOrderService
     Task CancelOrderAsync(string orderId);
     Task<IEnumerable<OrderDto>> GetOrdersByUserIdAsync(string userId);
     Task CreateReturnAsync(CreateReturnRequest request);
+    Task<IEnumerable<OrderDto>> ListReturnsAsync();
 }

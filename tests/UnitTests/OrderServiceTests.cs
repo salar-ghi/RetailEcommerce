@@ -5,6 +5,7 @@ using Application.Interfaces;
 using Application.Services;
 using AutoMapper;
 using Domain.Entities;
+using Domain.Enums;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -42,6 +43,8 @@ public class OrderServiceTests : IDisposable
 
         mockMapper.Setup(m => m.Map<OrderDto>(It.IsAny<Order>()))
             .Returns((Order src) => new OrderDto { Id = src.Id, Status = src.Status.ToString() });
+        mockMapper.Setup(m => m.Map<IEnumerable<OrderDto>>(It.IsAny<IEnumerable<Order>>()))
+            .Returns((IEnumerable<Order> src) => src.Select(o => new OrderDto { Id = o.Id, Status = o.Status.ToString() }).ToList());
 
         _orderService = new OrderService(
             _unitOfWork,
@@ -235,6 +238,72 @@ public class OrderServiceTests : IDisposable
             // Originally 150 total (3 x 50), deducted 20 => 130 remaining
             Assert.Equal(130, totalRemaining);
         }
+    }
+
+    [Fact]
+    public async Task ListReturnsAsync_ReturnsOnlyReturnedAndPartiallyReturnedOrders()
+    {
+        // Arrange
+        var customer = new User
+        {
+            Id = "cust1",
+            Username = "cust1",
+            Email = "cust1@example.com",
+            PhoneNumber = "1234567890",
+            FirstName = "Customer 1",
+            LastName = "User",
+            PasswordHash = "hash",
+            IsActive = true
+        };
+        _dbContext.Users.Add(customer);
+
+        var shippingAddress = new ShippingAddress
+        {
+            AddressLine1 = "",
+            City = "",
+            Country = "",
+            PostalCode = "",
+            State = "",
+            Street = ""
+        };
+
+        var order1 = new Order
+        {
+            Id = "order-1",
+            CustomerId = "cust1",
+            Status = OrderStatus.Returned,
+            ShippingAddress = shippingAddress,
+            RowVersion = Array.Empty<byte>()
+        };
+        var order2 = new Order
+        {
+            Id = "order-2",
+            CustomerId = "cust1",
+            Status = OrderStatus.PartiallyReturned,
+            ShippingAddress = shippingAddress,
+            RowVersion = Array.Empty<byte>()
+        };
+        var order3 = new Order
+        {
+            Id = "order-3",
+            CustomerId = "cust1",
+            Status = OrderStatus.Processing,
+            ShippingAddress = shippingAddress,
+            RowVersion = Array.Empty<byte>()
+        };
+
+        _dbContext.Orders.AddRange(order1, order2, order3);
+        await _dbContext.SaveChangesAsync();
+        _dbContext.ChangeTracker.Clear();
+
+        // Act
+        var results = (await _orderService.ListReturnsAsync()).ToList();
+
+        // Assert
+        Assert.Equal(2, results.Count);
+        Assert.Contains(results, o => o.Id == "order-1" && o.Status == OrderStatus.Returned.ToString());
+        Assert.Contains(results, o => o.Id == "order-2" && o.Status == OrderStatus.PartiallyReturned.ToString());
+        Assert.DoesNotContain(results, o => o.Id == "order-3");
     }
 
     public void Dispose()
