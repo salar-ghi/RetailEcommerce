@@ -40,6 +40,7 @@ public class CategoryServiceTests : IDisposable
         var mapperConfig = new MapperConfiguration(cfg =>
         {
             cfg.AddProfile<CategoryMappingProfile>();
+            cfg.AddProfile<ProductMappingProfile>();
             cfg.AddProfile<BrandMappingProfile>();
         });
         var mapper = mapperConfig.CreateMapper();
@@ -146,6 +147,65 @@ public class CategoryServiceTests : IDisposable
             Assert.NotNull(cat.Image);
             Assert.StartsWith("data:image/png;base64,dummy_", cat.Image);
         }
+    }
+
+    [Fact]
+    public async Task GetCategoryPageDataAsync_CoffeeCategory_ReturnsRootAndSubcategoryProducts()
+    {
+        var brand = new Brand { Id = 1, Name = "Test Brand", Description = "Brand" };
+        _dbContext.Brands.Add(brand);
+
+        // Seed Coffee root category and subcategories
+        var rootCoffee = new Category
+        {
+            Id = 10,
+            Name = "قهوه و نوشیدنی",
+            Description = "Coffee Root Category",
+            IsDeleted = false
+        };
+        var subBeans = new Category
+        {
+            Id = 11,
+            Name = "دان قهوه",
+            Description = "Coffee Beans",
+            ParentId = 10,
+            IsDeleted = false
+        };
+        var subGround = new Category
+        {
+            Id = 12,
+            Name = "قهوه آسیاب شده",
+            Description = "Ground Coffee",
+            ParentId = 10,
+            IsDeleted = false
+        };
+        var otherCategory = new Category
+        {
+            Id = 20,
+            Name = "موبایل",
+            Description = "Mobile Phones",
+            IsDeleted = false
+        };
+
+        _dbContext.Categories.AddRange(rootCoffee, subBeans, subGround, otherCategory);
+
+        // Seed products across categories
+        var p1 = new Product { Id = 101, Name = "Espresso Beans", Description = "Rich espresso", CategoryId = 11, BrandId = 1, IsActive = true, IsDeleted = false, StorageLocationNote = "" };
+        var p2 = new Product { Id = 102, Name = "Turkish Coffee", Description = "Fine ground", CategoryId = 12, BrandId = 1, IsActive = true, IsDeleted = false, StorageLocationNote = "" };
+        var p3 = new Product { Id = 103, Name = "iPhone 15", Description = "Smartphone", CategoryId = 20, BrandId = 1, IsActive = true, IsDeleted = false, StorageLocationNote = "" };
+
+        _dbContext.Products.AddRange(p1, p2, p3);
+        await _dbContext.SaveChangesAsync();
+
+        var result = await _categoryService.GetCategoryPageDataAsync("coffee");
+
+        Assert.NotNull(result);
+        Assert.NotNull(result.Category);
+        Assert.Equal("قهوه و نوشیدنی", result.Category.Name);
+        Assert.Equal(2, result.Products.Count);
+        Assert.Contains(result.Products, p => p.Id == 101);
+        Assert.Contains(result.Products, p => p.Id == 102);
+        Assert.DoesNotContain(result.Products, p => p.Id == 103);
     }
 
     public void Dispose()
