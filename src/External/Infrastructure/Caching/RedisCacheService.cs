@@ -1,5 +1,15 @@
 namespace Infrastructure.Caching;
 
+using System;
+using System.Net.Sockets;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+using Application.Configuration;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
+
 public class RedisCacheService : IRedisCacheService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
@@ -16,7 +26,7 @@ public class RedisCacheService : IRedisCacheService
         _logger = logger;
     }
 
-    public async Task<T> GetCachedDataAsync<T>(string key)
+    public async Task<T?> GetCachedDataAsync<T>(string key)
     {
         if (string.IsNullOrWhiteSpace(key))
         {
@@ -36,7 +46,7 @@ public class RedisCacheService : IRedisCacheService
                 key);
             return default;
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is RedisException or TimeoutException or SocketException)
         {
             _logger.LogWarning(exception,
                 "Cache read failed for key '{CacheKey}'. The application will continue without cached data.",
@@ -64,7 +74,13 @@ public class RedisCacheService : IRedisCacheService
             var options = new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = expiration };
             await _cache.SetStringAsync(key, JsonSerializer.Serialize(data, JsonOptions), options);
         }
-        catch (Exception exception)
+        catch (JsonException exception)
+        {
+            _logger.LogWarning(exception,
+                "Cache write failed for key '{CacheKey}' because value could not be serialized.",
+                key);
+        }
+        catch (Exception exception) when (exception is RedisException or TimeoutException or SocketException)
         {
             _logger.LogWarning(exception,
                 "Cache write failed for key '{CacheKey}'. The application will continue without updating the cache.",
@@ -84,7 +100,7 @@ public class RedisCacheService : IRedisCacheService
         {
             await _cache.RemoveAsync(Key);
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is RedisException or TimeoutException or SocketException)
         {
             _logger.LogWarning(exception,
                 "Cache removal failed for key '{CacheKey}'. The application will continue.",
