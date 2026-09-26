@@ -1,17 +1,170 @@
-﻿namespace Application.Services;
+namespace Application.Services;
+
 public class CategoryService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IImageHelper _imageHelper;
+    private readonly IBannerService? _bannerService;
 
-    public CategoryService(IUnitOfWork unitOfWork, 
+    public CategoryService(
+        IUnitOfWork unitOfWork,
         ICurrentUserService currentUserService, 
-        IMapper mapper, IImageHelper imageHelper)
+        IMapper mapper,
+        IImageHelper imageHelper,
+        IBannerService? bannerService = null)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _imageHelper = imageHelper;
+        _bannerService = bannerService;
+    }
+
+    public async Task<CategoryPageDataDto> GetCategoryPageDataAsync(string categorySearch)
+    {
+        var result = new CategoryPageDataDto();
+        if (string.IsNullOrWhiteSpace(categorySearch))
+        {
+            return result;
+        }
+
+        var searchTrimmed = categorySearch.Trim();
+
+        var allCategories = await _unitOfWork.Categories.GetAll(c => !c.IsDeleted)
+            .AsNoTracking()
+            .ToListAsync();
+
+        var matchedCategory = allCategories.FirstOrDefault(c =>
+            string.Equals(c.Name?.Trim(), searchTrimmed, StringComparison.OrdinalIgnoreCase))
+            ?? allCategories.FirstOrDefault(c =>
+                c.Name != null && (
+                    c.Name.Contains(searchTrimmed, StringComparison.OrdinalIgnoreCase) ||
+                    (searchTrimmed.Equals("coffee", StringComparison.OrdinalIgnoreCase) &&
+                     (c.Name.Contains("قهوه", StringComparison.OrdinalIgnoreCase) || c.Name.Contains("Coffee", StringComparison.OrdinalIgnoreCase))) ||
+                    (searchTrimmed.Contains("قهوه", StringComparison.OrdinalIgnoreCase) &&
+                     c.Name.Contains("coffee", StringComparison.OrdinalIgnoreCase))
+                ));
+
+        var categoryIds = new HashSet<int>();
+        if (matchedCategory != null)
+        {
+            result.Category = _mapper.Map<CategoryDto>(matchedCategory);
+
+            categoryIds.Add(matchedCategory.Id);
+            var queue = new Queue<int>();
+            queue.Enqueue(matchedCategory.Id);
+
+            while (queue.Count > 0)
+            {
+                var parentId = queue.Dequeue();
+                foreach (var child in allCategories.Where(c => c.ParentId == parentId))
+                {
+                    if (categoryIds.Add(child.Id))
+                    {
+                        queue.Enqueue(child.Id);
+                    }
+                }
+            }
+        }
+        else if (searchTrimmed.Equals("coffee", StringComparison.OrdinalIgnoreCase) || searchTrimmed.Contains("قهوه"))
+        {
+            var coffeeCategories = allCategories.Where(c =>
+                c.Name != null && (c.Name.Contains("قهوه", StringComparison.OrdinalIgnoreCase) || c.Name.Contains("coffee", StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+
+            foreach (var cat in coffeeCategories)
+            {
+                if (categoryIds.Add(cat.Id))
+                {
+                    var queue = new Queue<int>();
+                    queue.Enqueue(cat.Id);
+                    while (queue.Count > 0)
+                    {
+                        var parentId = queue.Dequeue();
+                        foreach (var child in allCategories.Where(c => c.ParentId == parentId))
+                        {
+                            if (categoryIds.Add(child.Id))
+                            {
+                                queue.Enqueue(child.Id);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!categoryIds.Any())
+        {
+            return result;
+        }
+
+        var productsQuery = _unitOfWork.Products.GetAll(p => !p.IsDeleted && p.IsActive)
+            .Where(p => categoryIds.Contains(p.CategoryId))
+            .Include(p => p.Category)
+            .Include(p => p.Brand)
+            .Include(p => p.Batches)
+            .Include(p => p.Stocks)
+            .Include(p => p.Images)
+            .Include(p => p.ContentBlocks)
+            .OrderByDescending(p => p.Id)
+            .AsNoTracking();
+
+        var productsList = await productsQuery.ToListAsync();
+        var productDtos = _mapper.Map<List<ProductDto>>(productsList);
+
+        await ConvertProductsImagesToBase64Async(productDtos);
+        result.Products = productDtos;
+
+        if (_bannerService != null)
+        {
+            try
+            {
+                var banners = await _bannerService.GetByPlacementAsync(BannerPageCode.CATEGORY);
+                result.Banners = banners.ToList();
+            }
+            catch
+            {
+                result.Banners = new List<BannerDto>();
+            }
+        }
+
+        return result;
+    }
+
+    private async Task ConvertProductsImagesToBase64Async(IEnumerable<ProductDto> products)
+    {
+        var productList = products.ToList();
+        await Task.WhenAll(productList.Select(product => ConvertProductImagesToBase64Async(product)));
+    }
+
+    private async Task ConvertProductImagesToBase64Async(ProductDto product)
+    {
+        var imagesTask = ConvertStoredImagesToBase64Async(product.Images);
+        var coverImageTask = ConvertStoredImageToBase64Async(product.CoverImage);
+
+        await Task.WhenAll(imagesTask, coverImageTask);
+
+        product.Images = await imagesTask;
+        product.CoverImage = await coverImageTask;
+    }
+
+    private async Task<string> ConvertStoredImageToBase64Async(string? image)
+    {
+        if (string.IsNullOrWhiteSpace(image))
+            return string.Empty;
+
+        return await _imageHelper.GetImageBase64(image) ?? string.Empty;
+    }
+
+    private async Task<List<string>> ConvertStoredImagesToBase64Async(List<string>? images)
+    {
+        var conversionTasks = (images ?? new List<string>())
+            .Where(image => !string.IsNullOrWhiteSpace(image))
+            .Select(image => _imageHelper.GetImageBase64(image))
+            .ToArray();
+
+        var converted = await Task.WhenAll(conversionTasks);
+        return converted.Where(image => !string.IsNullOrWhiteSpace(image)).ToList();
     }
 
     public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()

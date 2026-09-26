@@ -1,4 +1,4 @@
-﻿namespace Domain.Enums;
+namespace Domain.Enums;
 
 public enum BannerPageCode
 {
@@ -7,4 +7,5 @@ public enum BannerPageCode
     PRODUCT_TOP = 4,
     PRODUCT_MID = 3,
     PRODUCT_BOTTOM = 5,
+    CATEGORY = 6,
 }
