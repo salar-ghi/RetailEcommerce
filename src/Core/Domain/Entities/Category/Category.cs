@@ -9,6 +9,7 @@ public class Category : BaseModel<int>
     public string? ImageUrl { get; set; }
 
     public ICollection<CategoryAttribute> Attributes { get; set; } = new List<CategoryAttribute>();
+    public ICollection<CategoryAttributeDefinition> CategoryAttributeDefinitions { get; set; } = new List<CategoryAttributeDefinition>();
     public ICollection<Product> Products { get; set; } = new List<Product>();
     public ICollection<BrandCategory> BrandCategories { get; set; } = new List<BrandCategory>();
 }

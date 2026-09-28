@@ -149,6 +149,7 @@ public class CategoryAttributeService
                 .Select(o => new AttributeOptionDto
                 {
                     Id = o.Id,
+                    AttributeDefinitionId = o.AttributeDefinitionId,
                     Value = o.Value,
                     Label = o.Label,
                     SortOrder = o.SortOrder,
