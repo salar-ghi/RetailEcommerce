@@ -145,7 +145,7 @@ public class AppDbContext : DbContext
         {
             builder.HasKey(ca => ca.Id);
             builder.HasIndex(ca => new { ca.CategoryId, ca.AttributeDefinitionId }).IsUnique().HasFilter("[IsDeleted] = 0");
-            builder.HasOne(ca => ca.Category).WithMany().HasForeignKey(ca => ca.CategoryId).OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(ca => ca.Category).WithMany(c => c.CategoryAttributeDefinitions).HasForeignKey(ca => ca.CategoryId).OnDelete(DeleteBehavior.Cascade);
             builder.HasOne(ca => ca.AttributeDefinition).WithMany().HasForeignKey(ca => ca.AttributeDefinitionId).OnDelete(DeleteBehavior.Cascade);
         });
 

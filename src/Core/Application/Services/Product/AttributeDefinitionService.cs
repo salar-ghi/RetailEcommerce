@@ -153,6 +153,7 @@ public class AttributeDefinitionService
         Options = attribute.Options?.Where(o => !o.IsDeleted).Select(o => new AttributeOptionDto
         {
             Id = o.Id,
+            AttributeDefinitionId = o.AttributeDefinitionId,
             Value = o.Value,
             Label = o.Label,
             SortOrder = o.SortOrder,

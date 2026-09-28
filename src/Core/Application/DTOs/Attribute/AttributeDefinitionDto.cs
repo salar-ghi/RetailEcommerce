@@ -3,6 +3,7 @@ namespace Application.DTOs;
 public class AttributeOptionDto
 {
     public int Id { get; set; }
+    public int? AttributeDefinitionId { get; set; }
     public string Value { get; set; } = string.Empty;
     public string? Label { get; set; }
     public int SortOrder { get; set; }

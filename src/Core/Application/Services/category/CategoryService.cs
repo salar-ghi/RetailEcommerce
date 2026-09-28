@@ -6,18 +6,21 @@ public class CategoryService
     private readonly IMapper _mapper;
     private readonly IImageHelper _imageHelper;
     private readonly IBannerService? _bannerService;
+    private readonly CategoryAttributeService? _categoryAttributeService;
 
     public CategoryService(
         IUnitOfWork unitOfWork,
         ICurrentUserService currentUserService, 
         IMapper mapper,
         IImageHelper imageHelper,
-        IBannerService? bannerService = null)
+        IBannerService? bannerService = null,
+        CategoryAttributeService? categoryAttributeService = null)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _imageHelper = imageHelper;
         _bannerService = bannerService;
+        _categoryAttributeService = categoryAttributeService;
     }
 
     public async Task<CategoryPageDataDto> GetCategoryPageDataAsync(string categorySearch)
@@ -114,6 +117,15 @@ public class CategoryService
 
         await ConvertProductsImagesToBase64Async(productDtos);
         result.Products = productDtos;
+
+        var categoryAttributeService = _categoryAttributeService ?? new CategoryAttributeService(_unitOfWork, _mapper);
+        var attrDefsList = new List<CategoryAttributeDefinitionDto>();
+        foreach (var catId in categoryIds)
+        {
+            var defs = await categoryAttributeService.GetCategoryAttributeDefinitionsAsync(catId);
+            attrDefsList.AddRange(defs);
+        }
+        result.AttributeDefinitions = attrDefsList.DistinctBy(a => a.Id).ToList();
 
         if (_bannerService != null)
         {
