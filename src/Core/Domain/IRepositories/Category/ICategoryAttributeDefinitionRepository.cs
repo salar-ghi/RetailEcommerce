@@ -3,6 +3,7 @@
 public interface ICategoryAttributeDefinitionRepository : IRepository<CategoryAttributeDefinition, int>
 {
     Task<IReadOnlyList<CategoryAttributeDefinition>> GetActiveByCategoryIdAsync(int categoryId);
+    Task<IReadOnlyList<CategoryAttributeDefinition>> GetActiveByCategoryIdsAsync(IEnumerable<int> categoryIds);
     Task<CategoryAttributeDefinition?> GetActiveByIdAsync(int categoryId, int id, bool trackChanges = false);
     Task<bool> ActiveAssignmentExistsAsync(int categoryId, int attributeDefinitionId);
     Task<bool> ActiveAttributeDefinitionExistsAsync(int attributeDefinitionId);

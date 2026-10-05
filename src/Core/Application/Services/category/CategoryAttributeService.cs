@@ -17,6 +17,12 @@ public class CategoryAttributeService
         return attributes.Select(ToCategoryAttributeDefinitionDto);
     }
 
+    public async Task<IEnumerable<CategoryAttributeDefinitionDto>> GetCategoryAttributeDefinitionsAsync(IEnumerable<int> categoryIds)
+    {
+        var attributes = await _unitOfWork.CategoryAttributeDefinitions.GetActiveByCategoryIdsAsync(categoryIds);
+        return attributes.Select(ToCategoryAttributeDefinitionDto);
+    }
+
     public async Task<CategoryAttributeDefinitionDto> AssignCategoryAttributeDefinitionAsync(int categoryId, AssignCategoryAttributeDefinitionDto request)
     {
         var attributeExists = await _unitOfWork.CategoryAttributeDefinitions.ActiveAttributeDefinitionExistsAsync(request.AttributeDefinitionId);

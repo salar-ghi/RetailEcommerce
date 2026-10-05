@@ -208,6 +208,57 @@ public class CategoryServiceTests : IDisposable
         Assert.DoesNotContain(result.Products, p => p.Id == 103);
     }
 
+    [Fact]
+    public async Task GetCategoryPageDataAsync_WithMultipleCategories_ReturnsAllAttributeDefinitions()
+    {
+        var rootCategory = new Category { Id = 100, Name = "Electronics", Description = "Electronics Root", IsDeleted = false };
+        _dbContext.Categories.Add(rootCategory);
+
+        for (int i = 1; i <= 20; i++)
+        {
+            var subCategory = new Category
+            {
+                Id = 100 + i,
+                Name = $"SubCategory {i}",
+                Description = $"Description {i}",
+                ParentId = 100,
+                IsDeleted = false
+            };
+            _dbContext.Categories.Add(subCategory);
+
+            var attrDef = new AttributeDefinition
+            {
+                Id = i,
+                Code = $"attr_{i}",
+                Name = $"Attribute {i}",
+                DataType = AttributeDataType.String,
+                IsFilterable = true
+            };
+            _dbContext.AttributeDefinitions.Add(attrDef);
+
+            var catAttrDef = new CategoryAttributeDefinition
+            {
+                Id = i,
+                CategoryId = subCategory.Id,
+                AttributeDefinitionId = attrDef.Id,
+                IsFilterable = true,
+                SortOrder = i
+            };
+            _dbContext.CategoryAttributeDefinitions.Add(catAttrDef);
+        }
+
+        await _dbContext.SaveChangesAsync();
+
+        var sw = Stopwatch.StartNew();
+        var result = await _categoryService.GetCategoryPageDataAsync("Electronics");
+        sw.Stop();
+
+        _output.WriteLine($"GetCategoryPageDataAsync for 21 categories took: {sw.ElapsedMilliseconds} ms ({sw.Elapsed.TotalMicroseconds} us)");
+
+        Assert.NotNull(result);
+        Assert.Equal(20, result.AttributeDefinitions.Count);
+    }
+
     public void Dispose()
     {
         _dbContext.Database.EnsureDeleted();

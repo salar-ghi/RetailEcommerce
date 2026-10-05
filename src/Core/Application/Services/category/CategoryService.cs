@@ -119,13 +119,8 @@ public class CategoryService
         result.Products = productDtos;
 
         var categoryAttributeService = _categoryAttributeService ?? new CategoryAttributeService(_unitOfWork, _mapper);
-        var attrDefsList = new List<CategoryAttributeDefinitionDto>();
-        foreach (var catId in categoryIds)
-        {
-            var defs = await categoryAttributeService.GetCategoryAttributeDefinitionsAsync(catId);
-            attrDefsList.AddRange(defs);
-        }
-        result.AttributeDefinitions = attrDefsList.DistinctBy(a => a.Id).ToList();
+        var defs = await categoryAttributeService.GetCategoryAttributeDefinitionsAsync(categoryIds);
+        result.AttributeDefinitions = defs.DistinctBy(a => a.Id).ToList();
 
         if (_bannerService != null)
         {
