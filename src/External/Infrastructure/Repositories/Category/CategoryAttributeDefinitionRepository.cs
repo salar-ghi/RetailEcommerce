@@ -14,6 +14,22 @@ public class CategoryAttributeDefinitionRepository : Repository<CategoryAttribut
             .ToListAsync();
     }
 
+    public async Task<IReadOnlyList<CategoryAttributeDefinition>> GetActiveByCategoryIdsAsync(IEnumerable<int> categoryIds)
+    {
+        var categoryIdList = categoryIds as IReadOnlyCollection<int> ?? categoryIds.ToList();
+        if (categoryIdList.Count == 0)
+        {
+            return Array.Empty<CategoryAttributeDefinition>();
+        }
+
+        return await IncludeActiveAttributeDefinition(_context.CategoryAttributeDefinitions.AsNoTracking())
+            .Where(ca => categoryIdList.Contains(ca.CategoryId) && !ca.IsDeleted && !ca.AttributeDefinition.IsDeleted)
+            .OrderBy(ca => ca.SortOrder)
+            .ThenBy(ca => ca.AttributeDefinition.SortOrder)
+            .ThenBy(ca => ca.AttributeDefinition.Name)
+            .ToListAsync();
+    }
+
     public async Task<CategoryAttributeDefinition?> GetActiveByIdAsync(int categoryId, int id, bool trackChanges = false)
     {
         var query = trackChanges
