@@ -4,5 +4,6 @@ public interface IUserRoleRepository : IRepository<UserRole, int>
 {
     Task<IEnumerable<UserRole>> GetByUserIdAsync(string userId);
     Task<IEnumerable<UserRole>> GetByRoleIdAsync(int roleId);
+    Task<UserRole?> GetByUserIdAndRoleIdAsync(string userId, int roleId);
     Task DeleteAsync(string userId, int roleId);
 }

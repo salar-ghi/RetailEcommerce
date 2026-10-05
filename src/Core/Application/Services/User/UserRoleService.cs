@@ -19,8 +19,7 @@ public class UserRoleService
 
     public async Task<UserRoleDto> GetUserRoleByIdAsync(string userId, int roleId)
     {
-        var userRoles = await _unitOfWork.UserRoles.GetAllAsync();
-        var userRole = userRoles.FirstOrDefault(ur => ur.UserId == userId && ur.RoleId == roleId);
+        var userRole = await _unitOfWork.UserRoles.GetByUserIdAndRoleIdAsync(userId, roleId);
         if (userRole == null) throw new KeyNotFoundException($"UserRole with User ID {userId} and Role ID {roleId} not found.");
         return _mapper.Map<UserRoleDto>(userRole);
     }
@@ -34,8 +33,7 @@ public class UserRoleService
 
     public async Task UpdateUserRoleAsync(UserRoleDto userRoleDto)
     {
-        var userRoles = await _unitOfWork.UserRoles.GetAllAsync();
-        var existing = userRoles.FirstOrDefault(ur => ur.UserId == userRoleDto.UserId && ur.RoleId == userRoleDto.RoleId);
+        var existing = await _unitOfWork.UserRoles.GetByUserIdAndRoleIdAsync(userRoleDto.UserId, userRoleDto.RoleId);
         if (existing == null) throw new KeyNotFoundException($"UserRole with User ID {userRoleDto.UserId} and Role ID {userRoleDto.RoleId} not found.");
         _mapper.Map(userRoleDto, existing);
         await _unitOfWork.UserRoles.UpdateAsync(existing);

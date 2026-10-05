@@ -20,6 +20,12 @@ public class UserRoleRepository : Repository<UserRole, int> , IUserRoleRepositor
             .ToListAsync();
     }
 
+    public async Task<UserRole?> GetByUserIdAndRoleIdAsync(string userId, int roleId)
+    {
+        return await _context.UserRoles
+            .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId);
+    }
+
     public async Task DeleteAsync(string userId, int roleId)
     {
         var entity = await _context.UserRoles
