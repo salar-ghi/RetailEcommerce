@@ -8,6 +8,8 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.Id).ValueGeneratedOnAdd();
         builder.Property(p => p.Name).IsRequired().HasMaxLength(200);
         builder.Property(p => p.Description).IsRequired(false).HasMaxLength(1000);
+        builder.Property(p => p.SalesUnitPricePerWeightUnit).HasPrecision(18, 2);
+        builder.Property(p => p.SalesUnitPackWeight).HasPrecision(18, 2);
         builder.HasOne(p => p.Category)
                .WithMany(c => c.Products)
                .HasForeignKey(p => p.CategoryId);
