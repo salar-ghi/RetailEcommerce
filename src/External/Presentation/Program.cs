@@ -1,9 +1,14 @@
 using Application.Common.Json;
 using Infrastructure.Persistence;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.OpenApi;
 using Presentation.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var keysDirectory = new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "App_Data", "Keys"));
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(keysDirectory);
 builder.Services.AddProblemDetails();
 
 // Add services to the container.
@@ -146,6 +151,7 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseGlobalExceptionHandling();
+Directory.CreateDirectory(Path.Combine(app.Environment.ContentRootPath, "wwwroot"));
 app.UseStaticFiles();
 app.Use(async (context, next) =>
 {

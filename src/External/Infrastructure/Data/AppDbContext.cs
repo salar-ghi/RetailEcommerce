@@ -130,6 +130,8 @@ public class AppDbContext : DbContext
             builder.Property(a => a.Name).IsRequired().HasMaxLength(200);
             builder.Property(a => a.Unit).HasMaxLength(50);
             builder.Property(a => a.ValidationRegex).HasMaxLength(500);
+            builder.Property(a => a.MinValue).HasPrecision(18, 2);
+            builder.Property(a => a.MaxValue).HasPrecision(18, 2);
             builder.HasIndex(a => new { a.Code, a.DataType }).IsUnique().HasFilter("[IsDeleted] = 0");
             builder.HasMany(a => a.Options).WithOne(o => o.AttributeDefinition).HasForeignKey(o => o.AttributeDefinitionId).OnDelete(DeleteBehavior.Cascade);
         });
@@ -154,6 +156,7 @@ public class AppDbContext : DbContext
             builder.HasKey(v => v.Id);
             builder.Property(v => v.StringValue).HasMaxLength(2000);
             builder.Property(v => v.AttributeOptionIds).HasMaxLength(1000);
+            builder.Property(v => v.DecimalValue).HasPrecision(18, 2);
             builder.HasIndex(v => new { v.ProductId, v.AttributeDefinitionId });
             builder.HasOne(v => v.Product).WithMany(p => p.AttributeValues).HasForeignKey(v => v.ProductId).OnDelete(DeleteBehavior.Cascade);
             builder.HasOne(v => v.AttributeDefinition).WithMany().HasForeignKey(v => v.AttributeDefinitionId).OnDelete(DeleteBehavior.Cascade);
