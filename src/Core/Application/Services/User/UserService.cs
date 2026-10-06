@@ -140,8 +140,6 @@ public class UserService : IUserService
             IsEmailConfirmed = false,
             TwoFactorEnabled = false,
             Username = dto.Username,
-            //CreatedBy = "bdfb65f1-9024-4736-846d-df7de909f571",
-            //ModifiedBy = "bdfb65f1-9024-4736-846d-df7de909f571",
         };
 
         var role = await _unitOfWork.Roles.SearchByNameAsync("Customer");
