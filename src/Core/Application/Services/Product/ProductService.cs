@@ -420,18 +420,28 @@ public class ProductService : IProductService
         if (images == null)
             return;
 
-        foreach (var image in images.Where(i => !string.IsNullOrWhiteSpace(i)))
+        var validImages = images.Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
+        if (validImages.Count == 0)
+            return;
+
+        var tasks = validImages.Select(async image =>
         {
             var imageUrl = image.StartsWith("data:", StringComparison.OrdinalIgnoreCase)
                 ? await _imageHelper.SaveBase64Image(image, "images/products", "product")
                 : image;
 
-            product.Images.Add(new ProductImage
+            return new ProductImage
             {
                 ImageUrl = imageUrl,
                 IsPrimary = string.Equals(image, coverImage, StringComparison.OrdinalIgnoreCase) ||
                             string.Equals(imageUrl, coverImage, StringComparison.OrdinalIgnoreCase)
-            });
+            };
+        });
+
+        var productImages = await Task.WhenAll(tasks);
+        foreach (var productImage in productImages)
+        {
+            product.Images.Add(productImage);
         }
     }
 
@@ -441,11 +451,16 @@ public class ProductService : IProductService
         if (contentBlocks == null)
             return;
 
-        foreach (var (block, index) in contentBlocks.Select((block, index) => (block, index)))
+        foreach (var block in contentBlocks)
         {
             var type = block.Type?.Trim().ToLowerInvariant();
             if (type is not ("heading" or "paragraph" or "image"))
                 throw new InvalidOperationException("Product content block type must be heading, paragraph, or image.");
+        }
+
+        var tasks = contentBlocks.Select(async (block, index) =>
+        {
+            var type = block.Type?.Trim().ToLowerInvariant();
 
             var imageUrl = string.IsNullOrWhiteSpace(block.Image)
                 ? null
@@ -453,7 +468,7 @@ public class ProductService : IProductService
                     ? await _imageHelper.SaveBase64Image(block.Image, "images/products/introduction", "product-introduction")
                     : block.Image;
 
-            product.ContentBlocks.Add(new ProductContentBlock
+            return new ProductContentBlock
             {
                 ClientId = string.IsNullOrWhiteSpace(block.Id) ? Guid.NewGuid().ToString("N") : block.Id,
                 Type = type,
@@ -461,7 +476,13 @@ public class ProductService : IProductService
                 ImageUrl = imageUrl,
                 Caption = block.Caption,
                 SortOrder = block.SortOrder ?? index
-            });
+            };
+        });
+
+        var blocks = await Task.WhenAll(tasks);
+        foreach (var block in blocks)
+        {
+            product.ContentBlocks.Add(block);
         }
     }
 
