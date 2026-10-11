@@ -16,9 +16,4 @@ public interface IProductService
     Task<IEnumerable<ProductDto>> SearchProductsByCategoryAsync(int categoryId);
     Task<IEnumerable<ProductAttributeValueDto>> GetProductAttributeValuesAsync(long productId);
     Task SaveProductAttributeValuesAsync(long productId, List<ProductAttributeValueDto> values);
-    //// ==================== MOST SELLING ====================
-    //Task<List<ProductSalesDto>> GetTopSellingProductsAsync(int top = 10);
-    //Task<List<ProductSalesDto>> GetTopSellingProductsInCategoryAsync(string categoryName, int top = 10);
-    //Task<List<ProductSalesDto>> GetTopSellingProductsByBrandAsync(string brandName, int top = 10);
-
 }
