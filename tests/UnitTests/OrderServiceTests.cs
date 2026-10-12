@@ -169,6 +169,83 @@ public class OrderServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task DeductInventory_MultipleItemsInsufficient_PreloadsProductNamesWithoutNPlus1()
+    {
+        // Arrange - 10 products with insufficient stock
+        int itemCount = 10;
+        var orderItems = new List<CreateStorefrontOrderItemRequest>();
+
+        for (int i = 1; i <= itemCount; i++)
+        {
+            var p = new Product { Id = i, Name = $"Scarce Product {i}", Description = "Desc", IsActive = true, StorageLocationNote = "" };
+            _dbContext.Products.Add(p);
+
+            _dbContext.ProductStocks.Add(new ProductStock
+            {
+                Id = i,
+                ProductId = i,
+                Quantity = 1, // requested 10
+                ReservedQuantity = 0,
+                RowVersion = Array.Empty<byte>()
+            });
+
+            orderItems.Add(new CreateStorefrontOrderItemRequest
+            {
+                ProductId = i,
+                Quantity = 10,
+                Price = 5.0m
+            });
+        }
+
+        await _dbContext.SaveChangesAsync();
+        _dbContext.ChangeTracker.Clear();
+
+        var request = new CreateStorefrontOrderRequest
+        {
+            UserId = "user_bulk_insufficient",
+            Items = orderItems
+        };
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _orderService.CreateStorefrontOrderAsync(request));
+        Assert.Contains("Insufficient inventory for product 'Scarce Product 1'", ex.Message);
+    }
+
+    [Fact]
+    public async Task DeductInventory_MultipleLineItemsSameProduct_ExceedingTotalStock_ThrowsException()
+    {
+        // Arrange: Product 1 has stock 10. Order has two items for Product 1 (qty 7 and qty 5, total 12).
+        var product = new Product { Id = 100, Name = "Shared Stock Product", Description = "Desc", IsActive = true, StorageLocationNote = "" };
+        _dbContext.Products.Add(product);
+
+        _dbContext.ProductStocks.Add(new ProductStock
+        {
+            Id = 100,
+            ProductId = 100,
+            Quantity = 10,
+            ReservedQuantity = 0,
+            RowVersion = Array.Empty<byte>()
+        });
+
+        await _dbContext.SaveChangesAsync();
+        _dbContext.ChangeTracker.Clear();
+
+        var request = new CreateStorefrontOrderRequest
+        {
+            UserId = "user_duplicate_item",
+            Items = new List<CreateStorefrontOrderItemRequest>
+            {
+                new() { ProductId = 100, Quantity = 7, Price = 5.0m },
+                new() { ProductId = 100, Quantity = 5, Price = 5.0m }
+            }
+        };
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _orderService.CreateStorefrontOrderAsync(request));
+        Assert.Contains("Insufficient inventory for product 'Shared Stock Product'", ex.Message);
+    }
+
+    [Fact]
     public async Task DeductInventory_MultiItemOrder_PerformanceBenchmark()
     {
         // Seed 100 products, each with 3 stock entries across different spaces/shelves/batches

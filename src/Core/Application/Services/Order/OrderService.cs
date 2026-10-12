@@ -268,6 +268,41 @@ public class OrderService : IOrderService
             .GroupBy(s => s.ProductId)
             .ToDictionary(g => g.Key, g => g.ToList());
 
+        // Validation Pass: Check total needed quantity per product against total available stock in memory.
+        // On happy path, no additional product query is performed.
+        // On failure, batch-fetch product names only for insufficient items.
+        var totalNeededByProduct = itemGroup
+            .GroupBy(i => i.ProductId)
+            .ToDictionary(g => g.Key, g => g.Sum(i => (int)Math.Ceiling(i.Quantity)));
+
+        var insufficientProductIds = new List<long>();
+        (long ProductId, int TotalAvailable, int TotalNeeded)? firstInsufficient = null;
+
+        foreach (var (productId, totalNeeded) in totalNeededByProduct)
+        {
+            if (totalNeeded <= 0) continue;
+
+            var stocks = stocksByProduct.GetValueOrDefault(productId, new List<ProductStock>());
+            var totalAvailable = stocks.Sum(s => s.AvailableQuantity);
+
+            if (totalAvailable < totalNeeded)
+            {
+                insufficientProductIds.Add(productId);
+                firstInsufficient ??= (productId, totalAvailable, totalNeeded);
+            }
+        }
+
+        if (firstInsufficient.HasValue)
+        {
+            var (insufficientProductId, totalAvailable, requested) = firstInsufficient.Value;
+            var products = await _unitOfWork.Products.GetAllAsync(p => insufficientProductIds.Contains(p.Id));
+            var productNames = products.ToDictionary(p => p.Id, p => p.Name);
+
+            var productName = productNames.TryGetValue(insufficientProductId, out var name) ? name : $"ID {insufficientProductId}";
+            throw new InvalidOperationException($"Insufficient inventory for product '{productName}'. Available stock: {totalAvailable}, requested: {requested}.");
+        }
+
+        // Deduction Pass
         foreach (var item in itemGroup)
         {
             var remainingQtyNeeded = (int)Math.Ceiling(item.Quantity);
@@ -278,13 +313,6 @@ public class OrderService : IOrderService
                 stocks = new List<ProductStock>();
             }
 
-            var orderedStocks = stocks.OrderBy(s =>
-            {
-                if (item.ShelfId.HasValue && s.ShelfId == item.ShelfId.Value) return 0;
-                if (item.SpaceId.HasValue && s.SpaceId == item.SpaceId.Value) return 1;
-                return 2;
-            }).ThenBy(s => s.CreatedTime);
-
             var totalAvailable = stocks.Sum(s => s.AvailableQuantity);
             if (totalAvailable < remainingQtyNeeded)
             {
@@ -292,6 +320,13 @@ public class OrderService : IOrderService
                 var productName = product?.Name ?? $"ID {item.ProductId}";
                 throw new InvalidOperationException($"Insufficient inventory for product '{productName}'. Available stock: {totalAvailable}, requested: {remainingQtyNeeded}.");
             }
+
+            var orderedStocks = stocks.OrderBy(s =>
+            {
+                if (item.ShelfId.HasValue && s.ShelfId == item.ShelfId.Value) return 0;
+                if (item.SpaceId.HasValue && s.SpaceId == item.SpaceId.Value) return 1;
+                return 2;
+            }).ThenBy(s => s.CreatedTime);
 
             foreach (var stock in orderedStocks)
             {
