@@ -85,7 +85,6 @@ public class ProductService : IProductService
 
         ApplyProductScalars(product, dto, resolvedLocation);
         ApplyDimensions(product, dto.Dimensions);
-        await ReplaceImagesAsync(product, dto.Images, dto.CoverImage);
         ReplaceTags(product, dto.Tags);
         ReplaceSupplier(product, dto.SupplierId);
         ReplaceBatches(product, dto.Prices, dto.Stock);
@@ -93,7 +92,10 @@ public class ProductService : IProductService
         ReplaceAttributes(product, dto.Attributes);
         ReplaceAttributeValues(product, dto.AttributeValues);
         ReplaceVariants(product, dto.Variants);
-        await ReplaceContentBlocksAsync(product, dto.ContentBlocks);
+
+        await Task.WhenAll(
+            ReplaceImagesAsync(product, dto.Images, dto.CoverImage),
+            ReplaceContentBlocksAsync(product, dto.ContentBlocks));
 
         await ApplyStorageUsageAsync(dto.Stock?.Quantity ?? 0, resolvedLocation);
         await _unitOfWork.Products.AddAsync(product);
@@ -127,7 +129,6 @@ public class ProductService : IProductService
 
         ApplyProductScalars(product, dto, resolvedLocation);
         ApplyDimensions(product, dto.Dimensions);
-        await ReplaceImagesAsync(product, dto.Images, dto.CoverImage);
         ReplaceTags(product, dto.Tags);
         ReplaceSupplier(product, dto.SupplierId);
         ReplaceBatches(product, dto.Prices, dto.Stock);
@@ -135,7 +136,10 @@ public class ProductService : IProductService
         ReplaceAttributes(product, dto.Attributes);
         ReplaceAttributeValues(product, dto.AttributeValues);
         ReplaceVariants(product, dto.Variants);
-        await ReplaceContentBlocksAsync(product, dto.ContentBlocks);
+
+        await Task.WhenAll(
+            ReplaceImagesAsync(product, dto.Images, dto.CoverImage),
+            ReplaceContentBlocksAsync(product, dto.ContentBlocks));
 
         await ApplyStorageUsageAsync((dto.Stock?.Quantity ?? 0) - oldStockQuantity, resolvedLocation);
         await _unitOfWork.Products.UpdateAsync(product);
