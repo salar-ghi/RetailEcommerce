@@ -58,6 +58,22 @@ public class OrderFinanceServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task EnsureDefaultsAsync_BatchInsertsDefaultChartOfAccountsCorrectly()
+    {
+        // Act
+        await _financeService.EnsureDefaultsAsync();
+
+        // Assert
+        var accounts = await _financeService.GetChartOfAccountsAsync();
+        Assert.Equal(11, accounts.Count);
+
+        // Calling it again should be idempotent and not attempt re-adding existing codes
+        await _financeService.EnsureDefaultsAsync();
+        var accountsAfterSecondCall = await _financeService.GetChartOfAccountsAsync();
+        Assert.Equal(11, accountsAfterSecondCall.Count);
+    }
+
+    [Fact]
     public async Task CreateManualOrder_WithMultiplePaymentSplits_BatchSyncsToFinanceCorrectly()
     {
         // Arrange

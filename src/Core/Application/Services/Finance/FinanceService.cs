@@ -50,11 +50,12 @@ public sealed class FinanceService : IFinanceService
             .ToListAsync(cancellationToken))
             .ToHashSet();
 
+        var newAccounts = new List<ChartOfAccount>();
         foreach (var account in accounts)
         {
             if (!existingAccountCodes.Contains(account.Item1))
             {
-                await _unitOfWork.Finance.AddChartOfAccountAsync(new ChartOfAccount
+                newAccounts.Add(new ChartOfAccount
                 {
                     Id = Guid.NewGuid().ToString(),
                     TenantId = FinanceDefaults.TenantId,
@@ -67,10 +68,15 @@ public sealed class FinanceService : IFinanceService
                     IsActive = true,
                     CreatedTime = DateTime.UtcNow,
                     ModifiedTime = DateTime.UtcNow
-                }, cancellationToken);
+                });
 
                 existingAccountCodes.Add(account.Item1);
             }
+        }
+
+        if (newAccounts.Count > 0)
+        {
+            await _unitOfWork.Finance.AddChartOfAccountsAsync(newAccounts, cancellationToken);
         }
 
         if (!await _unitOfWork.Finance.FinanceBranches.AnyAsync(x => x.Id == "default-branch", cancellationToken))
