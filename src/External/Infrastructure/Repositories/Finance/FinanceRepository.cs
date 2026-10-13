@@ -29,6 +29,9 @@ public sealed class FinanceRepository : IFinanceRepository
     public async Task AddChartOfAccountAsync(ChartOfAccount account, CancellationToken cancellationToken = default) =>
         await _context.ChartOfAccounts.AddAsync(account, cancellationToken);
 
+    public async Task AddChartOfAccountsAsync(IEnumerable<ChartOfAccount> accounts, CancellationToken cancellationToken = default) =>
+        await _context.ChartOfAccounts.AddRangeAsync(accounts, cancellationToken);
+
     public async Task AddFinanceAccountAsync(FinanceAccount account, CancellationToken cancellationToken = default) =>
         await _context.FinanceAccounts.AddAsync(account, cancellationToken);
 

@@ -16,6 +16,7 @@ public interface IFinanceRepository
     Task AddTenantAsync(FinanceTenant tenant, CancellationToken cancellationToken = default);
     Task AddBranchAsync(FinanceBranch branch, CancellationToken cancellationToken = default);
     Task AddChartOfAccountAsync(ChartOfAccount account, CancellationToken cancellationToken = default);
+    Task AddChartOfAccountsAsync(IEnumerable<ChartOfAccount> accounts, CancellationToken cancellationToken = default);
     Task AddFinanceAccountAsync(FinanceAccount account, CancellationToken cancellationToken = default);
     Task AddTransactionAsync(FinancialTransaction transaction, CancellationToken cancellationToken = default);
     Task AddJournalEntryAsync(JournalEntry journalEntry, CancellationToken cancellationToken = default);
