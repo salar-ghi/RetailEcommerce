@@ -1,0 +1,24 @@
+services:  
+  shophub-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    image: shophub-backend:latest
+    container_name: shophub-backend
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+
+    expose:
+      - "8000"
+
+    network:
+      - shophub-network
+
+networks:
+  shophub-network:
+    external: true
+  
