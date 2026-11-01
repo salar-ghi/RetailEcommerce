@@ -31,17 +31,17 @@ public static class DependencyInjection
 
         services.AddSingleton<IRedisCacheService, RedisCacheService>();
 
-        services.AddAutoMapper(typeof(BrandMappingProfile));
-        services.AddAutoMapper(typeof(CategoryMappingProfile));
-        services.AddAutoMapper(typeof(OrderMappingProfile));
-        services.AddAutoMapper(typeof(ProductMappingProfile));
-        services.AddAutoMapper(typeof(BannerMappingProfile));
+        services.AddAutoMapper(cfg => { }, typeof(BrandMappingProfile));
+        services.AddAutoMapper(cfg => { }, typeof(CategoryMappingProfile));
+        services.AddAutoMapper(cfg => { }, typeof(OrderMappingProfile));
+        services.AddAutoMapper(cfg => { }, typeof(ProductMappingProfile));
+        services.AddAutoMapper(cfg => { }, typeof(BannerMappingProfile));
        
-        services.AddAutoMapper(typeof(SupplierMappingProfile));
-        services.AddAutoMapper(typeof(TagMappingProfile));
-        services.AddAutoMapper(typeof(UserMappingProfile));
-        services.AddAutoMapper(typeof(PromotionMappingProfile));
-        services.AddAutoMapper(typeof(PaymentMappingProfile));
+        services.AddAutoMapper(cfg => { }, typeof(SupplierMappingProfile));
+        services.AddAutoMapper(cfg => { }, typeof(TagMappingProfile));
+        services.AddAutoMapper(cfg => { }, typeof(UserMappingProfile));
+        services.AddAutoMapper(cfg => { }, typeof(PromotionMappingProfile));
+        services.AddAutoMapper(cfg => { }, typeof(PaymentMappingProfile));
 
         // Logging - Singleton (default ILogger<T> is fine)
         services.AddLogging();
