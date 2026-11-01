@@ -15,7 +15,7 @@ services:
     expose:
       - "8000"
 
-    network:
+    networks:
       - shophub-network
 
 networks:

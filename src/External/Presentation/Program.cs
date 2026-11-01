@@ -1,4 +1,4 @@
-using Application.Common.Json;
+﻿using Application.Common.Json;
 using Infrastructure.Persistence;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.OpenApi;
@@ -54,9 +54,21 @@ builder.Services
 // Add CORS (example configuration)
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
+    options.AddPolicy("AllowSpecificOrigins", policy =>
     {
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        policy.WithOrigins(
+                "https://shophub.com",
+                "https://www.shophub.com",
+                "https://api.shophub.com",
+                "http://shophub.com",
+                "http://www.shophub.com",
+                "http://api.shophub.com",
+                "http://localhost:3000",
+                "http://localhost:8000"
+            )
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
 
@@ -216,7 +228,7 @@ using (var scope = app.Services.CreateScope())
 
 //app.UseAuthorization();
 
-app.UseCors("AllowAll"); // Apply CORS policy
+app.UseCors("AllowSpecificOrigins");
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();

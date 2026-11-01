@@ -1,5 +1,7 @@
 .git
+.github
 .vs
+docs
 .vscode
 **/bin/
 **/obj/
