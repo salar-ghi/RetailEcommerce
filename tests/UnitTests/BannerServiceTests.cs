@@ -9,6 +9,7 @@ using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -36,10 +37,10 @@ public class BannerServiceTests : IDisposable
         var mockCache = new Mock<IDistributedCache>();
         _unitOfWork = new UnitOfWork(_dbContext, mockCache.Object);
 
-        var mapperConfig = new MapperConfiguration(cfg =>
+        var mapperConfig = new MapperConfiguration(new Action<IMapperConfigurationExpression>(cfg =>
         {
             cfg.AddProfile<BannerMappingProfile>();
-        });
+        }), NullLoggerFactory.Instance);
         var mapper = mapperConfig.CreateMapper();
 
         _mockImageHelper = new Mock<IImageHelper>();

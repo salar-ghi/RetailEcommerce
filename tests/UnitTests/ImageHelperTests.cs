@@ -2,6 +2,7 @@ using Application.Helper;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Hosting;
 using Moq;
+using SkiaSharp;
 using Xunit;
 
 namespace UnitTests;
@@ -58,6 +59,63 @@ public class ImageHelperTests : IDisposable
         Assert.True(result.ContainsKey(file2Relative));
         Assert.StartsWith("data:image/png;base64,", result[file1Relative]);
         Assert.StartsWith("data:image/png;base64,", result[file2Relative]);
+    }
+
+    [Fact]
+    public async Task SaveBase64Image_ConvertsPngToWebp()
+    {
+        // 1x1 valid PNG base64
+        var pngBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGNgAAAAAgAB4iG8MwAAAABJRU5ErkJggg==";
+
+        var relativePath = await _imageHelper.SaveBase64Image(pngBase64, "images/products", "product");
+
+        Assert.NotNull(relativePath);
+        Assert.EndsWith(".webp", relativePath);
+        Assert.StartsWith("images/products/product-", relativePath);
+
+        var fullPath = Path.Combine(_tempDirectory, relativePath);
+        Assert.True(File.Exists(fullPath));
+
+        var savedBytes = await File.ReadAllBytesAsync(fullPath);
+        using var codec = SKCodec.Create(new MemoryStream(savedBytes));
+        Assert.NotNull(codec);
+        Assert.Equal(SKEncodedImageFormat.Webp, codec.EncodedFormat);
+    }
+
+    [Fact]
+    public async Task SaveBase64Image_PreservesExistingWebpWithoutReencoding()
+    {
+        // Valid 1x1 WebP
+        byte[] webpBytes;
+        using (var bitmap = new SKBitmap(1, 1))
+        using (var image = SKImage.FromBitmap(bitmap))
+        using (var data = image.Encode(SKEncodedImageFormat.Webp, 100))
+        {
+            webpBytes = data.ToArray();
+        }
+
+        var webpBase64 = $"data:image/webp;base64,{Convert.ToBase64String(webpBytes)}";
+
+        var relativePath = await _imageHelper.SaveBase64Image(webpBase64, "images/products", "product");
+
+        Assert.NotNull(relativePath);
+        Assert.EndsWith(".webp", relativePath);
+
+        var fullPath = Path.Combine(_tempDirectory, relativePath);
+        Assert.True(File.Exists(fullPath));
+
+        var savedBytes = await File.ReadAllBytesAsync(fullPath);
+        Assert.Equal(webpBytes, savedBytes);
+    }
+
+    [Fact]
+    public async Task SaveBase64Image_InvalidRasterData_ThrowsArgumentException()
+    {
+        // Corrupted payload with valid MIME header
+        var invalidDataUrl = "data:image/png;base64,AQIDBAUGBwg=";
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            _imageHelper.SaveBase64Image(invalidDataUrl, "images/products", "product"));
     }
 
     public void Dispose()
