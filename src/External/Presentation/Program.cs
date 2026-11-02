@@ -57,12 +57,14 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigins", policy =>
     {
         policy.WithOrigins(
-                "https://shophub.com",
-                "https://www.shophub.com",
-                "https://api.shophub.com",
-                "http://shophub.com",
-                "http://www.shophub.com",
-                "http://api.shophub.com",
+                "https://bazarazad.shop",
+                "https://www.bazarazad.shop",
+                "https://api.bazarazad.shop",
+                "https://admin.bazarazad.shop",
+                "http://bazarazad.shop",
+                "http://www.bazarazad.shop",
+                "http://api.bazarazad.shop",
+                "http://aadmin.bazarazad.shop",
                 "http://localhost:3000",
                 "http://localhost:8000"
             )
