@@ -232,16 +232,36 @@ public class ImageHelper : IImageHelper
         try
         {
             await using var input = new MemoryStream(imageBytes);
-            using var image = await Image.LoadAsync(input);
+            using var codec = SKCodec.Create(input);
+            if (codec == null)
+            {
+                throw new ArgumentException("The base64 content is not a supported raster image.");
+            }
 
-            if (string.Equals(image.Metadata.DecodedImageFormat?.Name, "WEBP", StringComparison.OrdinalIgnoreCase))
+            if (codec.EncodedFormat == SKEncodedImageFormat.Webp)
+            {
                 return (imageBytes, ".webp");
+            }
 
-            await using var output = new MemoryStream();
-            await image.SaveAsync(output, new SixLabors.ImageSharp.Formats.Webp.WebpEncoder());
-            return (output.ToArray(), ".webp");
+            using var image = SKImage.FromEncodedData(imageBytes);
+            if (image == null)
+            {
+                throw new ArgumentException("The base64 content is not a supported raster image.");
+            }
+
+            using var data = image.Encode(SKEncodedImageFormat.Webp, 100);
+            if (data == null)
+            {
+                throw new ArgumentException("Failed to convert image to WebP.");
+            }
+
+            return (data.ToArray(), ".webp");
         }
-        catch (UnknownImageFormatException ex)
+        catch (ArgumentException)
+        {
+            throw;
+        }
+        catch (Exception ex)
         {
             throw new ArgumentException("The base64 content is not a supported raster image.", ex);
         }

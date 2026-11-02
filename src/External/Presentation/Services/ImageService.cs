@@ -1,4 +1,4 @@
-using SixLabors.ImageSharp;
+using SkiaSharp;
 using System.Text.RegularExpressions;
 
 namespace Presentation.Services;
@@ -56,7 +56,11 @@ public class ImageService
             throw new ArgumentException("Invalid base64 string.", nameof(dataUrl), exception);
         }
 
-        using var image = Image.Load(imageBytes);
+        using var image = SKImage.FromEncodedData(imageBytes);
+        if (image == null)
+        {
+            throw new ArgumentException("Invalid image data.", nameof(dataUrl));
+        }
 
         var fileName = $"category-{Guid.NewGuid()}{extension}";
         var folderPath = Path.Combine(_env.ContentRootPath, subFolder);

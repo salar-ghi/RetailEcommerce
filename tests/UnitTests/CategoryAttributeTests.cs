@@ -10,6 +10,7 @@ using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -35,12 +36,12 @@ public class CategoryAttributeTests : IDisposable
         var mockCache = new Mock<IDistributedCache>();
         _unitOfWork = new UnitOfWork(_dbContext, mockCache.Object);
 
-        var mapperConfig = new MapperConfiguration(cfg =>
+        var mapperConfig = new MapperConfiguration(new Action<IMapperConfigurationExpression>(cfg =>
         {
             cfg.AddProfile<CategoryMappingProfile>();
             cfg.AddProfile<ProductMappingProfile>();
             cfg.AddProfile<BrandMappingProfile>();
-        });
+        }), NullLoggerFactory.Instance);
         _mapper = mapperConfig.CreateMapper();
 
         var mockImageHelper = new Mock<IImageHelper>();

@@ -8,6 +8,7 @@ using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -35,7 +36,10 @@ public class UserRoleServiceTests : IDisposable
         var mockCache = new Mock<IDistributedCache>();
         _unitOfWork = new UnitOfWork(_dbContext, mockCache.Object);
 
-        var config = new MapperConfiguration(cfg => cfg.AddProfile<UserMappingProfile>());
+        var config = new MapperConfiguration(new Action<IMapperConfigurationExpression>(cfg =>
+        {
+            cfg.AddProfile<UserMappingProfile>();
+        }), NullLoggerFactory.Instance);
         _mapper = config.CreateMapper();
 
         _userRoleService = new UserRoleService(_unitOfWork, _mapper);
