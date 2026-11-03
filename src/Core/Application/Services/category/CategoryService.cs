@@ -184,7 +184,7 @@ public class CategoryService
     {
         var data = _unitOfWork.Categories.GetAll(z => z.IsDeleted == false);
         var categories = await data
-            .ProjectTo<CategoryDetailsDto>(_mapper.ConfigurationProvider)
+            .ProjectToType<CategoryDetailsDto>(_mapper.Config)
             .OrderBy(z => z.Name)
             .ToListAsync();
 

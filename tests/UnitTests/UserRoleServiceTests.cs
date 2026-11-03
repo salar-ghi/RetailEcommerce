@@ -2,13 +2,13 @@ using System.Diagnostics;
 using Application.DTOs;
 using Application.Mapping;
 using Application.Services;
-using AutoMapper;
 using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Mapster;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -36,11 +36,9 @@ public class UserRoleServiceTests : IDisposable
         var mockCache = new Mock<IDistributedCache>();
         _unitOfWork = new UnitOfWork(_dbContext, mockCache.Object);
 
-        var config = new MapperConfiguration(new Action<IMapperConfigurationExpression>(cfg =>
-        {
-            cfg.AddProfile<UserMappingProfile>();
-        }), NullLoggerFactory.Instance);
-        _mapper = config.CreateMapper();
+        var config = new TypeAdapterConfig();
+        new UserMappingProfile().Register(config);
+        _mapper = new ServiceMapper(null!, config);
 
         _userRoleService = new UserRoleService(_unitOfWork, _mapper);
     }

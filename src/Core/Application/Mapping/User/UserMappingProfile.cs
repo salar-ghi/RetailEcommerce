@@ -1,16 +1,18 @@
-﻿namespace Application.Mapping;
+namespace Application.Mapping;
 
-public class UserMappingProfile : Profile
+public class UserMappingProfile : IRegister
 {
-    public UserMappingProfile()
+    public void Register(TypeAdapterConfig config)
     {
-        CreateMap<User, UserDto>()
-            .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
-            .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.LastName))
-            .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.UserRoles.Select(ur => ur.Role.Name)))
-            .ReverseMap();
-        CreateMap<Role, RoleDto>().ReverseMap();
-        CreateMap<UserRole, UserRoleDto>().ReverseMap();
-        CreateMap<UserAddress, UserAddressDto>().ReverseMap();
+        config.NewConfig<User, UserDto>()
+            .Map(dest => dest.FirstName, src => src.FirstName)
+            .Map(dest => dest.LastName, src => src.LastName)
+            .Map(dest => dest.Roles, src => src.UserRoles.Select(ur => ur.Role.Name))
+            .TwoWays();
+        config.NewConfig<Role, RoleDto>().TwoWays();
+        config.NewConfig<UserRole, UserRoleDto>().TwoWays();
+        config.NewConfig<UserRoleDto, UserRole>()
+            .Ignore(dest => dest.Id);
+        config.NewConfig<UserAddress, UserAddressDto>().TwoWays();
     }
 }

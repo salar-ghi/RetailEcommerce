@@ -3,13 +3,13 @@ using Application.DTOs;
 using Application.Helper;
 using Application.Mapping;
 using Application.Services;
-using AutoMapper;
 using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Mapster;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -37,11 +37,9 @@ public class ProductServiceTests : IDisposable
         var mockCache = new Mock<IDistributedCache>();
         _unitOfWork = new UnitOfWork(_dbContext, mockCache.Object);
 
-        var mapperConfig = new MapperConfiguration(new Action<IMapperConfigurationExpression>(cfg =>
-        {
-            cfg.AddProfile<ProductMappingProfile>();
-        }), NullLoggerFactory.Instance);
-        var mapper = mapperConfig.CreateMapper();
+        var config = new TypeAdapterConfig();
+        new ProductMappingProfile().Register(config);
+        var mapper = new ServiceMapper(null!, config);
 
         _mockImageHelper = new Mock<IImageHelper>();
 

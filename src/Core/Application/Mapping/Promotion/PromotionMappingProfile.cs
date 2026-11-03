@@ -1,17 +1,17 @@
-﻿namespace Application.Mapping;
+namespace Application.Mapping;
 
-public class PromotionMappingProfile : Profile
+public class PromotionMappingProfile : IRegister
 {
-    public PromotionMappingProfile()
+    public void Register(TypeAdapterConfig config)
     {
-        CreateMap<Promotion, PromotionDto>()
-            .ForMember(dest => dest.Scope, opt => opt.MapFrom(src => src.Scope.ToString()))
-            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
+        config.NewConfig<Promotion, PromotionDto>()
+            .Map(dest => dest.Scope, src => src.Scope.ToString())
+            .Map(dest => dest.IsActive, src => src.IsActive);
 
-        CreateMap<Discount, DiscountDto>()
-            .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()));
+        config.NewConfig<Discount, DiscountDto>()
+            .Map(dest => dest.Type, src => src.Type.ToString());
 
-        CreateMap<PromotionCondition, PromotionConditionDto>()
-            .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()));
+        config.NewConfig<PromotionCondition, PromotionConditionDto>()
+            .Map(dest => dest.Type, src => src.Type.ToString());
     }
 }
