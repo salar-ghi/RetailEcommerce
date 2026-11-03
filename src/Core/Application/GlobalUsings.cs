@@ -1,5 +1,6 @@
-﻿global using Domain;
-global using AutoMapper;
+global using Domain;
+global using Mapster;
+global using MapsterMapper;
 global using System.Text;
 global using Domain.Enums;
 global using Domain.Entities;
@@ -15,6 +16,5 @@ global using Application.Configuration;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.Extensions.Options;
 global using Microsoft.EntityFrameworkCore;
-global using AutoMapper.QueryableExtensions;
 global using Microsoft.IdentityModel.Tokens;
 global using System.IdentityModel.Tokens.Jwt;

@@ -4,13 +4,13 @@ using Application.Helper;
 using Application.Interfaces;
 using Application.Mapping;
 using Application.Services;
-using AutoMapper;
 using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Mapster;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -36,13 +36,11 @@ public class CategoryAttributeTests : IDisposable
         var mockCache = new Mock<IDistributedCache>();
         _unitOfWork = new UnitOfWork(_dbContext, mockCache.Object);
 
-        var mapperConfig = new MapperConfiguration(new Action<IMapperConfigurationExpression>(cfg =>
-        {
-            cfg.AddProfile<CategoryMappingProfile>();
-            cfg.AddProfile<ProductMappingProfile>();
-            cfg.AddProfile<BrandMappingProfile>();
-        }), NullLoggerFactory.Instance);
-        _mapper = mapperConfig.CreateMapper();
+        var config = new TypeAdapterConfig();
+        new CategoryMappingProfile().Register(config);
+        new ProductMappingProfile().Register(config);
+        new BrandMappingProfile().Register(config);
+        _mapper = new ServiceMapper(null!, config);
 
         var mockImageHelper = new Mock<IImageHelper>();
         var mockCurrentUserService = new Mock<ICurrentUserService>();

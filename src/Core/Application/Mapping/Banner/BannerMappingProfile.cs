@@ -1,35 +1,27 @@
-﻿namespace Application.Mapping;
+namespace Application.Mapping;
 
-public class BannerMappingProfile : Profile
+public class BannerMappingProfile : IRegister
 {
-    public BannerMappingProfile()
+    public void Register(TypeAdapterConfig config)
     {
-        CreateMap<BannerPlacement, BannerPlacementDto>().ReverseMap();
-        CreateMap<CreateBannerPlacementDto, BannerPlacement>().ReverseMap();
+        config.NewConfig<BannerPlacement, BannerPlacementDto>().TwoWays();
+        config.NewConfig<CreateBannerPlacementDto, BannerPlacement>().TwoWays();
 
-        //CreateMap<BannerPlacement, PlacementDto>();
-        //CreateMap<Banner, BannerDto>()
-        //    .ForMember(dest => dest.Placement, 
-        //        opt => opt.MapFrom(src => 
-        //            src.BannerPlacementMaps.Select(p => p.Placement)))
-        //    .ReverseMap();
+        config.NewConfig<BannerPlacement, PlacementDto>();
 
-        CreateMap<BannerPlacement, PlacementDto>();
+        config.NewConfig<Banner, BannerDto>()
+            .Map(dest => dest.Placements,
+                src => src.BannerPlacementMaps
+                    .Where(m => !m.IsDeleted && !m.Placement.IsDeleted)
+                    .Select(m => m.Placement))
+            .TwoWays();
 
-        CreateMap<Banner, BannerDto>()
-            .ForMember(dest => dest.Placements,
-                opt => opt.MapFrom(src =>
-                    src.BannerPlacementMaps
-                        .Where(m => !m.IsDeleted && !m.Placement.IsDeleted)
-                        .Select(m => m.Placement)))
-            .ReverseMap();
+        config.NewConfig<CreateBannerDto, Banner>()
+            .Ignore(dest => dest.BannerPlacementMaps)
+            .TwoWays();
 
-        CreateMap<CreateBannerDto, Banner>()
-            .ForMember(dest => dest.BannerPlacementMaps, opt => opt.Ignore())
-            .ReverseMap();
-
-        CreateMap<UpdateBannerDto, Banner>()
-            .ForMember(dest => dest.BannerPlacementMaps, opt => opt.Ignore())
-            .ReverseMap();
+        config.NewConfig<UpdateBannerDto, Banner>()
+            .Ignore(dest => dest.BannerPlacementMaps)
+            .TwoWays();
     }
 }

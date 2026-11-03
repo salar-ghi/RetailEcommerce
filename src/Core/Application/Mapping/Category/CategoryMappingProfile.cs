@@ -1,24 +1,24 @@
-﻿namespace Application.Mapping;
+namespace Application.Mapping;
 
-public class CategoryMappingProfile : Profile
+public class CategoryMappingProfile : IRegister
 {
-    public CategoryMappingProfile()
+    public void Register(TypeAdapterConfig config)
     {
-        CreateMap<Category, CategoryDto>()
-            .ForMember(dest => dest.ParentId, opt => opt.MapFrom(src => src.ParentId))
-            .ForMember(dest => dest.Image, opt => opt.MapFrom(src => src.ImageUrl))
-            .ReverseMap();
+        config.NewConfig<Category, CategoryDto>()
+            .Map(dest => dest.ParentId, src => src.ParentId)
+            .Map(dest => dest.Image, src => src.ImageUrl)
+            .TwoWays();
 
-        CreateMap<Category, CategoryDetailsDto>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
-            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedTime))
-            .ForMember(dest => dest.ParentId, opt => opt.MapFrom(src => src.ParentId))
-            .ForMember(dest => dest.Image, opt => opt.MapFrom(src => src.ImageUrl))
-            .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products.Count()))
-            .ForMember(dest => dest.Brands, opt => opt.MapFrom(src => src.Products.Select(p => p.Brand).Distinct()))
-            .ReverseMap();
+        config.NewConfig<Category, CategoryDetailsDto>()
+            .Map(dest => dest.Id, src => src.Id)
+            .Map(dest => dest.Name, src => src.Name)
+            .Map(dest => dest.CreatedAt, src => src.CreatedTime)
+            .Map(dest => dest.ParentId, src => src.ParentId)
+            .Map(dest => dest.Image, src => src.ImageUrl)
+            .Map(dest => dest.ProductCount, src => src.Products.Count())
+            .Map(dest => dest.Brands, src => src.Products.Select(p => p.Brand).Distinct())
+            .TwoWays();
 
-        CreateMap<CategoryAttribute, CategoryAttributeDto>().ReverseMap();
+        config.NewConfig<CategoryAttribute, CategoryAttributeDto>().TwoWays();
     }
 }

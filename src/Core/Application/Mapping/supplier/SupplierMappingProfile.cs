@@ -1,37 +1,34 @@
-﻿namespace Application.Mapping;
+namespace Application.Mapping;
 
-public class SupplierMappingProfile : Profile
+public class SupplierMappingProfile : IRegister
 {
-    public SupplierMappingProfile()
+    public void Register(TypeAdapterConfig config)
     {
-        CreateMap<Supplier, SupplierDto>()
-            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
-            .ForMember(dest => dest.IsApproved, opt => opt.MapFrom(src => src.Status == SupplierStatus.Approved))
-            .ForMember(dest => dest.ContactInfo, opt => opt.MapFrom(src => src.Info))
-            .ReverseMap();
+        config.NewConfig<Supplier, SupplierDto>()
+            .Map(dest => dest.Status, src => src.Status.ToString())
+            .Map(dest => dest.IsApproved, src => src.Status == SupplierStatus.Approved)
+            .Map(dest => dest.ContactInfo, src => src.Info)
+            .TwoWays();
 
-        CreateMap<SupplierRegistrationDto, Supplier>()
-            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
-            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
-            .ForMember(dest => dest.Info, opt => opt.MapFrom(src => src.ContactInfo))
-            .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Phone))
-            .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
-            .ForMember(dest => dest.Website, opt => opt.MapFrom(src => src.Website))
-            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
-            .ReverseMap();
+        config.NewConfig<SupplierRegistrationDto, Supplier>()
+            .Map(dest => dest.Name, src => src.Name)
+            .Map(dest => dest.Email, src => src.Email)
+            .Map(dest => dest.Info, src => src.ContactInfo)
+            .Map(dest => dest.Phone, src => src.Phone)
+            .Map(dest => dest.Address, src => src.Address)
+            .Map(dest => dest.Website, src => src.Website)
+            .Map(dest => dest.Description, src => src.Description)
+            .TwoWays();
 
-
-        CreateMap<UpdateSupplierStatusDto, Supplier>()
-            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
-            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
-            .ForMember(dest => dest.Info, opt => opt.MapFrom(src => src.ContactInfo))
-            .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Phone))
-            .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
-            .ForMember(dest => dest.Website, opt => opt.MapFrom(src => src.Website))
-            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
-            .ForMember(dest => dest.Status, opt => opt.Condition(src => src.Status.HasValue))
-            .ReverseMap();
-
-
+        config.NewConfig<UpdateSupplierStatusDto, Supplier>()
+            .Map(dest => dest.Name, src => src.Name)
+            .Map(dest => dest.Email, src => src.Email)
+            .Map(dest => dest.Info, src => src.ContactInfo)
+            .Map(dest => dest.Phone, src => src.Phone)
+            .Map(dest => dest.Address, src => src.Address)
+            .Map(dest => dest.Website, src => src.Website)
+            .Map(dest => dest.Description, src => src.Description)
+            .IgnoreIf((src, dest) => !src.Status.HasValue, dest => dest.Status)
+            .TwoWays();
     }
 }

@@ -1,35 +1,35 @@
-﻿namespace Application.Mapping;
+namespace Application.Mapping;
 
-public class BrandMappingProfile : Profile
+public class BrandMappingProfile : IRegister
 {
-    public BrandMappingProfile()
+    public void Register(TypeAdapterConfig config)
     {
-        CreateMap<Brand, BrandDto>()
-            .ForMember(dest => dest.Logo, opt => opt.MapFrom(src => src.ImageUrl))
-            .ForMember(dest => dest.CreatedTime, opt => opt.MapFrom(src => src.CreatedTime))
-            .ForMember(dest => dest.CategoryIds, opt => opt.MapFrom(src => src.BrandCategories.Select(bc => bc.CategoryId)))
-            .ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.BrandCategories
-                .Select(bc => new BrandCategories { Id = bc.Category.Id, Name = bc.Category.Name })));
+        config.NewConfig<Brand, BrandDto>()
+            .Map(dest => dest.Logo, src => src.ImageUrl)
+            .Map(dest => dest.CreatedTime, src => src.CreatedTime)
+            .Map(dest => dest.CategoryIds, src => src.BrandCategories.Select(bc => bc.CategoryId))
+            .Map(dest => dest.Categories, src => src.BrandCategories
+                .Select(bc => new BrandCategories { Id = bc.Category.Id, Name = bc.Category.Name }));
 
-        CreateMap<BrandDto, Brand>()
-            .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.Logo))
-            .ForMember(dest => dest.BrandCategories, opt => opt.Ignore())
-            .ForMember(dest => dest.Products, opt => opt.Ignore());
+        config.NewConfig<BrandDto, Brand>()
+            .Map(dest => dest.ImageUrl, src => src.Logo)
+            .Ignore(dest => dest.BrandCategories)
+            .Ignore(dest => dest.Products);
 
-        CreateMap<Brand, BrandUpdateDto>()
-            .ForMember(dest => dest.Logo, opt => opt.MapFrom(src => src.ImageUrl))
-            .ForMember(dest => dest.CategoryIds, opt => opt.MapFrom(src => src.BrandCategories.Select(bc => bc.CategoryId)))
-            .ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.BrandCategories
-                .Select(bc => new BrandCategories { Id = bc.Category.Id, Name = bc.Category.Name })));
+        config.NewConfig<Brand, BrandUpdateDto>()
+            .Map(dest => dest.Logo, src => src.ImageUrl)
+            .Map(dest => dest.CategoryIds, src => src.BrandCategories.Select(bc => bc.CategoryId))
+            .Map(dest => dest.Categories, src => src.BrandCategories
+                .Select(bc => new BrandCategories { Id = bc.Category.Id, Name = bc.Category.Name }));
 
-        CreateMap<BrandUpdateDto, Brand>()
-            .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.Logo))
-            .ForMember(dest => dest.BrandCategories, opt => opt.Ignore())
-            .ForMember(dest => dest.Products, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedTime, opt => opt.Ignore())
-            .ForMember(dest => dest.ModifiedBy, opt => opt.Ignore())
-            .ForMember(dest => dest.ModifiedTime, opt => opt.Ignore())
-            .ForMember(dest => dest.IsDeleted, opt => opt.Ignore());
+        config.NewConfig<BrandUpdateDto, Brand>()
+            .Map(dest => dest.ImageUrl, src => src.Logo)
+            .Ignore(dest => dest.BrandCategories)
+            .Ignore(dest => dest.Products)
+            .Ignore(dest => dest.CreatedBy)
+            .Ignore(dest => dest.CreatedTime)
+            .Ignore(dest => dest.ModifiedBy)
+            .Ignore(dest => dest.ModifiedTime)
+            .Ignore(dest => dest.IsDeleted);
     }
 }

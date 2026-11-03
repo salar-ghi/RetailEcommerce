@@ -1,29 +1,29 @@
-﻿namespace Application.Mapping;
+namespace Application.Mapping;
 
-public class TagMappingProfile : Profile
+public class TagMappingProfile : IRegister
 {
-    public TagMappingProfile()
+    public void Register(TypeAdapterConfig config)
     {
-        CreateMap<Tag, TagDto>()
-            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedTime))
-            .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products.Count(productTag => !productTag.IsDeleted)));
+        config.NewConfig<Tag, TagDto>()
+            .Map(dest => dest.CreatedAt, src => src.CreatedTime)
+            .Map(dest => dest.ProductCount, src => src.Products.Count(productTag => !productTag.IsDeleted));
 
-        CreateMap<CreateTagDto, Tag>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.Products, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedTime, opt => opt.Ignore())
-            .ForMember(dest => dest.ModifiedBy, opt => opt.Ignore())
-            .ForMember(dest => dest.ModifiedTime, opt => opt.Ignore())
-            .ForMember(dest => dest.IsDeleted, opt => opt.Ignore());
+        config.NewConfig<CreateTagDto, Tag>()
+            .Ignore(dest => dest.Id)
+            .Ignore(dest => dest.Products)
+            .Ignore(dest => dest.CreatedBy)
+            .Ignore(dest => dest.CreatedTime)
+            .Ignore(dest => dest.ModifiedBy)
+            .Ignore(dest => dest.ModifiedTime)
+            .Ignore(dest => dest.IsDeleted);
 
-        CreateMap<UpdateTagDto, Tag>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.Products, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedTime, opt => opt.Ignore())
-            .ForMember(dest => dest.ModifiedBy, opt => opt.Ignore())
-            .ForMember(dest => dest.ModifiedTime, opt => opt.Ignore())
-            .ForMember(dest => dest.IsDeleted, opt => opt.Ignore());
+        config.NewConfig<UpdateTagDto, Tag>()
+            .Ignore(dest => dest.Id)
+            .Ignore(dest => dest.Products)
+            .Ignore(dest => dest.CreatedBy)
+            .Ignore(dest => dest.CreatedTime)
+            .Ignore(dest => dest.ModifiedBy)
+            .Ignore(dest => dest.ModifiedTime)
+            .Ignore(dest => dest.IsDeleted);
     }
 }
