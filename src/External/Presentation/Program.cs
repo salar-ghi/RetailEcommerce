@@ -1,6 +1,7 @@
 ﻿using Application.Common.Json;
 using Infrastructure.Persistence;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.OpenApi;
 using Presentation.Services;
 
@@ -65,7 +66,6 @@ builder.Services.AddCors(options =>
                 "http://www.bazarazad.shop",
                 "http://api.bazarazad.shop",
                 "http://aadmin.bazarazad.shop",
-                "http://localhost:3000",
                 "http://localhost:8000"
             )
             .AllowAnyMethod()
@@ -74,6 +74,14 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto;
+
+    options.KnownProxies.Add(IPAddress.Loopback);
+});
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddScoped<JwtHelper>();
@@ -225,10 +233,8 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-
-//app.UseHttpsRedirection();
-
-//app.UseAuthorization();
+app.UseForwardedHeaders();
+app.UseHttpsRedirection();
 
 app.UseCors("AllowSpecificOrigins");
 app.UseRouting();
