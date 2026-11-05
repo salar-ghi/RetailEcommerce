@@ -236,8 +236,8 @@ using (var scope = app.Services.CreateScope())
 app.UseForwardedHeaders();
 app.UseHttpsRedirection();
 
-app.UseCors("AllowSpecificOrigins");
 app.UseRouting();
+app.UseCors("AllowSpecificOrigins");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
