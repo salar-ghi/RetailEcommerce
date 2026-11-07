@@ -73,6 +73,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRoleRepository, UserRoleRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IUserAddressRepository, UserAddressRepository>();
+        services.AddScoped<IUserActivityRepository, UserActivityRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IOrderItemRepository, OrderItemRepository>();
@@ -117,6 +118,7 @@ public static class DependencyInjection
         services.AddScoped<RoleService>();
         services.AddScoped<UserRoleService>();
         services.AddScoped<UserAddressService>();
+        services.AddScoped<IUserActivityService, UserActivityService>();
 
         services.AddScoped<IAnalyticsService, AnalyticsService>();
 

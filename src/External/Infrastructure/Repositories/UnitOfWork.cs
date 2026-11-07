@@ -25,6 +25,7 @@ public class UnitOfWork : IUnitOfWork
         Roles = new RoleRepository(context);
         UserRoles = new UserRoleRepository(context);
         UserAddresses = new UserAddressRepository(context);
+        UserActivities = new UserActivityRepository(context);
         Products = new ProductRepository(context);
         ProductAttributes = new ProductAttributeRepository(context);
         ProductDimensions = new ProductDimensionsRepository(context);
@@ -60,6 +61,7 @@ public class UnitOfWork : IUnitOfWork
     public IRoleRepository Roles { get; }
     public IUserRoleRepository UserRoles { get; }
     public IUserAddressRepository UserAddresses { get; }
+    public IUserActivityRepository UserActivities { get; }
     public IProductRepository Products { get; }
     public IProductAttributeRepository ProductAttributes { get; }
     public IProductDimensionsRepository ProductDimensions { get; }

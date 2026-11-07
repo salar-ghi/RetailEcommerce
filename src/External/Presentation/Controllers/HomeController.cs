@@ -32,8 +32,6 @@ public class HomeController : ControllerBase
         var mobileProducts = (await _productService.GetProductsByCategory(MobileCategoryName)).ToList();
         var discountedProducts = (await _productService.GetDiscountedProductsAsync(SectionProductCount)).ToList();
         var perfumeProducts = (await _productService.GetProductsByCategory(PerfumeCategoryName)).ToList();
-        var sportTravelProducts = (await _productService.GetProductsByCategory(SportTravelCategoryName)).ToList();
-        var coffeeDrinkProducts = (await _productService.GetProductsByCategory(CoffeeDrinkCategoryName)).ToList();
 
         var model = new HomeIndexDto(
             HeroBanners: topBanners.Select(ToHomeBanner).ToList(),
@@ -60,7 +58,7 @@ public class HomeController : ControllerBase
                         .Select(product => ToHomeProduct(product, isNew: true))
                         .ToList()),
                 new(
-                    Id: 2,
+                    Id: 3,
                     Title: "محصولات تخفیف‌دار",
                     ViewAllLink: "/offers",
                     Variant: "special",
@@ -71,10 +69,7 @@ public class HomeController : ControllerBase
                         .Take(SectionProductCount)
                         .Select(item => ToHomeProduct(item.Product, item.Discount))
                         .ToList()),
-                //CategoryCarousel(3, "موبایل", MobileCategoryName, allProducts),
                 CategoryCarousel(4, "عطر و ادکلن", PerfumeCategoryName, perfumeProducts),
-                //CategoryCarousel(5, "ورزش و سفر", SportTravelCategoryName, sportTravelProducts),
-                //CategoryCarousel(6, "قهوه و نوشیدنی", CoffeeDrinkCategoryName, coffeeDrinkProducts)
             });
 
         return Ok(model);
