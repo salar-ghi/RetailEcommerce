@@ -335,8 +335,77 @@ public class ProductService : IProductService
     private async Task<IEnumerable<ProductDto>> ConvertProductsImagesToBase64Async(IEnumerable<ProductDto> products)
     {
         var productList = products.ToList();
+        if (productList.Count == 0)
+            return productList;
 
-        await Task.WhenAll(productList.Select(product => ConvertProductImagesToBase64Async(product)));
+        var allUrls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var product in productList)
+        {
+            if (!string.IsNullOrWhiteSpace(product.CoverImage))
+                allUrls.Add(product.CoverImage);
+
+            if (product.Images != null)
+            {
+                foreach (var img in product.Images)
+                {
+                    if (!string.IsNullOrWhiteSpace(img))
+                        allUrls.Add(img);
+                }
+            }
+
+            if (product.ContentBlocks != null)
+            {
+                foreach (var block in product.ContentBlocks)
+                {
+                    if (!string.IsNullOrWhiteSpace(block.Image))
+                        allUrls.Add(block.Image);
+                }
+            }
+        }
+
+        IReadOnlyDictionary<string, string>? imageMap = null;
+        try
+        {
+            imageMap = await _imageHelper.GetImagesBase64Async(allUrls);
+        }
+        catch
+        {
+            // If batch image helper fails, fall back to individual conversion
+        }
+
+        if (imageMap != null)
+        {
+            foreach (var product in productList)
+            {
+                if (!string.IsNullOrWhiteSpace(product.CoverImage))
+                {
+                    product.CoverImage = imageMap.TryGetValue(product.CoverImage, out var base64) ? base64 : string.Empty;
+                }
+
+                if (product.Images != null)
+                {
+                    product.Images = product.Images
+                        .Select(img => !string.IsNullOrWhiteSpace(img) && imageMap.TryGetValue(img, out var b64) ? b64 : string.Empty)
+                        .Where(img => !string.IsNullOrWhiteSpace(img))
+                        .ToList();
+                }
+
+                if (product.ContentBlocks != null)
+                {
+                    foreach (var block in product.ContentBlocks)
+                    {
+                        if (!string.IsNullOrWhiteSpace(block.Image))
+                        {
+                            block.Image = imageMap.TryGetValue(block.Image, out var b64) ? b64 : string.Empty;
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            await Task.WhenAll(productList.Select(product => ConvertProductImagesToBase64Async(product)));
+        }
 
         return productList;
     }

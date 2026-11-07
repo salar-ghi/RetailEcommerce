@@ -16,6 +16,7 @@ public interface IUnitOfWork : IDisposable
     IRoleRepository Roles { get; }
     IUserRoleRepository UserRoles { get; }
     IUserAddressRepository UserAddresses { get; }
+    IUserActivityRepository UserActivities { get; }
     IProductRepository Products { get; }
     IProductAttributeRepository ProductAttributes { get; }
     IProductDimensionsRepository ProductDimensions { get; }

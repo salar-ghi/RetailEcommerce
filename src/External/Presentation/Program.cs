@@ -52,7 +52,14 @@ builder.Services
         options.JsonSerializerOptions.Converters.Add(new NullableDateTimeJsonConverter());
     });
 
-// Add CORS (example configuration)
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+});
+
+// Add CORS configuration supporting both bazarazad.shop and bzarazad.shop domains
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigins", policy =>
@@ -65,8 +72,20 @@ builder.Services.AddCors(options =>
                 "http://bazarazad.shop",
                 "http://www.bazarazad.shop",
                 "http://api.bazarazad.shop",
+                "http://admin.bazarazad.shop",
                 "http://aadmin.bazarazad.shop",
-                "http://localhost:8000"
+                "https://bzarazad.shop",
+                "https://www.bzarazad.shop",
+                "https://api.bzarazad.shop",
+                "https://admin.bzarazad.shop",
+                "http://bzarazad.shop",
+                "http://www.bzarazad.shop",
+                "http://api.bzarazad.shop",
+                "http://admin.bzarazad.shop",
+                "http://localhost:8000",
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "http://localhost:5174"
             )
             .AllowAnyMethod()
             .AllowAnyHeader()
@@ -235,6 +254,7 @@ using (var scope = app.Services.CreateScope())
 
 app.UseForwardedHeaders();
 app.UseHttpsRedirection();
+app.UseResponseCompression();
 
 app.UseRouting();
 app.UseCors("AllowSpecificOrigins");

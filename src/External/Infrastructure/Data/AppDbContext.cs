@@ -18,6 +18,7 @@ public class AppDbContext : DbContext
     public DbSet<Role> Roles { get; set; }
     public DbSet<UserRole> UserRoles { get; set; }
     public DbSet<UserAddress> UserAddresses { get; set; }
+    public DbSet<UserActivity> UserActivities { get; set; }
 
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductAttribute> ProductAttributes { get; set; }
@@ -82,6 +83,7 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new UserConfiguration());
         modelBuilder.ApplyConfiguration(new RoleConfiguration());
         modelBuilder.ApplyConfiguration(new UserAddressConfiguration());
+        modelBuilder.ApplyConfiguration(new UserActivityConfiguration());
         modelBuilder.ApplyConfiguration(new OrderConfiguration());
         modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
         modelBuilder.ApplyConfiguration(new ProductAttributeConfiguration());
